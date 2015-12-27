@@ -37,4 +37,4 @@ This is identical to **POD** terminology in K8s, we could group one or more **Pr
 
 It has been decided to use `etcd` as data store backend initially.  More support of other DB to be added later.
 
-<img src="common/Store.jpg" width="100%" height="100%">
+<img src="./Store.jpg" width="100%">
