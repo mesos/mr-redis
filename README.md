@@ -1,15 +1,15 @@
-# MrRedis
+# MrRedis  
 
-<img src="./logo.jpg" width="50%" height="50%">
+Mesos runs Redis.
 
-Mesos runs Redis
+<img src="./logo.jpg" width="20%" height="20%"> 
 
 A minimalistic framework for Redis workload on Apache Mesos
 
 This framework supports the following freatures
 
  * Creates/Maintains Single Redis-instance
- * Creates/Maintains Redis-Instances with Master-Slave setup
+ * Creates/Maintains Redis-Instances with Master-Slave setup 
  * Vertical Auto/Manual scaling of a running redis-instance in terms of memory
  * Provides a cli to manage/monitor the redis instances those are being created 
  * A centralized persistance layer enabled by etcd
