@@ -1,5 +1,7 @@
 # MrRedis
 
+<img src="./logo.jpg" width="50%" height="50%">
+
 Mesos runs Redis
 
 A minimalistic framework for Redis workload on Apache Mesos
