@@ -1,6 +1,8 @@
 package serviceproc
 
 import (
+	"fmt"
+	redisclient "gopkg.in/redis.v3"
 	"log"
 	"time"
 )
@@ -8,21 +10,44 @@ import (
 type ProcStats struct {
 	Mem int
 	Cpu int
-	BW  int
+	BW  int //there are way too many stats which can be picked from redis client info command
 }
 
 type ProcMonitor struct {
-	ID   string //monitor id
-	proc *RedisProc
+	ID        string //monitor id
+	proc      *RedisProc
+	redClient *redisclient.Client
 }
 
 func NewProcMonitor(proc *RedisProc) *ProcMonitor {
 	return &ProcMonitor{ID: "", proc: proc}
 }
 
-func monitorStats( /*connected client details*/ ) {
+func (pm *ProcMonitor) monitorStats( /*connected client details*/ ) {
 
+	info, err := pm.redClient.Info().Result()
+	if err != nil {
+		log.Printf("error:", err)
+	}
+
+	log.Printf(info)
 	//read related stats from redis server in question
+}
+
+func (pm *ProcMonitor) GetConnectedClient() *redisclient.Client {
+
+	log.Printf("Monitoring stats")
+
+	client := redisclient.NewClient(&redisclient.Options{
+		Addr:     "localhost:" + fmt.Sprintf("%d", pm.proc.Portno),
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+
+	pong, err := client.Ping().Result()
+	log.Printf(pong, err)
+	//read related stats from redis server in question
+	return client
 }
 
 func (pm *ProcMonitor) SpawnandMonitor() error {
@@ -41,6 +66,11 @@ func (pm *ProcMonitor) SpawnandMonitor() error {
 
 	}()
 
+	//wait for a second for the server to start
+	time.Sleep(1 * time.Second)
+	//then initiate a connection to it; for stats
+	pm.redClient = pm.GetConnectedClient()
+
 	for {
 		select {
 
@@ -52,7 +82,7 @@ func (pm *ProcMonitor) SpawnandMonitor() error {
 			return waitErr
 
 		case <-time.After(1 * time.Second):
-			monitorStats()
+			pm.monitorStats()
 		}
 
 	}
