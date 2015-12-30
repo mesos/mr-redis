@@ -1,9 +1,5 @@
 package DB
 
-import (
-	"fmt"
-	"log"
-)
 
 //A structure that will be able to store a tree of data
 type REC struct {
@@ -17,7 +13,7 @@ type REC struct {
 type DB interface {
 
 	//Perform the inital setup of the database/KV store by creating DB/Namespace etc that are important running MrRedis
-	Setup() error
+	Setup(config string) error
 
 	//Check if the database is setup already or not for Redis Framework
 	IsSetup() bool
@@ -32,10 +28,10 @@ type DB interface {
 	Update(Key string, Value []byte, Lock bool) error
 
 	//Get the value for a particular key (Will be a Select for RDBMS)
-	Get(Key string) []byte
+	Get(Key string) (error, []byte)
 
 	//Delete a particular key from the store (Will be DEL for RDBMS)
-	Del(Key string) string
+	Del(Key string) error
 
 	//Section
 	//Section is a DIR in etcd
