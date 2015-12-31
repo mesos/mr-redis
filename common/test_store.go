@@ -11,7 +11,7 @@ func main() {
 	/* Create a variable for the DB interface */
 	var etcd DB.DB
 	/* Create a variable on the implemented datastore , in this case etcd */
-	etcd = ETCD.New()
+	etcd = etcdStore.New()
 
 	/* Setup etcd with the etcd endpoint*/
 	err := etcd.Setup("http://10.11.12.24:2379")

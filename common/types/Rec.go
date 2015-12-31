@@ -1,8 +1,8 @@
-package Typ
+package types
 
-type REC struct {
+type Rec struct {
 	Key           string
 	Value         []byte
 	Section       bool
-	SectionValues []REC
+	SectionValues []Rec
 }

@@ -1,8 +1,8 @@
-package Typ
+package types
 
 //A structure that will be able to store a tree of data
 
-type INSTANCE struct {
+type ServiceInstance struct {
 	Name    string   //Name of the instance
 	Type    string   //Type of the instance "Single Instance = S; Master-Slave  = MS; Cluster = C
 	Masters int      //Number of masters in this Instance
@@ -11,26 +11,26 @@ type INSTANCE struct {
 	procs   []string //An array of redis-procs in this Instance
 }
 
-func NewInstance(Name string, Type string, Masters int, Slaves int) *INSTANCE {
+func NewServiceInstance(Name string, Type string, Masters int, Slaves int) *ServiceInstance {
 
 	return nil
 }
 
-func (P *INSTANCE) Load() bool {
+func (P *ServiceInstance) Load() bool {
 
 	return false
 }
 
-func (P *INSTANCE) Sync() bool {
+func (P *ServiceInstance) Sync() bool {
 
 	return false
 }
 
-func (P *INSTANCE) SyncType(string) bool {
+func (P *ServiceInstance) SyncType(string) bool {
 
 	return false
 }
-func (P *INSTANCE) SyncSlaves() bool {
+func (P *ServiceInstance) SyncSlaves() bool {
 
 	return false
 }

@@ -1,4 +1,4 @@
-package Typ
+package types
 
 const (
 	ETC_BASE_DIR = "/MrRedis"

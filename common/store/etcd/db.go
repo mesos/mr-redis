@@ -1,4 +1,4 @@
-package ETCD
+package etcdStore
 
 import (
 	_ "fmt"
@@ -58,17 +58,17 @@ func (db *etcdDB) Setup(config string) error {
 		return err
 	}
 
-	err = db.CreateSection(Typ.ETC_BASE_DIR)
+	err = db.CreateSection(types.ETC_BASE_DIR)
 	if err != nil && strings.Contains(err.Error(), "Key already exists") != true {
 		return err
 	}
 
-	err = db.CreateSection(Typ.ETC_INST_DIR)
+	err = db.CreateSection(types.ETC_INST_DIR)
 	if err != nil && strings.Contains(err.Error(), "Key already exists") != true {
 		return err
 	}
 
-	err = db.CreateSection(Typ.ETC_CONF_DIR)
+	err = db.CreateSection(types.ETC_CONF_DIR)
 	if err != nil && strings.Contains(err.Error(), "Key already exists") != true {
 		return err
 	}
@@ -148,14 +148,14 @@ func (db *etcdDB) DeleteSection(Key string) error {
 	return err
 }
 
-func (db *etcdDB) ListSection(Key string, Recursive bool) []Typ.REC {
+func (db *etcdDB) ListSection(Key string, Recursive bool) []types.Rec {
 
 	return nil
 }
 
 func (db *etcdDB) CleanSlate() error {
 
-	_, err := db.Kapi.Delete(db.Ctx, Typ.ETC_BASE_DIR, &cli.DeleteOptions{Dir: true, Recursive: true})
+	_, err := db.Kapi.Delete(db.Ctx, types.ETC_BASE_DIR, &cli.DeleteOptions{Dir: true, Recursive: true})
 
 	return err
 }

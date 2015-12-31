@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
-	"../common/utils"
+	"../../common/utils"
 )
 
 type RedisProc struct {

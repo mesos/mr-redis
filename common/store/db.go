@@ -39,7 +39,7 @@ type DB interface {
 	DeleteSection(Key string) error
 
 	//List the complete secton
-	ListSection(Key string, Recursive bool) []Typ.REC
+	ListSection(Key string, Recursive bool) []types.Rec
 
 	//Completly wipe out the DB/KV store about all the information pertaining to MrRedis
 	CleanSlate() error
