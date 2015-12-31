@@ -1,6 +1,7 @@
 package main
 
 import (
+	"./id"
 	"./store"
 	"./store/etcd"
 	"fmt"
@@ -19,13 +20,15 @@ func main() {
 	fmt.Printf("IsSetup %v\n", etcdConn.IsSetup())
 
 	/*Create a dummy Instance */
-	err = etcdConn.Set("HelloWorld", []byte("How are you"))
+	uid, _ := id.NewUUID()
+	uid_str := uid.String()
+	err = etcdConn.Set(uid_str, []byte("How are you"))
 
 	if err != nil {
 		fmt.Println("Error setting value ", err)
 	}
 
-	err, value := etcdConn.Get("HelloWorld")
+	err, value := etcdConn.Get(uid_str)
 	fmt.Printf("GET err:%v, value:%v\n", err, string(value))
 
 }
