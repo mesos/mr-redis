@@ -1,13 +1,8 @@
 package DB
 
-
-//A structure that will be able to store a tree of data
-type REC struct {
-	Key           string
-	Value         []byte
-	Section       bool
-	SectionValues []REC
-}
+import (
+	"../types"
+)
 
 //Interface that every DB pkg must comply for MrRedis
 type DB interface {
@@ -44,7 +39,7 @@ type DB interface {
 	DeleteSection(Key string) error
 
 	//List the complete secton
-	ListSection(Key string, Recursive bool) []REC
+	ListSection(Key string, Recursive bool) []Typ.REC
 
 	//Completly wipe out the DB/KV store about all the information pertaining to MrRedis
 	CleanSlate() error

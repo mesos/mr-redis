@@ -1,9 +1,6 @@
-package types
+package Typ
 
-import (
-	"fmt"
-	"log"
-)
+//A structure that will be able to store a tree of data
 
 type INSTANCE struct {
 	Name    string   //Name of the instance
@@ -14,31 +11,26 @@ type INSTANCE struct {
 	procs   []string //An array of redis-procs in this Instance
 }
 
-type PROC struct {
-	Name     string //Automatically generated UID
-	Instance string //Name of the instance this proc belongs to
-	Stats    string //Json string of stats
-	CMD      string //Command passing between Maintainer and Executors
-	Status   string //Status of the current proc
-	Type     string //M=Master; S=Slave;  a single char entry that tells us what type of redis proc this is
-	Slaveof  string //If this redis proc is a slave instance
-}
-
 func NewInstance(Name string, Type string, Masters int, Slaves int) *INSTANCE {
+
+	return nil
 }
 
 func (P *INSTANCE) Load() bool {
+
+	return false
 }
 
 func (P *INSTANCE) Sync() bool {
-}
 
-func (P *INSTANCE) Type() string {
+	return false
 }
 
 func (P *INSTANCE) SyncType(string) bool {
+
+	return false
 }
 func (P *INSTANCE) SyncSlaves() bool {
-}
-func (P *INSTANCE) SyncType() bool {
+
+	return false
 }
