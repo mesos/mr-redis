@@ -1,4 +1,4 @@
-package etcdStore
+package etcd
 
 import (
 	_ "fmt"

@@ -1,4 +1,4 @@
-package DB
+package store
 
 import (
 	"../types"
