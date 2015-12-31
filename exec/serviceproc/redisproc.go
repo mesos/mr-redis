@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"../common/utils"
 )
 
 type RedisProc struct {
@@ -17,11 +18,13 @@ type RedisProc struct {
 	State    string
 }
 
+
 func NewRedisProc(procofid string, port int) *RedisProc {
-	//tbd: should generate and fill in the procid
+
 	//tbd: should find out a mechanism to get the instance id in procofid
 	//tbd: get the local system IP and fill in the same; what if there are multiple ips?
-	return &RedisProc{Mem: 0, Cpu: 0, Portno: port, IP: "", ID: "", ProcofID: procofid}
+	id := utils.GenerateRandString(16)
+	return &RedisProc{Mem: 0, Cpu: 0, Portno: port, IP: "", ID: id, ProcofID: procofid}
 }
 
 func (rp *RedisProc) Start(port int) error {
