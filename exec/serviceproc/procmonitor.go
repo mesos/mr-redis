@@ -17,7 +17,7 @@ type ProcMonitor struct {
 	ID        string //monitor id
 	proc      *RedisProc
 	redClient *redisclient.Client
-}k
+}
 
 func NewProcMonitor(proc *RedisProc) *ProcMonitor {
 	return &ProcMonitor{ID: "", proc: proc}
