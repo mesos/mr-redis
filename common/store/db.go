@@ -1,9 +1,5 @@
 package store
 
-import (
-	"../types"
-)
-
 //Interface that every DB pkg must comply for MrRedis
 type DB interface {
 
@@ -17,13 +13,16 @@ type DB interface {
 	Login() error
 
 	//Set the value for the Key , if the key does not exisist create one (Will be an Insert if we RDBMS is introduced)
-	Set(Key string, Value []byte) error
+	Set(Key string, Value string) error
+
+	//Does this key exist in the db already
+	IsKey(Key string) (bool, error)
 
 	//Update a particular Key with the value only if the key is valid already, optionally try to lock the key aswell (Update in RDBMS)
-	Update(Key string, Value []byte, Lock bool) error
+	Update(Key string, Value string, Lock bool) error
 
 	//Get the value for a particular key (Will be a Select for RDBMS)
-	Get(Key string) (error, []byte)
+	Get(Key string) (string, error)
 
 	//Delete a particular key from the store (Will be DEL for RDBMS)
 	Del(Key string) error
@@ -39,7 +38,7 @@ type DB interface {
 	DeleteSection(Key string) error
 
 	//List the complete secton
-	ListSection(Key string, Recursive bool) []types.Rec
+	//	ListSection(Key string, Recursive bool) []types.Rec
 
 	//Completly wipe out the DB/KV store about all the information pertaining to MrRedis
 	CleanSlate() error
