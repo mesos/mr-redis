@@ -2,9 +2,22 @@ package serviceproc
 
 import (
 	"../../common/id"
+	"../../common/store"
+	//	"../../common/types"
 	"fmt"
 	"log"
 	"os/exec"
+	"strconv"
+)
+
+//Golabal variables related to db connection/instace
+var Store store.DB //Global db connection pointer, this will be initialized once abe be used everywhere
+
+//global Constants releated to ETCD
+const (
+	ETC_BASE_DIR = "/MrRedis"
+	ETC_INST_DIR = ETC_BASE_DIR + "/Instances"
+	ETC_CONF_DIR = ETC_BASE_DIR + "/Config"
 )
 
 type RedisProc struct {
@@ -28,6 +41,33 @@ func NewRedisProc(procofid string, port int) (*RedisProc, string) {
 	return &RedisProc{Mem: 0, Cpu: 0, Portno: port, IP: "", ID: uid_str, ProcofID: procofid}, uid_str
 }
 
+func (rp *RedisProc) SettoStore() error {
+	if Store.IsSetup() != true {
+		return fmt.Errorf("the etcd store isn't setup")
+	}
+
+	node_name := ETC_INST_DIR + "/" + rp.ProcofID + "/" + rp.ID + "/"
+
+	Store.Set(node_name+"Portno", fmt.Sprintf("%d", rp.Portno))
+
+	return nil
+}
+
+func (rp *RedisProc) GetfromStore() error {
+
+	if Store.IsSetup() != true {
+		return fmt.Errorf("the etcd store isn't setup")
+	}
+
+	node_name := ETC_INST_DIR + "/" + rp.ProcofID + "/" + rp.ID + "/"
+	tmp_str, err := Store.Get(node_name + "Portno")
+	rp.Portno, err = strconv.Atoi(tmp_str)
+
+	fmt.Println("STORE TEST: The retrieved value of port is %s", tmp_str)
+
+	return err
+}
+
 func (rp *RedisProc) Start(port int) error {
 
 	rp.cmd = exec.Command("redis-server", "--port", fmt.Sprintf("%d", port))
@@ -39,6 +79,14 @@ func (rp *RedisProc) Start(port int) error {
 	}
 
 	fmt.Println("Waiting for the redis server to finish\n")
+
+	//store the data of this proc to etcd
+	err = rp.SettoStore()
+	if err != nil {
+		fmt.Println("error writing to store\n")
+		log.Println(err)
+		return err
+	}
 
 	err = rp.cmd.Wait()
 	if err != nil {
@@ -60,4 +108,3 @@ func (rp *RedisProc) Stop() error {
 	return err
 
 }
-
