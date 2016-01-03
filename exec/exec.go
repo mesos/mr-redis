@@ -33,7 +33,7 @@ import (
 // this also brings in the need of init-executor which will load the info
 //about the existing processes on this slave
 
-var m map[string](*serviceproc.RedisProc)
+var procMap map[string](*serviceproc.RedisProc)
 
 type exampleExecutor struct {
 	tasksLaunched int
@@ -69,15 +69,20 @@ func (exec *exampleExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *me
 
 	exec.tasksLaunched++
 	fmt.Println("Total tasks launched ", exec.tasksLaunched)
-	//
+
 	// this is where one would perform the requested task
 	fmt.Println("Starting Redis server on given port\n")
 
 	//tbd: only the service instance id needs to be passed here; how to get it?
 	//tbd: who gets you the port value?
-	redisproc := serviceproc.NewRedisProc("ServiceInstnsID", 6379)
+	redisproc, uidStr := serviceproc.NewRedisProc("ServiceInstnsID", (6379 + exec.tasksLaunched))
+	procMap[uidStr] = redisproc
+	fmt.Println("spawning a new server with id:%s and proc:%v", uidStr, redisproc)
 	monitor := serviceproc.NewProcMonitor(redisproc)
 
+	//tbd: this needs to be tested by invoking multiple servers on the same executor
+	//if the same executor is used for all launchtasks, we cannot block here
+	//and thus will need a goroutine; (but then why does example put task finished status here)
 	monitor.SpawnandMonitor()
 	// finished the task (success or failure) if returned from the above
 
@@ -120,6 +125,9 @@ func main() {
 	dconfig := exec.DriverConfig{
 		Executor: newExampleExecutor(),
 	}
+
+	//maps which stores the proc pointer wrt UID
+	procMap = make(map[string](*serviceproc.RedisProc))
 
 	//tbd: after new, an init on the executor has to be called
 	//which will read info about existing redis processes
