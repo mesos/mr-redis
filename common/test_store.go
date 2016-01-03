@@ -22,13 +22,13 @@ func main() {
 	/*Create a dummy Instance */
 	uid, _ := id.NewUUID()
 	uid_str := uid.String()
-	err = etcdConn.Set(uid_str, []byte("How are you"))
+	err = etcdConn.Set(uid_str, "How are you")
 
 	if err != nil {
 		fmt.Println("Error setting value ", err)
 	}
 
-	err, value := etcdConn.Get(uid_str)
-	fmt.Printf("GET err:%v, value:%v\n", err, string(value))
+	value, err := etcdConn.Get(uid_str)
+	fmt.Printf("GET err:%v, value:%v\n", err, value)
 
 }

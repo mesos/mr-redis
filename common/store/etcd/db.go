@@ -81,21 +81,21 @@ func (db *etcdDB) IsSetup() bool {
 	return db.isSetup
 }
 
-func (db *etcdDB) Set(Key string, Value []byte) error {
+func (db *etcdDB) Set(Key string, Value string) error {
 
 	_, err := db.Kapi.Set(db.Ctx, Key, string(Value), nil)
 	return err
 
 }
 
-func (db *etcdDB) Get(Key string) (error, []byte) {
+func (db *etcdDB) Get(Key string) (string, error) {
 
 	resp, err := db.Kapi.Get(db.Ctx, Key, nil)
 
 	if err != nil {
-		return err, []byte{}
+		return "", err
 	} else {
-		return nil, []byte(resp.Node.Value)
+		return resp.Node.Value, nil
 	}
 
 }
@@ -110,7 +110,21 @@ func (db *etcdDB) IsDir(Key string) (error, bool) {
 	}
 }
 
-func (db *etcdDB) Update(Key string, Value []byte, Lock bool) error {
+func (db *etcdDB) IsKey(Key string) (bool, error) {
+	resp, err := db.Kapi.Get(db.Ctx, Key, nil)
+
+	if err != nil {
+		if strings.Contains(err.Error(), "Key not found") != true {
+			return false, err
+		} else {
+			return false, nil
+		}
+	} else {
+		return true, nil
+	}
+}
+
+func (db *etcdDB) Update(Key string, Value string, Lock bool) error {
 
 	return nil
 }
