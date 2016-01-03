@@ -111,7 +111,7 @@ func (db *etcdDB) IsDir(Key string) (error, bool) {
 }
 
 func (db *etcdDB) IsKey(Key string) (bool, error) {
-	resp, err := db.Kapi.Get(db.Ctx, Key, nil)
+	_, err := db.Kapi.Get(db.Ctx, Key, nil)
 
 	if err != nil {
 		if strings.Contains(err.Error(), "Key not found") != true {

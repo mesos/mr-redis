@@ -1,7 +1,8 @@
 package types
 
 import (
-	"../store"
+	"fmt"
+	"log"
 	"strconv"
 )
 
@@ -33,16 +34,25 @@ func NewInstance(Name string, Type string, Masters int, Slaves int) *Instance {
 
 func (I *Instance) Load() bool {
 
+	var err error
+	var tmp_str string
+
 	if Gdb.IsSetup() != true {
 		return false
 	}
 
-	node_name := ETC_INST_DIR + "/" + P.Name + "/"
-	I.Type = Gdb.Get(node_name + "Type")
-	I.Masters = strconv.Itoa(Gdb.Get(node_name + "Masters"))
-	I.Slaves = strconv.Itoa(Gdb.Get(node_name + "Slaves"))
-	I.Status = Gdb.Get(node_name + "Status")
-	I.PNames = Gdb.Get(node_name + "PNames")
+	node_name := ETC_INST_DIR + "/" + I.Name + "/"
+	I.Type, err = Gdb.Get(node_name + "Type")
+	tmp_str, err = Gdb.Get(node_name + "Masters")
+	I.Masters, err = strconv.Atoi(tmp_str)
+	tmp_str, err = Gdb.Get(node_name + "Slaves")
+	I.Slaves, err = strconv.Atoi(tmp_str)
+	I.Status, err = Gdb.Get(node_name + "Status")
+	I.PNames, err = Gdb.Get(node_name + "PNames")
+
+	if err != nil {
+		log.Printf("The error value is %v", err)
+	}
 
 	return true
 }
@@ -55,7 +65,7 @@ func (I *Instance) Sync() bool {
 		return false
 	}
 
-	node_name := ETC_INST_DIR + "/" + P.Name + "/"
+	node_name := ETC_INST_DIR + "/" + I.Name + "/"
 
 	Gdb.Set(node_name+"Type", I.Type)
 	Gdb.Set(node_name+"Masters", fmt.Sprintf("%d", I.Masters))
@@ -72,7 +82,7 @@ func (I *Instance) SyncType(string) bool {
 		return false
 	}
 
-	node_name := ETC_INST_DIR + "/" + P.Name + "/"
+	node_name := ETC_INST_DIR + "/" + I.Name + "/"
 	Gdb.Set(node_name+"Type", I.Type)
 	return false
 }
@@ -83,7 +93,7 @@ func (I *Instance) SyncSlaves() bool {
 		return false
 	}
 
-	node_name := ETC_INST_DIR + "/" + P.Name + "/"
+	node_name := ETC_INST_DIR + "/" + I.Name + "/"
 	Gdb.Set(node_name+"Slaves", fmt.Sprintf("%d", I.Slaves))
 	Gdb.Set(node_name+"PNames", I.PNames)
 	return true
@@ -95,7 +105,7 @@ func (I *Instance) SyncMasters() bool {
 		return false
 	}
 
-	node_name := ETC_INST_DIR + "/" + P.Name + "/"
+	node_name := ETC_INST_DIR + "/" + I.Name + "/"
 	Gdb.Set(node_name+"Masters", fmt.Sprintf("%d", I.Slaves))
 	Gdb.Set(node_name+"PNames", I.PNames)
 	return true
