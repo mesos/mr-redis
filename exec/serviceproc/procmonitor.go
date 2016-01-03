@@ -25,12 +25,13 @@ func NewProcMonitor(proc *RedisProc) *ProcMonitor {
 
 func (pm *ProcMonitor) monitorStats( /*connected client details*/ ) {
 
-	info, err := pm.redClient.Info().Result()
+	_, err := pm.redClient.Info().Result()
 	if err != nil {
 		log.Printf("error:", err)
 	}
+	log.Printf("MONITORING STATS")
 
-	log.Printf(info)
+	//log.Printf(info)
 	//read related stats from redis server in question
 }
 

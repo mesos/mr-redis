@@ -1,10 +1,10 @@
 package serviceproc
 
 import (
+	"../../common/id"
 	"fmt"
 	"log"
 	"os/exec"
-	"../../common/utils"
 )
 
 type RedisProc struct {
@@ -18,13 +18,14 @@ type RedisProc struct {
 	State    string
 }
 
-
-func NewRedisProc(procofid string, port int) *RedisProc {
+func NewRedisProc(procofid string, port int) (*RedisProc, string) {
 
 	//tbd: should find out a mechanism to get the instance id in procofid
 	//tbd: get the local system IP and fill in the same; what if there are multiple ips?
-	id := utils.GenerateRandString(16)
-	return &RedisProc{Mem: 0, Cpu: 0, Portno: port, IP: "", ID: id, ProcofID: procofid}
+	uid, _ := id.NewUUID()
+	uid_str := uid.String()
+
+	return &RedisProc{Mem: 0, Cpu: 0, Portno: port, IP: "", ID: uid_str, ProcofID: procofid}, uid_str
 }
 
 func (rp *RedisProc) Start(port int) error {
@@ -33,7 +34,7 @@ func (rp *RedisProc) Start(port int) error {
 	err := rp.cmd.Start()
 	if err != nil {
 		fmt.Println("error starting the redis server\n")
-		log.Fatal(err)
+		log.Println(err)
 		return err
 	}
 
@@ -42,7 +43,7 @@ func (rp *RedisProc) Start(port int) error {
 	err = rp.cmd.Wait()
 	if err != nil {
 		fmt.Println("error waiting for redis server to finish\n")
-		log.Fatal(err)
+		log.Println(err)
 		return err
 	}
 
@@ -59,3 +60,4 @@ func (rp *RedisProc) Stop() error {
 	return err
 
 }
+

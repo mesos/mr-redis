@@ -27,6 +27,14 @@ import (
 	mesos "github.com/mesos/mesos-go/mesosproto"
 )
 
+//tbd: the monitoring needs to be improved and should be monitoring the launched
+// process pid in the system, and the launched process should not exit
+// in case there is a problem with the executor and it exits
+// this also brings in the need of init-executor which will load the info
+//about the existing processes on this slave
+
+var m map[string](*serviceproc.RedisProc)
+
 type exampleExecutor struct {
 	tasksLaunched int
 }
@@ -112,6 +120,11 @@ func main() {
 	dconfig := exec.DriverConfig{
 		Executor: newExampleExecutor(),
 	}
+
+	//tbd: after new, an init on the executor has to be called
+	//which will read info about existing redis processes
+	//also need to check how mesos handles executor errors
+
 	driver, err := exec.NewMesosExecutorDriver(dconfig)
 
 	if err != nil {
@@ -130,4 +143,3 @@ func main() {
 	}
 	fmt.Println("executor terminating")
 }
-
