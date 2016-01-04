@@ -58,18 +58,6 @@ func (exec *exampleExecutor) Disconnected(exec.ExecutorDriver) {
 func (exec *exampleExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *mesos.TaskInfo) {
 	fmt.Println("Launching task", taskInfo.GetName(), "with command", taskInfo.Command.GetValue())
 
-	runStatus := &mesos.TaskStatus{
-		TaskId: taskInfo.GetTaskId(),
-		State:  mesos.TaskState_TASK_RUNNING.Enum(),
-	}
-	_, err := driver.SendStatusUpdate(runStatus)
-	if err != nil {
-		fmt.Println("Got error", err)
-	}
-
-	exec.tasksLaunched++
-	fmt.Println("Total tasks launched ", exec.tasksLaunched)
-
 	// this is where one would perform the requested task
 	fmt.Println("Starting Redis server on given port\n")
 
@@ -83,8 +71,24 @@ func (exec *exampleExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *me
 	//tbd: this needs to be tested by invoking multiple servers on the same executor
 	//if the same executor is used for all launchtasks, we cannot block here
 	//and thus will need a goroutine; (but then why does example put task finished status here)
-	monitor.SpawnandMonitor()
+	go func(monitor *serviceproc.ProcMonitor) {
+
+		monitor.SpawnandMonitor()
+
+	}(monitor)
 	// finished the task (success or failure) if returned from the above
+
+	runStatus := &mesos.TaskStatus{
+		TaskId: taskInfo.GetTaskId(),
+		State:  mesos.TaskState_TASK_RUNNING.Enum(),
+	}
+	_, err := driver.SendStatusUpdate(runStatus)
+	if err != nil {
+		fmt.Println("Got error", err)
+	}
+
+	exec.tasksLaunched++
+	fmt.Println("Total tasks launched ", exec.tasksLaunched)
 
 	fmt.Println("Finishing task", taskInfo.GetName())
 	finStatus := &mesos.TaskStatus{
