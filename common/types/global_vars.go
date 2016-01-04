@@ -5,7 +5,9 @@ import (
 )
 
 //Golabal variables related to db connection/instace
-var Gdb store.DB //Global db connection pointer, this will be initialized once abe be used everywhere
+var Gdb store.DB
+
+//Global db connection pointer, this will be initialized once abe be used everywhere
 
 //global Constants releated to ETCD
 const (
