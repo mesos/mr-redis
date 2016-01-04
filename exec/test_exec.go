@@ -9,9 +9,12 @@ import (
 	"./serviceproc"
 	"log"
 	"time"
+	"fmt"
+	"github.com/mesos/mesos-go/executor"
 )
 
 var procMap map[string](*serviceproc.RedisProc)
+var driver executor.ExecutorDriver
 
 func main() {
 	log.Printf("Starting Redis server on given port\n")
@@ -28,10 +31,10 @@ func main() {
 	//tbd: only the service instance id needs to be passed here; how to get it?
 	//tbd: who gets you the port value?
 	for i := 0; i < 2; i++ {
-		redisproc, uidStr := serviceproc.NewRedisProc("ServiceInstnsID", (6379 + i))
-		procMap[uidStr] = redisproc
-		log.Printf("spawning a new server with id:%s and proc:%v", uidStr, redisproc)
-		monitor := serviceproc.NewProcMonitor(redisproc)
+		redisproc := serviceproc.NewRedisProc("ServiceInstnsID", (6379 + i), fmt.Sprintf("%d", i))
+		procMap[fmt.Sprintf("%d", i)] = redisproc
+		log.Printf("spawning a new server with id:%d and proc:%v", i, redisproc)
+		monitor := serviceproc.NewProcMonitor(redisproc, &driver)
 
 		//the launch task returns after spawning this
 		go func(monitor *serviceproc.ProcMonitor) {
