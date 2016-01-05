@@ -1,9 +1,9 @@
 package serviceproc
 
 import (
-	"../../common/id"
+
 	"../../common/store"
-	//	"../../common/types"
+
 	"fmt"
 	"log"
 	"os/exec"
@@ -31,14 +31,12 @@ type RedisProc struct {
 	State    string
 }
 
-func NewRedisProc(procofid string, port int) (*RedisProc, string) {
+func NewRedisProc(procofid string, port int, procid string) *RedisProc {
 
 	//tbd: should find out a mechanism to get the instance id in procofid
 	//tbd: get the local system IP and fill in the same; what if there are multiple ips?
-	uid, _ := id.NewUUID()
-	uid_str := uid.String()
 
-	return &RedisProc{Mem: 0, Cpu: 0, Portno: port, IP: "", ID: uid_str, ProcofID: procofid}, uid_str
+	return &RedisProc{Mem: 0, Cpu: 0, Portno: port, IP: "", ID: procid, ProcofID: procofid}
 }
 
 func (rp *RedisProc) SettoStore() error {

@@ -58,6 +58,32 @@ func (exec *exampleExecutor) Disconnected(exec.ExecutorDriver) {
 func (exec *exampleExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *mesos.TaskInfo) {
 	fmt.Println("Launching task", taskInfo.GetName(), "with command", taskInfo.Command.GetValue())
 
+	// this is where one would perform the requested task
+	fmt.Println("Starting Redis server on given port\n")
+
+	//tbd: only the service instance id needs to be passed here; how to get it?
+	//tbd: who gets you the port value?
+	//we will use the instanceid sent in data field of taskinfo and will use taskinfo.taskid for this task actual id
+	//also this launched task can send a taskstatus with similar info
+	//is there any use of Labels for us??
+	tid := taskInfo.GetTaskId().GetValue()
+	redisproc := serviceproc.NewRedisProc("ServiceInstnsID", (6379 + exec.tasksLaunched), tid)
+	procMap[tid] = redisproc
+
+	fmt.Println("spawning a new server with id:%s and proc:%v", tid, redisproc)
+
+	monitor := serviceproc.NewProcMonitor(redisproc, &driver)
+
+	//tbd: this needs to be tested by invoking multiple servers on the same executor
+	//if the same executor is used for all launchtasks, we cannot block here
+	//and thus will need a goroutine; (but then why does example put task finished status here)
+	go func(monitor *serviceproc.ProcMonitor) {
+
+		monitor.SpawnandMonitor()
+
+	}(monitor)
+	// finished the task (success or failure) if returned from the above
+
 	runStatus := &mesos.TaskStatus{
 		TaskId: taskInfo.GetTaskId(),
 		State:  mesos.TaskState_TASK_RUNNING.Enum(),
@@ -69,22 +95,6 @@ func (exec *exampleExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *me
 
 	exec.tasksLaunched++
 	fmt.Println("Total tasks launched ", exec.tasksLaunched)
-
-	// this is where one would perform the requested task
-	fmt.Println("Starting Redis server on given port\n")
-
-	//tbd: only the service instance id needs to be passed here; how to get it?
-	//tbd: who gets you the port value?
-	redisproc, uidStr := serviceproc.NewRedisProc("ServiceInstnsID", (6379 + exec.tasksLaunched))
-	procMap[uidStr] = redisproc
-	fmt.Println("spawning a new server with id:%s and proc:%v", uidStr, redisproc)
-	monitor := serviceproc.NewProcMonitor(redisproc)
-
-	//tbd: this needs to be tested by invoking multiple servers on the same executor
-	//if the same executor is used for all launchtasks, we cannot block here
-	//and thus will need a goroutine; (but then why does example put task finished status here)
-	monitor.SpawnandMonitor()
-	// finished the task (success or failure) if returned from the above
 
 	fmt.Println("Finishing task", taskInfo.GetName())
 	finStatus := &mesos.TaskStatus{

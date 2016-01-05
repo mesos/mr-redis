@@ -5,6 +5,7 @@ import (
 	redisclient "gopkg.in/redis.v3"
 	"log"
 	"time"
+	"github.com/mesos/mesos-go/executor"
 )
 
 type ProcStats struct {
@@ -17,10 +18,11 @@ type ProcMonitor struct {
 	ID        string //monitor id
 	proc      *RedisProc
 	redClient *redisclient.Client
+	execDriver *executor.ExecutorDriver
 }
 
-func NewProcMonitor(proc *RedisProc) *ProcMonitor {
-	return &ProcMonitor{ID: "", proc: proc}
+func NewProcMonitor(proc *RedisProc, driver *executor.ExecutorDriver) *ProcMonitor {
+	return &ProcMonitor{ID: "", proc: proc, execDriver: driver}
 }
 
 func (pm *ProcMonitor) monitorStats( /*connected client details*/ ) {
