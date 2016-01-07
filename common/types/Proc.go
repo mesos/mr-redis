@@ -4,7 +4,7 @@ import (
 	"os/exec"
 )
 
-type RedisProc struct {
+type Proc struct {
 	cmd      *exec.Cmd
 	Mem      int
 	Cpu      int
