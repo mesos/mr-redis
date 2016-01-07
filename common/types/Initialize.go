@@ -19,5 +19,7 @@ func Initialize(dbtype string, config string) (bool, error) {
 		break
 	}
 
-	return false, nil
+	MemDb = NewInMem()
+
+	return true, nil
 }

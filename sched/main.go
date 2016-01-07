@@ -29,7 +29,7 @@ func main() {
 		log.Fatalf("Failed to intialize Error:%v return %v", err, isInit)
 	}
 
-	//Start HTTP server and related things
+	//Start HTTP server and related things to handle restfull calls to the scheduler
 	httplib.Run(HTTP_SERVER_PORT)
 
 	//Start mesos scheduler and related things
