@@ -1,8 +1,13 @@
 package httplib
 
 import (
-	"github.com/astaxie/beego"
+	"fmt"
 	"log"
+	"strconv"
+
+	"github.com/astaxie/beego"
+
+	"../../common/types"
 )
 
 type MainController struct {
@@ -19,24 +24,44 @@ func (this *MainController) CreateInstance() {
 	var capacity, masters, slaves int
 
 	//Parse the input URL
+	name = this.Ctx.Input.Param(":INSTANCENAME")                  //Get the name of the instnace
+	capacity, _ = strconv.Atoi(this.Ctx.Input.Param(":CAPACITY")) // Get the capacity of the instance in MB
+	masters, _ = strconv.Atoi(this.Ctx.Input.Param(":MASTERS"))   // Get the capacity of the instance in MB
+	slaves, _ = strconv.Atoi(this.Ctx.Input.Param(":SLAVES"))     // Get the capacity of the instance in MB
+
+	log.Printf("Instance Name=%s, Capacity=%d, masters=%d, slaves=%d\n", name, capacity, masters, slaves)
 
 	//Check the in-memory map if the instance already exist then return
+	if types.MemDb.IsValid(name) {
+		//The instance already exist return cannot create again return error
+		this.Ctx.WriteString(fmt.Sprintf("Instance %s already exist, cannot be create", name))
+		return
+	}
 
 	//Check the central storage  if the instanc already exist then return
+	tmp_instance := types.LoadInstance(name)
+
+	if tmp_instance != nil {
+		types.MemDb.Add(name, tmp_instance)
+		this.Ctx.WriteString(fmt.Sprintf("Instance %s already exist, cannot be create", name))
+		return
+	}
 
 	//create a instance object
-
-	//Sync the instance object to central store
-
-	//update the in memeory store
+	tmp_instance = types.NewInstance(name, "S", masters, slaves)
+	tmp_instance.Sync()
 
 	//Send it across to creator's channel
-	this.Ctx.WriteString("Request Placed for creating instance")
+	types.Cchan <- tmp_instance
+
+	//this.Ctx.Output.SetStatus(201)
+	this.Ctx.ResponseWriter.WriteHeader(201)
+	this.Ctx.WriteString("Request Accepted, Instance will be created.")
 }
 
 func (this *MainController) DeleteInstance() {
 
-	var name string
+	//var name string
 
 	//Parse the input URL
 
@@ -50,7 +75,7 @@ func (this *MainController) DeleteInstance() {
 
 func (this *MainController) Status() {
 
-	var name string
+	//var name string
 
 	//parse the input URL
 
@@ -65,7 +90,7 @@ func (this *MainController) Status() {
 
 func (this *MainController) UpdateMemory() {
 
-	var name string
+	//var name string
 
 	//parse the input URL
 
@@ -80,7 +105,7 @@ func (this *MainController) UpdateMemory() {
 
 func (this *MainController) UpdateSlaves() {
 
-	var name string
+	//var name string
 
 	//parse the input URL
 

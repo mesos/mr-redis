@@ -11,13 +11,13 @@ import (
 //A structure that will be able to store a tree of data
 
 type Instance struct {
-	Name    string      //Name of the instance
-	Type    string      //Type of the instance "Single Instance = S; Master-Slave  = MS; Cluster = C
-	Masters int         //Number of masters in this Instance
-	Slaves  int         //Number of slaves in this instance
-	Status  string      //Status of this instance "CREATING/ACTIVE/DELETED/DISABLED"
-	PNames  string      //A list of comma seperated ids of Redis Procs
-	Procs   []RedisProc //An array of redis procs to be filled later
+	Name    string //Name of the instance
+	Type    string //Type of the instance "Single Instance = S; Master-Slave  = MS; Cluster = C
+	Masters int    //Number of masters in this Instance
+	Slaves  int    //Number of slaves in this instance
+	Status  string //Status of this instance "CREATING/ACTIVE/DELETED/DISABLED"
+	PNames  string //A list of comma seperated ids of Redis Procs
+	Procs   []Proc //An array of redis procs to be filled later
 }
 
 // Creates a new instance variable
@@ -29,6 +29,29 @@ func NewInstance(Name string, Type string, Masters int, Slaves int) *Instance {
 
 	p := &Instance{Name: Name, Type: Type, Masters: Masters, Slaves: Slaves}
 	return p
+}
+
+//Load an instnace from the store using Instance Name from the store
+// if the instance is unavailable then return nil
+
+func LoadInstance(Name string) *Instance {
+
+	if Gdb.IsSetup() != true {
+		return nil
+	}
+
+	node_name := etcd.ETC_INST_DIR + "/" + Name
+
+	if ok, _ := Gdb.IsKey(node_name); !ok {
+		return nil
+	}
+
+	I := &Instance{Name: Name}
+
+	I.Load()
+
+	return I
+
 }
 
 // Loads up the datastructure for the given Service Name to the struture
