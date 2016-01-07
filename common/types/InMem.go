@@ -20,7 +20,7 @@ func (inMem *InMem) IsValid(name string) bool {
 }
 
 //Use add to add a new Instance entry in the inmemory, throws error if the element already exist
-func (inMem *InMem) Add(name string, instance *Instnace) (bool, error) {
+func (inMem *InMem) Add(name string, instance *Instance) (bool, error) {
 
 	if inMem.IsValid(name) == true {
 		return false, nil
@@ -32,7 +32,7 @@ func (inMem *InMem) Add(name string, instance *Instnace) (bool, error) {
 }
 
 //use this to update an existing value, throws error otherwise
-func (inMem *InMem) Update(name string, instance *Instnace) (bool, error) {
+func (inMem *InMem) Update(name string, instance *Instance) (bool, error) {
 	if inMem.IsValid(name) == false {
 		return false, nil
 	}
@@ -47,6 +47,6 @@ func (inMem *InMem) Delete(name string) (bool, error) {
 		return false, nil
 	}
 
-	delete(inMem.I[name])
+	delete(inMem.I, name)
 	return true, nil
 }

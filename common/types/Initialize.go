@@ -1,6 +1,7 @@
 package types
 
 import (
+	"container/list"
 	"log"
 
 	"../store/etcd"
@@ -8,6 +9,17 @@ import (
 
 func Initialize(dbtype string, config string) (bool, error) {
 
+	//Initalize all the communication channels
+	OfferList = list.New()
+	OfferList.Init()
+	Cchan = make(chan *Instance)
+	Mchan = make(chan *TaskUpdate) //Channel for Maintainer
+	Dchan = make(chan *Proc)       //Channel for Destroyer
+
+	//Initalize the Internal in-memory storage
+	MemDb = NewInMem()
+
+	//Initalize the store db
 	switch dbtype {
 	case "etcd":
 		Gdb = etcd.New()
@@ -18,8 +30,6 @@ func Initialize(dbtype string, config string) (bool, error) {
 		return Gdb.IsSetup(), nil
 		break
 	}
-
-	MemDb = NewInMem()
 
 	return true, nil
 }
