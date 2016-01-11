@@ -3,6 +3,7 @@ package mesoslib
 import (
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"strings"
 
@@ -29,20 +30,20 @@ func serveExecutorArtifact(path string, IP, Port string) (*string, string) {
 	}
 	serveFile("/"+base, path)
 
-	hostURI := fmt.Sprintf("http://%s:%d/%s", IP, Port, base)
+	hostURI := fmt.Sprintf("http://%s:%s/%s", IP, Port, base)
 	log.Printf("Hosting artifact '%s' at '%s'", path, hostURI)
 
 	return &hostURI, base
 }
 
-func prepareExecutorInfo(IP, Port string) *mesos.ExecutorInfo {
+func prepareExecutorInfo(IP, Port, executorPath string) *mesos.ExecutorInfo {
 	executorUris := []*mesos.CommandInfo_URI{}
-	uri, executorCmd := serveExecutorArtifact(executorPath)
+	uri, executorCmd := serveExecutorArtifact(executorPath, IP, Port)
 	executorUris = append(executorUris, &mesos.CommandInfo_URI{Value: uri, Executable: proto.Bool(true)})
 
 	executorCommand := fmt.Sprintf("./%s -logtostderr=true ", executorCmd)
 
-	go http.ListenAndServe(fmt.Sprintf("%s:%d", *address, *artifactPort), nil)
+	go http.ListenAndServe(fmt.Sprintf("%s:%s", IP, Port), nil)
 	log.Printf("Serving executor artifacts...")
 
 	// Create mesos scheduler driver.
@@ -65,7 +66,7 @@ func prepareExecutorInfo(IP, Port string) *mesos.ExecutorInfo {
 // CurrentServerPort = The port at which we will distribute the executor to slaves
 // Master Port and Current server port has default falues
 
-func parseConfig(config string) {
+func parseConfig(config string) (string, string, string, string) {
 
 	splitconfig := strings.Split(config, ",")
 
@@ -74,7 +75,7 @@ func parseConfig(config string) {
 	sIP := ""
 	sP := "5544"
 
-	for i := 0; len(splitconfig); i++ {
+	for i := 0; len(splitconfig) > 0; i++ {
 		switch i {
 		case 0:
 			mIP = splitconfig[i] //Extract the master IP
@@ -95,19 +96,25 @@ func parseConfig(config string) {
 
 }
 
-func Run(config string) {
+func parseIP(address string) net.IP {
+	addr, err := net.LookupIP(address)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if len(addr) < 1 {
+		log.Fatalf("failed to parse IP from address '%v'", address)
+	}
+	return addr[0]
+}
 
-	var MasterIP string
-	var MasterPort string
-	var ServerIP string
-	var ServerPort string
+func Run(MasterIP, MasterPort, ServerIP, ServerPort, executorPath string) {
 
 	//Split the configuration string
 
-	MasterIP, MasterPort, ServerIP, ServerPort = parseConfig(config)
+	//MasterIP, MasterPort, ServerIP, ServerPort = parseConfig(config)
 
 	//Get executor information
-	exec := prepareExecutorInfo(ServerIP, ServerPort)
+	exec := prepareExecutorInfo(ServerIP, ServerPort, executorPath)
 
 	// the framework
 	fwinfo := &mesos.FrameworkInfo{
@@ -124,7 +131,7 @@ func Run(config string) {
 		Framework:      fwinfo,
 		Master:         MasterIP + ":" + MasterPort,
 		Credential:     nil,
-		BindingAddress: ServerIP,
+		BindingAddress: parseIP(ServerIP),
 	}
 
 	driver, err := sched.NewMesosSchedulerDriver(sched_config)

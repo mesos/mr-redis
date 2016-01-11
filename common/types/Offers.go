@@ -7,6 +7,6 @@ type Offer struct {
 	IsMaster bool   //Is this instance a master
 }
 
-func NewOffer(name string, cpu int, mem int, ismaster bool) *Offer {
-	return &Offer{Taskname: name, Cpu: cpu, Mem: mem, IsMaster: ismaster}
+func NewOffer(name string, cpu int, mem int, ismaster bool) Offer {
+	return Offer{Taskname: name, Cpu: cpu, Mem: mem, IsMaster: ismaster}
 }

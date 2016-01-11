@@ -3,12 +3,12 @@ package mesoslib
 import (
 	"log"
 
+	"github.com/gogo/protobuf/proto"
 	mesos "github.com/mesos/mesos-go/mesosproto"
 	util "github.com/mesos/mesos-go/mesosutil"
 	sched "github.com/mesos/mesos-go/scheduler"
-	"golang.org/x/net/context"
 
-	"../../common/types"
+	typ "../../common/types"
 )
 
 type MrRedisScheduler struct {
@@ -50,7 +50,7 @@ func (S *MrRedisScheduler) ResourceOffers(driver sched.SchedulerDriver, offers [
 	//Pick one task and check if any of the offer is suitable
 
 	//Loop throught he offers
-	for i, offer := range offers {
+	for _, offer := range offers {
 
 		cpuResources := util.FilterResources(offer.Resources, func(res *mesos.Resource) bool {
 			return res.GetName() == "cpus"
@@ -72,9 +72,13 @@ func (S *MrRedisScheduler) ResourceOffers(driver sched.SchedulerDriver, offers [
 		var tasks []*mesos.TaskInfo
 
 		//Loop through the tasks
-		for tsk := typ.OfferList.Front(); tsk != nil; tsk = tsk.Next() {
+		for tsk_ele := typ.OfferList.Front(); tsk_ele != nil; tsk_ele = tsk_ele.Next() {
 
-			if cpus >= tsk.Cpu && mems >= tsk.Mem {
+			tsk := tsk_ele.Value.(typ.Offer)
+			tskCpu_float := float64(tsk.Cpu)
+			tskMem_float := float64(tsk.Mem)
+
+			if cpus >= tskCpu_float && mems >= tskMem_float {
 				tsk_id := &mesos.TaskID{Value: proto.String(tsk.Taskname)}
 				mesos_tsk := &mesos.TaskInfo{
 					Name:     proto.String(tsk.Taskname),
@@ -82,14 +86,14 @@ func (S *MrRedisScheduler) ResourceOffers(driver sched.SchedulerDriver, offers [
 					SlaveId:  offer.SlaveId,
 					Executor: S.executor,
 					Resources: []*mesos.Resource{
-						util.NewScalarResource("cpus", tsk.Cpu),
-						util.NewScalarResource("mem", tsk.Mem),
+						util.NewScalarResource("cpus", tskCpu_float),
+						util.NewScalarResource("mem", tskMem_float),
 					},
 				}
-				mems -= tsk.Mem
-				cpus -= tsk.Cpu
+				mems -= tskMem_float
+				cpus -= tskCpu_float
 
-				typ.OfferList.Remove(tsk)
+				typ.OfferList.Remove(tsk_ele)
 				tasks = append(tasks, mesos_tsk)
 
 			}
@@ -106,21 +110,21 @@ func (S *MrRedisScheduler) StatusUpdate(driver sched.SchedulerDriver, status *me
 }
 
 func (S *MrRedisScheduler) OfferRescinded(_ sched.SchedulerDriver, oid *mesos.OfferID) {
-	log.Errorf("offer rescinded: %v", oid)
+	log.Printf("offer rescinded: %v", oid)
 }
 
 func (S *MrRedisScheduler) FrameworkMessage(_ sched.SchedulerDriver, eid *mesos.ExecutorID, sid *mesos.SlaveID, msg string) {
-	log.Errorf("framework message from executor %q slave %q: %q", eid, sid, msg)
+	log.Printf("framework message from executor %q slave %q: %q", eid, sid, msg)
 }
 
 func (S *MrRedisScheduler) SlaveLost(_ sched.SchedulerDriver, sid *mesos.SlaveID) {
-	log.Errorf("slave lost: %v", sid)
+	log.Printf("slave lost: %v", sid)
 }
 
 func (S *MrRedisScheduler) ExecutorLost(_ sched.SchedulerDriver, eid *mesos.ExecutorID, sid *mesos.SlaveID, code int) {
-	log.Errorf("executor %q lost on slave %q code %d", eid, sid, code)
+	log.Printf("executor %q lost on slave %q code %d", eid, sid, code)
 }
 
 func (S *MrRedisScheduler) Error(_ sched.SchedulerDriver, err string) {
-	log.Errorf("Scheduler received error:", err)
+	log.Printf("Scheduler received error:", err)
 }
