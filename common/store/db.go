@@ -37,8 +37,8 @@ type DB interface {
 	//Delete Section
 	DeleteSection(Key string) error
 
-	//List the complete secton
-	//	ListSection(Key string, Recursive bool) []types.Rec
+	//List the complete secton if recursive then list the entirer directory tree, only the key not the value
+	ListSection(Key string, Recursive bool) ([]string, error)
 
 	//Completly wipe out the DB/KV store about all the information pertaining to MrRedis
 	CleanSlate() error

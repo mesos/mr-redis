@@ -11,13 +11,17 @@ import (
 //A structure that will be able to store a tree of data
 
 type Instance struct {
-	Name    string //Name of the instance
-	Type    string //Type of the instance "Single Instance = S; Master-Slave  = MS; Cluster = C
-	Masters int    //Number of masters in this Instance
-	Slaves  int    //Number of slaves in this instance
-	Status  string //Status of this instance "CREATING/ACTIVE/DELETED/DISABLED"
-	PNames  string //A list of comma seperated ids of Redis Procs
-	Procs   []Proc //An array of redis procs to be filled later
+	Name       string           //Name of the instance
+	Type       string           //Type of the instance "Single Instance = S; Master-Slave  = MS; Cluster = C"
+	Capacity   int              //Capacity of the Instance in MB
+	Masters    int              //Number of masters in this Instance
+	Slaves     int              //Number of slaves in this Instance
+	ExpMasters int              //Expected number of Masters
+	ExpSlaves  int              //Expected number of Slaves
+	Status     string           //Status of this instance "CREATING/ACTIVE/DELETED/DISABLED"
+	Mname      string           //Name / task id of the master redis proc
+	Snames     []string         //Name of the slave
+	Procs      map[string]*Proc //An array of redis procs to be filled later
 }
 
 // Creates a new instance variable
@@ -25,9 +29,9 @@ type Instance struct {
 // Returns an instnace pointer
 // Returns nil if the instance already exists
 
-func NewInstance(Name string, Type string, Masters int, Slaves int) *Instance {
+func NewInstance(Name string, Type string, Masters int, Slaves int, Cap int) *Instance {
 
-	p := &Instance{Name: Name, Type: Type, Masters: Masters, Slaves: Slaves}
+	p := &Instance{Name: Name, Type: Type, ExpMasters: Masters, ExpSlaves: Slaves, Capacity: Cap}
 	return p
 }
 
@@ -68,12 +72,21 @@ func (I *Instance) Load() bool {
 
 	node_name := etcd.ETC_INST_DIR + "/" + I.Name + "/"
 	I.Type, err = Gdb.Get(node_name + "Type")
+	tmp_str, err = Gdb.Get(node_name + "Capacity")
+	I.Capacity, err = strconv.Atoi(tmp_str)
 	tmp_str, err = Gdb.Get(node_name + "Masters")
 	I.Masters, err = strconv.Atoi(tmp_str)
 	tmp_str, err = Gdb.Get(node_name + "Slaves")
 	I.Slaves, err = strconv.Atoi(tmp_str)
+	tmp_str, err = Gdb.Get(node_name + "ExpMasters")
+	I.ExpMasters, err = strconv.Atoi(tmp_str)
+	tmp_str, err = Gdb.Get(node_name + "ExpSlaves")
+	I.ExpSlaves, err = strconv.Atoi(tmp_str)
 	I.Status, err = Gdb.Get(node_name + "Status")
-	I.PNames, err = Gdb.Get(node_name + "PNames")
+	I.Mname, err = Gdb.Get(node_name + "Mname")
+
+	node_name_slaves := node_name + "Snames/"
+	I.Snames, err = Gdb.ListSection(node_name_slaves, false)
 
 	if err != nil {
 		log.Printf("The error value is %v", err)
@@ -94,9 +107,26 @@ func (I *Instance) Sync() bool {
 
 	Gdb.Set(node_name+"Type", I.Type)
 	Gdb.Set(node_name+"Masters", fmt.Sprintf("%d", I.Masters))
-	Gdb.Set(node_name+"Slaves", fmt.Sprintf("%d", I.Slaves))
+	Gdb.Set(node_name+"Capacity", fmt.Sprintf("%d", I.Masters))
+	Gdb.Set(node_name+"ExpMasters", fmt.Sprintf("%d", I.Masters))
+	Gdb.Set(node_name+"ExpSlaves", fmt.Sprintf("%d", I.Slaves))
 	Gdb.Set(node_name+"Status", I.Status)
-	Gdb.Set(node_name+"PNames", I.PNames)
+	Gdb.Set(node_name+"Mname", I.Mname)
+
+	//Create Section for Slaves and Procs
+	node_name_slaves := node_name + "Snames/"
+
+	Gdb.CreateSection(node_name_slaves)
+	for _, sname := range I.Snames {
+		Gdb.Set(node_name_slaves+sname, "slave")
+	}
+
+	node_name_procs := node_name + "Procs/"
+	Gdb.CreateSection(node_name_procs)
+
+	//for _, p := range I.Procs {
+	//p.Sync()
+	//}
 
 	return true
 }
@@ -120,7 +150,14 @@ func (I *Instance) SyncSlaves() bool {
 
 	node_name := etcd.ETC_INST_DIR + "/" + I.Name + "/"
 	Gdb.Set(node_name+"Slaves", fmt.Sprintf("%d", I.Slaves))
-	Gdb.Set(node_name+"PNames", I.PNames)
+	Gdb.Set(node_name+"ExpSlaves", fmt.Sprintf("%d", I.ExpSlaves))
+	//Create Section for Slaves and Procs
+	node_name_slaves := node_name + "Snames/"
+
+	Gdb.CreateSection(node_name_slaves)
+	for _, sname := range I.Snames {
+		Gdb.Set(node_name_slaves+sname, "slave")
+	}
 	return true
 }
 
@@ -132,6 +169,7 @@ func (I *Instance) SyncMasters() bool {
 
 	node_name := etcd.ETC_INST_DIR + "/" + I.Name + "/"
 	Gdb.Set(node_name+"Masters", fmt.Sprintf("%d", I.Slaves))
-	Gdb.Set(node_name+"PNames", I.PNames)
+	Gdb.Set(node_name+"ExpMasters", fmt.Sprintf("%d", I.ExpSlaves))
+	Gdb.Set(node_name+"Mname", I.Mname)
 	return true
 }

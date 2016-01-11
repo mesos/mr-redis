@@ -15,3 +15,11 @@ func NewUUID() (*uuid.UUID, error) {
 	return rUUID, nil
 
 }
+
+func NewUIIDstr() string {
+	id, err := NewUUID()
+	if err != nil {
+		return ""
+	}
+	return id.String()
+}
