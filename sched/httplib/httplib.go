@@ -48,7 +48,7 @@ func (this *MainController) CreateInstance() {
 	}
 
 	//create a instance object
-	tmp_instance = types.NewInstance(name, "S", masters, slaves)
+	tmp_instance = types.NewInstance(name, "S", masters, slaves, capacity)
 	tmp_instance.Sync()
 
 	//Send it across to creator's channel

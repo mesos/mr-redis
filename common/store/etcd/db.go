@@ -167,12 +167,22 @@ func (db *etcdDB) DeleteSection(Key string) error {
 	return err
 }
 
-/*
-func (db *etcdDB) ListSection(Key string, Recursive bool) []types.Rec {
+func (db *etcdDB) ListSection(Key string, Recursive bool) ([]string, error) {
 
-	return nil
+	resp, err := db.Kapi.Get(db.Ctx, Key, &cli.GetOptions{Sort: true})
+
+	if err != nil {
+		return nil, err
+	}
+
+	retStr := make([]string, len(resp.Node.Nodes))
+
+	for i, n := range resp.Node.Nodes {
+		retStr[i] = n.Key
+	}
+
+	return retStr, nil
 }
-*/
 
 func (db *etcdDB) CleanSlate() error {
 

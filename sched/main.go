@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"../common/types"
+	"./cmd"
 	"./httplib"
 )
 
@@ -28,6 +29,10 @@ func main() {
 	if err != nil || isInit != true {
 		log.Fatalf("Failed to intialize Error:%v return %v", err, isInit)
 	}
+
+	//Start the creator
+
+	go cmd.Creator()
 
 	//Start HTTP server and related things to handle restfull calls to the scheduler
 	httplib.Run(HTTP_SERVER_PORT)

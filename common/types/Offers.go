@@ -1,11 +1,12 @@
 package types
 
 type Offer struct {
-	taskname string //Name of the redis proc
-	cpu      int    //CPU default is one
-	mem      int    //Memory in MB
+	Taskname string //Name of the redis proc
+	Cpu      int    //CPU default is one
+	Mem      int    //Memory in MB
+	IsMaster bool   //Is this instance a master
 }
 
-func NewOffer(name string, cpu int, mem int) *Offer {
-	return &Offer{taskname: name, cpu: cpu, mem: mem}
+func NewOffer(name string, cpu int, mem int, ismaster bool) *Offer {
+	return &Offer{Taskname: name, Cpu: cpu, Mem: mem, IsMaster: ismaster}
 }
