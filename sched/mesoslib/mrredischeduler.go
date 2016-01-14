@@ -99,7 +99,7 @@ func (S *MrRedisScheduler) ResourceOffers(driver sched.SchedulerDriver, offers [
 			}
 			//Check if this task is suitable for this offer
 		}
-		driver.LaunchTasks([]*mesos.OfferID{offer.Id}, tasks, nil)
+		driver.LaunchTasks([]*mesos.OfferID{offer.Id}, tasks, &mesos.Filters{})
 	}
 	log.Printf("MrRedis Recives offer")
 }

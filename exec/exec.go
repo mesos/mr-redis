@@ -79,33 +79,33 @@ func (exec *exampleExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *me
 	//and thus will need a goroutine; (but then why does example put task finished status here)
 	go func(monitor *serviceproc.ProcMonitor) {
 
+		runStatus := &mesos.TaskStatus{
+			TaskId: taskInfo.GetTaskId(),
+			State:  mesos.TaskState_TASK_RUNNING.Enum(),
+		}
+		_, err := driver.SendStatusUpdate(runStatus)
+		if err != nil {
+			fmt.Println("Got error", err)
+		}
+
 		monitor.SpawnandMonitor()
 
+		// finished the task (success or failure) if returned from the above
+
+		exec.tasksLaunched++
+		fmt.Println("Total tasks launched ", exec.tasksLaunched)
+
+		fmt.Println("Finishing task", taskInfo.GetName())
+		finStatus := &mesos.TaskStatus{
+			TaskId: taskInfo.GetTaskId(),
+			State:  mesos.TaskState_TASK_FINISHED.Enum(),
+		}
+		_, err = driver.SendStatusUpdate(finStatus)
+		if err != nil {
+			fmt.Println("Got error", err)
+		}
+		fmt.Println("Task finished", taskInfo.GetName())
 	}(monitor)
-	// finished the task (success or failure) if returned from the above
-
-	runStatus := &mesos.TaskStatus{
-		TaskId: taskInfo.GetTaskId(),
-		State:  mesos.TaskState_TASK_RUNNING.Enum(),
-	}
-	_, err := driver.SendStatusUpdate(runStatus)
-	if err != nil {
-		fmt.Println("Got error", err)
-	}
-
-	exec.tasksLaunched++
-	fmt.Println("Total tasks launched ", exec.tasksLaunched)
-
-	fmt.Println("Finishing task", taskInfo.GetName())
-	finStatus := &mesos.TaskStatus{
-		TaskId: taskInfo.GetTaskId(),
-		State:  mesos.TaskState_TASK_FINISHED.Enum(),
-	}
-	_, err = driver.SendStatusUpdate(finStatus)
-	if err != nil {
-		fmt.Println("Got error", err)
-	}
-	fmt.Println("Task finished", taskInfo.GetName())
 }
 
 func (exec *exampleExecutor) KillTask(exec.ExecutorDriver, *mesos.TaskID) {
