@@ -92,6 +92,12 @@ func (I *Instance) Load() bool {
 		log.Printf("The error value is %v", err)
 	}
 
+	I.Procs = make(map[string]*Proc)
+
+	for _, n := range I.Snames {
+		I.Procs[n] = LoadProc(I.Name + n)
+	}
+
 	return true
 }
 
@@ -107,9 +113,10 @@ func (I *Instance) Sync() bool {
 
 	Gdb.Set(node_name+"Type", I.Type)
 	Gdb.Set(node_name+"Masters", fmt.Sprintf("%d", I.Masters))
-	Gdb.Set(node_name+"Capacity", fmt.Sprintf("%d", I.Masters))
-	Gdb.Set(node_name+"ExpMasters", fmt.Sprintf("%d", I.Masters))
-	Gdb.Set(node_name+"ExpSlaves", fmt.Sprintf("%d", I.Slaves))
+	Gdb.Set(node_name+"Slaves", fmt.Sprintf("%d", I.Slaves))
+	Gdb.Set(node_name+"Capacity", fmt.Sprintf("%d", I.Capacity))
+	Gdb.Set(node_name+"ExpMasters", fmt.Sprintf("%d", I.ExpMasters))
+	Gdb.Set(node_name+"ExpSlaves", fmt.Sprintf("%d", I.ExpSlaves))
 	Gdb.Set(node_name+"Status", I.Status)
 	Gdb.Set(node_name+"Mname", I.Mname)
 
@@ -127,7 +134,6 @@ func (I *Instance) Sync() bool {
 	//for _, p := range I.Procs {
 	//p.Sync()
 	//}
-
 	return true
 }
 

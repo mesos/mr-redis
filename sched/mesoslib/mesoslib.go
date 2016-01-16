@@ -36,12 +36,12 @@ func serveExecutorArtifact(path string, IP, Port string) (*string, string) {
 	return &hostURI, base
 }
 
-func prepareExecutorInfo(IP, Port, executorPath string) *mesos.ExecutorInfo {
+func prepareExecutorInfo(IP, Port, executorPath, DbType, DbEndPoint string) *mesos.ExecutorInfo {
 	executorUris := []*mesos.CommandInfo_URI{}
 	uri, executorCmd := serveExecutorArtifact(executorPath, IP, Port)
 	executorUris = append(executorUris, &mesos.CommandInfo_URI{Value: uri, Executable: proto.Bool(true)})
 
-	executorCommand := fmt.Sprintf("./%s -logtostderr=true ", executorCmd)
+	executorCommand := fmt.Sprintf("./%s -logtostderr=true -DbType=%s -DbEndPoint=%s", executorCmd, DbType, DbEndPoint)
 
 	go http.ListenAndServe(fmt.Sprintf("%s:%s", IP, Port), nil)
 	log.Printf("Serving executor artifacts...")
@@ -107,14 +107,14 @@ func parseIP(address string) net.IP {
 	return addr[0]
 }
 
-func Run(MasterIP, MasterPort, ServerIP, ServerPort, executorPath string) {
+func Run(MasterIP, MasterPort, ServerIP, ServerPort, executorPath, DbType, DbEndPoint string) {
 
 	//Split the configuration string
 
 	//MasterIP, MasterPort, ServerIP, ServerPort = parseConfig(config)
 
 	//Get executor information
-	exec := prepareExecutorInfo(ServerIP, ServerPort, executorPath)
+	exec := prepareExecutorInfo(ServerIP, ServerPort, executorPath, DbType, DbEndPoint)
 
 	// the framework
 	fwinfo := &mesos.FrameworkInfo{

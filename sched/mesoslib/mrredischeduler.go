@@ -42,7 +42,7 @@ func (S *MrRedisScheduler) ResourceOffers(driver sched.SchedulerDriver, offers [
 			ids[i] = offer.Id
 		}
 		driver.LaunchTasks(ids, []*mesos.TaskInfo{}, &mesos.Filters{RefuseSeconds: proto.Float64(1)})
-		log.Printf("No task to peform reject all the offer")
+		//log.Printf("No task to peform reject all the offer")
 		return
 	}
 
@@ -68,7 +68,7 @@ func (S *MrRedisScheduler) ResourceOffers(driver sched.SchedulerDriver, offers [
 			mems += res.GetScalar().GetValue()
 		}
 
-		log.Printf("Recived Offer with CPU=%d MEM=%d OfferID=%v", cpus, mems, offer.Id.GetValue())
+		log.Printf("Recived Offer with CPU=%v MEM=%v OfferID=%v", cpus, mems, offer.Id.GetValue())
 		var tasks []*mesos.TaskInfo
 
 		//Loop through the tasks

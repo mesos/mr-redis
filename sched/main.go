@@ -75,7 +75,7 @@ func main() {
 	}
 
 	//Start the Mesos library
-	go mesoslib.Run(Cfg.MasterIP, Cfg.MasterPort, Cfg.ArtifactIP, Cfg.ArtifactPort, Cfg.ExecutorPath)
+	go mesoslib.Run(Cfg.MasterIP, Cfg.MasterPort, Cfg.ArtifactIP, Cfg.ArtifactPort, Cfg.ExecutorPath, Cfg.DBType, Cfg.DBEndPoint)
 
 	//Start the creator
 	go cmd.Creator()

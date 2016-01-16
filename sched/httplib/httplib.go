@@ -50,6 +50,7 @@ func (this *MainController) CreateInstance() {
 	//create a instance object
 	tmp_instance = types.NewInstance(name, "S", masters, slaves, capacity)
 	tmp_instance.Sync()
+	tmp_instance.Status = "STARTING"
 
 	//Send it across to creator's channel
 	types.Cchan <- tmp_instance

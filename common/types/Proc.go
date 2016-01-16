@@ -1,11 +1,13 @@
 package types
 
 import (
+	"fmt"
 	"log"
 	"strconv"
+	"strings"
 
 	//"../redis"
-	"../store"
+	//"../store"
 	"../store/etcd"
 )
 
@@ -25,6 +27,7 @@ type Proc struct {
 	ID       string //UUID that was generated for this PROC
 	State    string //Current state of the process Active/Dead/Crashed etc.,
 	Type     string //Type of the PROC master/Slave etc.,
+	SlaveOf  string //Slave of which redis master
 	Stats    string //All other statistics apart from Memory usage to be stored as a json/string
 	Msg      string //Message we will revive fromt he scheduler and action to be taken on it
 	IP       string //IP address of the slave at which this redis-server proc is running
@@ -39,7 +42,7 @@ func NewProc(TskName string, Capacity int, Type string, SlaveOf string) *Proc {
 	var tmpProc Proc
 	Tids := strings.Split(TskName, "::")
 
-	if len(Tid) != 2 {
+	if len(Tids) != 2 {
 		//Something wrong the TaskID should be of the format <InstanceName>::<UUID of the PROC>
 		//Throw an error and ignore
 		log.Printf("Wrong format Task Name %s", TskName)
@@ -50,27 +53,27 @@ func NewProc(TskName string, Capacity int, Type string, SlaveOf string) *Proc {
 	tmpProc.ID = Tids[1]
 	tmpProc.MemCap = Capacity
 	tmpProc.Type = Type
-	tmpPorc.SlaveOf = SlaveOf
+	tmpProc.SlaveOf = SlaveOf
 
 	return &tmpProc
 }
 
 //Load a Proc information from the store to structure and return
-func Load(TskName string) *Proc {
+func LoadProc(TskName string) *Proc {
 
 	var P Proc
 
 	Tids := strings.Split(TskName, "::")
 
-	if len(Tid) != 2 {
+	if len(Tids) != 2 {
 		log.Printf("Proc.Load() Wrong format Task Name %s", TskName)
-		return false
+		return nil
 	}
 
 	P.Instance = Tids[0]
 	P.ID = Tids[1]
 
-	P.Nodename = etcd.ETC_INST_DIR + "/" + P.Instance + "/PROC/" + I.ID
+	P.Nodename = etcd.ETC_INST_DIR + "/" + P.Instance + "/PROC/" + P.ID
 
 	P.Load()
 
@@ -97,8 +100,7 @@ func (P *Proc) Load() bool {
 	tmpStr, err = Gdb.Get(P.Nodename + "/MemUsed")
 	P.MemUsed, err = strconv.Atoi(tmpStr)
 
-	tmpStr, err = Gdb.Get(P.Nodename + "/Port")
-	P.Port, err = strconv.Atoi(tmpStr)
+	P.Port, err = Gdb.Get(P.Nodename + "/Port")
 
 	tmpStr, err = Gdb.Get(P.Nodename + "/Pid")
 	P.Pid, err = strconv.Atoi(tmpStr)
@@ -109,6 +111,13 @@ func (P *Proc) Load() bool {
 	P.SID, err = Gdb.Get(P.Nodename + "/SID")
 	P.Msg, err = Gdb.Get(P.Nodename + "/Msg")
 	P.Stats, err = Gdb.Get(P.Nodename + "/Stats")
+
+	if err != nil {
+		log.Printf("Error occured %v", err)
+		return false
+	}
+
+	return true
 
 }
 
@@ -124,15 +133,15 @@ func (P *Proc) Sync() bool {
 
 	Gdb.Set(P.Nodename+"/Instance", P.Instance)
 	Gdb.Set(P.Nodename+"/Nodename", P.Nodename)
-	Gdb.Set(P.MemCap+"/Capacity", fmt.Sprintf("%s", P.MemCap))
-	Gdb.Set(P.MemCap+"/MemUsed", fmt.Sprintf("%s", P.MemUsed))
-	Gdb.Set(P.MemCap+"/Pid", fmt.Sprintf("%s", P.Pid))
-	Gdb.Set(P.MemCap+"/State", P.State)
-	Gdb.Set(P.MemCap+"/Stats", P.Stats)
-	Gdb.Set(P.MemCap+"/Msg", P.Msg)
-	Gdb.Set(P.MemCap+"/EID", P.EID)
-	Gdb.Set(P.MemCap+"/SID", P.SID)
-	Gdb.Set(P.MemCap+"/Type", P.Type)
+	Gdb.Set(P.Nodename+"/Capacity", fmt.Sprintf("%s", P.MemCap))
+	Gdb.Set(P.Nodename+"/MemUsed", fmt.Sprintf("%s", P.MemUsed))
+	Gdb.Set(P.Nodename+"/Pid", fmt.Sprintf("%s", P.Pid))
+	Gdb.Set(P.Nodename+"/State", P.State)
+	Gdb.Set(P.Nodename+"/Stats", P.Stats)
+	Gdb.Set(P.Nodename+"/Msg", P.Msg)
+	Gdb.Set(P.Nodename+"/EID", P.EID)
+	Gdb.Set(P.Nodename+"/SID", P.SID)
+	Gdb.Set(P.Nodename+"/Type", P.Type)
 
 	return true
 }
@@ -144,13 +153,16 @@ func (P *Proc) SyncStats() bool {
 
 	Gdb.Set(P.Nodename+"/Stats", P.Stats)
 
+	return true
 }
 
 func (P *Proc) SyncType() bool {
 	if Gdb.IsSetup() != true {
 		return false
 	}
-	Gdb.Set(P.NodeName+"/Type", P.Type)
+	Gdb.Set(P.Nodename+"/Type", P.Type)
+
+	return true
 }
 
 func (P *Proc) LoadStats() bool {
@@ -159,6 +171,12 @@ func (P *Proc) LoadStats() bool {
 		return false
 	}
 	P.Stats, err = Gdb.Get(P.Nodename + "/Stats")
+
+	if err != nil {
+		log.Printf("Error occured %v", err)
+		return false
+	}
+	return true
 }
 
 func (P *Proc) LoadType() bool {
@@ -167,4 +185,9 @@ func (P *Proc) LoadType() bool {
 		return false
 	}
 	P.Type, err = Gdb.Get(P.Nodename + "/Type")
+	if err != nil {
+		log.Printf("Error occured %v", err)
+		return false
+	}
+	return true
 }
