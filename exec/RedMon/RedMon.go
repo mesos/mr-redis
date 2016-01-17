@@ -35,14 +35,18 @@ type RedMon struct {
 //Capacity Master-SlaveOf IP:Port => This is a New master of the instance with an upgraded memory value so
 //                          Start as slave, Sync data, make it as master, send TASK_RUNNING update and start to Monitor
 
-func NewRedMon(tskName string, Type string, data string) *RedMon {
+func NewRedMon(tskName string, Port int, data string) *RedMon {
 
 	var R RedMon
 	var P *typ.Proc
 
+	R.Port = Port
 	split_data := strings.Split(data, " ")
+
+	fmt.Printf("Split data recived is %v\n", data)
 	if len(split_data) < 1 || len(split_data) > 4 {
 		//Print an error this is not suppose to happen
+		fmt.Printf("RedMon Splitdata error %v\n", split_data)
 		return nil
 	}
 
@@ -50,13 +54,13 @@ func NewRedMon(tskName string, Type string, data string) *RedMon {
 
 	switch split_data[1] {
 	case "Master":
-		P = typ.NewProc(tskName, Cap, Type, "")
+		P = typ.NewProc(tskName, Cap, "M", "")
 		break
 	case "SlaveOf":
-		P = typ.NewProc(tskName, Cap, Type, split_data[2])
+		P = typ.NewProc(tskName, Cap, "S", split_data[2])
 		break
 	case "Master-SlaveOf":
-		P = typ.NewProc(tskName, Cap, Type, split_data[2])
+		P = typ.NewProc(tskName, Cap, "MS", split_data[2])
 		R.MS_Sync = true
 		break
 	}

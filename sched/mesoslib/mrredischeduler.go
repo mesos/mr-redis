@@ -1,6 +1,7 @@
 package mesoslib
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/gogo/protobuf/proto"
@@ -78,6 +79,14 @@ func (S *MrRedisScheduler) ResourceOffers(driver sched.SchedulerDriver, offers [
 			tskCpu_float := float64(tsk.Cpu)
 			tskMem_float := float64(tsk.Mem)
 
+			var tmp_data []byte
+
+			if tsk.IsMaster {
+				tmp_data = []byte(fmt.Sprintf("%d Master", tsk.Mem))
+			} else {
+				tmp_data = []byte(fmt.Sprintf("%d SlaveOf 127.0.0.1", tsk.Mem))
+			}
+
 			if cpus >= tskCpu_float && mems >= tskMem_float {
 				tsk_id := &mesos.TaskID{Value: proto.String(tsk.Taskname)}
 				mesos_tsk := &mesos.TaskInfo{
@@ -89,6 +98,7 @@ func (S *MrRedisScheduler) ResourceOffers(driver sched.SchedulerDriver, offers [
 						util.NewScalarResource("cpus", tskCpu_float),
 						util.NewScalarResource("mem", tskMem_float),
 					},
+					Data: tmp_data,
 				}
 				mems -= tskMem_float
 				cpus -= tskCpu_float

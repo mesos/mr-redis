@@ -3,13 +3,16 @@ package main
 import (
 	"flag"
 	"fmt"
-	exe "os/exec"
 
 	exec "github.com/mesos/mesos-go/executor"
 	mesos "github.com/mesos/mesos-go/mesosproto"
 
 	typ "../common/types"
+	"./RedMon"
 )
+
+var DbType = flag.String("DbType", "etcd", "Type of the database etcd/zookeeper etc.,")
+var DbEndPoint = flag.String("DbEndPoint", "", "Endpoint of the database")
 
 type MrRedisExecutor struct {
 	tasksLaunched int
@@ -34,28 +37,33 @@ func (exec *MrRedisExecutor) Disconnected(exec.ExecutorDriver) {
 func (exec *MrRedisExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *mesos.TaskInfo) {
 	fmt.Println("Launching task", taskInfo.GetName(), "with command", taskInfo.Command.GetValue())
 
-	cmd := exe.Command("/home/ubuntu/progs/redis-3.0.6/src/redis-server", "--port", fmt.Sprintf("%d", 6379+exec.tasksLaunched))
-	err := cmd.Start()
-	if err != nil {
-		return
-	}
-	runStatus := &mesos.TaskStatus{
-		TaskId: taskInfo.GetTaskId(),
-		State:  mesos.TaskState_TASK_RUNNING.Enum(),
-	}
-	_, err = driver.SendStatusUpdate(runStatus)
-	if err != nil {
-		fmt.Println("Got error", err)
-	}
-
+	var runStatus *mesos.TaskStatus
 	exec.tasksLaunched++
-	fmt.Println("Total tasks launched ", exec.tasksLaunched)
-	//
-	// this is where one would perform the requested task
-	//
+	M := RedMon.NewRedMon(taskInfo.GetTaskId().GetValue(), exec.tasksLaunched+6379, string(taskInfo.Data))
 
 	go func() {
-		cmd.Wait()
+		if M.Start() {
+			runStatus = &mesos.TaskStatus{
+				TaskId: taskInfo.GetTaskId(),
+				State:  mesos.TaskState_TASK_RUNNING.Enum(),
+			}
+		} else {
+			runStatus = &mesos.TaskStatus{
+				TaskId: taskInfo.GetTaskId(),
+				State:  mesos.TaskState_TASK_ERROR.Enum(),
+			}
+		}
+		_, err := driver.SendStatusUpdate(runStatus)
+		if err != nil {
+			fmt.Println("Got error", err)
+		}
+
+		fmt.Println("Total tasks launched ", exec.tasksLaunched)
+		//
+		// this is where one would perform the requested task
+		//
+
+		M.C.Wait() //TODO: Collect the return value of the process and send appropriate TaskUpdate eg:TaskFinished only on clean shutdown others will get TaskFailed
 		// finish task
 		fmt.Println("Finishing task", taskInfo.GetName())
 		finStatus := &mesos.TaskStatus{
@@ -93,9 +101,6 @@ func init() {
 
 func main() {
 	fmt.Println("Starting MrRedis Executor")
-
-	DbType := flag.String("DbType", "etcd", "Type of the database etcd/zookeeper etc.,")
-	DbEndPoint := flag.String("DbEndPoint", "", "Endpoint of the database")
 
 	typ.Initialize(*DbType, *DbEndPoint)
 	dconfig := exec.DriverConfig{
