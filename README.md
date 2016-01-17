@@ -32,7 +32,39 @@ MemoryUsed	= 100MB
 Slaves		= None
 ```
 
+### Sample Run
+After cloning the project and setting up the GOPATH for dependent libraries (should use go version 1.5)
+```
+$cd exec
+$go build -o MrRedisExecutor main.go
+$cd ../sched
+$go build main.go
+$./main -config="./config.json"
+2016/01/17 16:35:11 *****************************************************************
+2016/01/17 16:35:11 *********************Starting MrRedis-Scheduler******************
+2016/01/17 16:35:11 *****************************************************************
+2016/01/17 16:35:11 Starting the HTTP server at port 8080
+```
+
+The configuration file should be of json format
+
+```
+$cat config.json
+{
+        "MasterIP":"10.11.12.13",
+        "MasterPort":"5050",
+        "ExecutorPath":"/home/ubuntu/MrRedis/exec/MrRedisExecutor",
+        "DBType":"etcd",
+        "DBEndPoint": "http://11.12.13.14:2379",
+        "ArtifactIP": "12.13.14.15"
+}
+
+```
+
+Please substitute appropriate values with respect to your enviroment in the above config file for MasterIP/Port, ExecutorPath, DBEndPoint and IP adddres of this scheduler's VM that is accessible from the lsaves for artifactIP
+
 ### Installation Instruction
+Please Note the pkg dependency management will be done by godep, but we will hold integrating it as the next destination (Transfer this project) of this project from my username is still not clear.
 TODO
 
 ### Contribution Guidlines
