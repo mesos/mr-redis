@@ -81,6 +81,7 @@ func main() {
 	go cmd.Creator()
 
 	//Start the Mainterainer
+	go cmd.Maintainer()
 
 	//Start the Destroyer
 

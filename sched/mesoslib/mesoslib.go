@@ -11,6 +11,8 @@ import (
 	mesos "github.com/mesos/mesos-go/mesosproto"
 	util "github.com/mesos/mesos-go/mesosutil"
 	sched "github.com/mesos/mesos-go/scheduler"
+
+	typ "../../common/types"
 )
 
 func serveExecutorArtifact(path string, IP, Port string) (*string, string) {
@@ -116,10 +118,21 @@ func Run(MasterIP, MasterPort, ServerIP, ServerPort, executorPath, DbType, DbEnd
 	//Get executor information
 	exec := prepareExecutorInfo(ServerIP, ServerPort, executorPath, DbType, DbEndPoint)
 
+	fTimout := float64(3600)
+
+	fwID, err := typ.Gdb.Get(typ.ETC_CONF_DIR + "/FrameworkID")
+
+	if err != nil {
+		log.Printf("Not registered previously")
+		fwID = ""
+	}
+
 	// the framework
 	fwinfo := &mesos.FrameworkInfo{
-		User: proto.String(""), // Mesos-go will fill in user.
-		Name: proto.String("MrRedis"),
+		User:            proto.String(""), // Mesos-go will fill in user.
+		Name:            proto.String("MrRedis"),
+		Id:              &mesos.FrameworkID{Value: &fwID},
+		FailoverTimeout: &fTimout,
 	}
 
 	//Add mesos authentication code
@@ -139,6 +152,8 @@ func Run(MasterIP, MasterPort, ServerIP, ServerPort, executorPath, DbType, DbEnd
 	if err != nil {
 		log.Fatalf("Framework is not created error %v", err)
 	}
+
+	log.Printf("The Framework ID is %v and %v", fwinfo.Id, sched_config.Framework.Id)
 
 	status, err := driver.Run()
 

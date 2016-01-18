@@ -55,6 +55,7 @@ func NewProc(TskName string, Capacity int, Type string, SlaveOf string) *Proc {
 	tmpProc.Type = Type
 	tmpProc.SlaveOf = SlaveOf
 
+	tmpProc.Nodename = etcd.ETC_INST_DIR + "/" + tmpProc.Instance + "/Procs/" + tmpProc.ID
 	return &tmpProc
 }
 
@@ -73,7 +74,7 @@ func LoadProc(TskName string) *Proc {
 	P.Instance = Tids[0]
 	P.ID = Tids[1]
 
-	P.Nodename = etcd.ETC_INST_DIR + "/" + P.Instance + "/PROC/" + P.ID
+	P.Nodename = etcd.ETC_INST_DIR + "/" + P.Instance + "/Procs/" + P.ID
 
 	P.Load()
 
@@ -129,13 +130,14 @@ func (P *Proc) Sync() bool {
 	}
 
 	//Attempt to create the directory/section for storing the PROC relevent information in the instance
+	//P.Nodename = etcd.ETC_INST_DIR + "/" + P.Instance + "/PROC/" + P.ID
 	Gdb.CreateSection(P.Nodename)
 
 	Gdb.Set(P.Nodename+"/Instance", P.Instance)
 	Gdb.Set(P.Nodename+"/Nodename", P.Nodename)
-	Gdb.Set(P.Nodename+"/Capacity", fmt.Sprintf("%s", P.MemCap))
-	Gdb.Set(P.Nodename+"/MemUsed", fmt.Sprintf("%s", P.MemUsed))
-	Gdb.Set(P.Nodename+"/Pid", fmt.Sprintf("%s", P.Pid))
+	Gdb.Set(P.Nodename+"/Capacity", fmt.Sprintf("%d", P.MemCap))
+	Gdb.Set(P.Nodename+"/MemUsed", fmt.Sprintf("%d", P.MemUsed))
+	Gdb.Set(P.Nodename+"/Pid", fmt.Sprintf("%d", P.Pid))
 	Gdb.Set(P.Nodename+"/State", P.State)
 	Gdb.Set(P.Nodename+"/Stats", P.Stats)
 	Gdb.Set(P.Nodename+"/Msg", P.Msg)

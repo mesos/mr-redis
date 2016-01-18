@@ -22,7 +22,10 @@ func NewMrRedisScheduler(exec *mesos.ExecutorInfo) *MrRedisScheduler {
 }
 
 func (S *MrRedisScheduler) Registered(driver sched.SchedulerDriver, frameworkId *mesos.FrameworkID, masterInfo *mesos.MasterInfo) {
-	log.Printf("MrRedis Registered")
+	log.Printf("MrRedis Registered %v", frameworkId)
+
+	FwIDKey := typ.ETC_CONF_DIR + "/FrameworkID"
+	typ.Gdb.Set(FwIDKey, frameworkId.GetValue())
 }
 
 func (S *MrRedisScheduler) Reregistered(driver sched.SchedulerDriver, masterInfo *mesos.MasterInfo) {
@@ -116,7 +119,16 @@ func (S *MrRedisScheduler) ResourceOffers(driver sched.SchedulerDriver, offers [
 
 func (S *MrRedisScheduler) StatusUpdate(driver sched.SchedulerDriver, status *mesos.TaskStatus) {
 
-	log.Printf("MrRedis Recives offer")
+	var ts typ.TaskUpdate
+	ts.Name = status.GetTaskId().GetValue()
+	ts.State = status.GetState().String()
+	ts.Data = status.GetData()
+	log.Printf("MrRedis Task Update recived")
+	log.Printf("Status=%v", ts)
+
+	//Send it across to the channel to maintainer
+	typ.Mchan <- &ts
+
 }
 
 func (S *MrRedisScheduler) OfferRescinded(_ sched.SchedulerDriver, oid *mesos.OfferID) {
