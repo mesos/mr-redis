@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gogo/protobuf/proto"
 	mesos "github.com/mesos/mesos-go/mesosproto"
@@ -109,6 +110,32 @@ func parseIP(address string) net.IP {
 	return addr[0]
 }
 
+const FailoverTime = 60 //Frameowkr and its task will be terminated if the framework is not started in 60 secons
+const TimeFormat = "2006-01-02 15:04:05.999999999 -0700 MST"
+
+//If the frameowkr was regiestered before the Failover tiemout value then regiester as a new framework
+func GetFrameWorkID() (string, float64) {
+
+	fTimout := float64(FailoverTime)
+	fwTStamp, terr := typ.Gdb.Get(typ.ETC_CONF_DIR + "/RegesteredAt")
+	t, tperr := time.Parse(TimeFormat, fwTStamp)
+	fwID, err := typ.Gdb.Get(typ.ETC_CONF_DIR + "/FrameworkID")
+
+	if err != nil || terr != nil || tperr != nil {
+		log.Printf("Not registered previously")
+		return "", fTimout
+	}
+
+	delta_t := time.Now().Sub(t)
+
+	if (delta_t / time.Second) < FailoverTime {
+		return fwID, fTimout
+	}
+
+	return "", fTimout
+
+}
+
 func Run(MasterIP, MasterPort, ServerIP, ServerPort, executorPath, DbType, DbEndPoint string) {
 
 	//Split the configuration string
@@ -118,14 +145,7 @@ func Run(MasterIP, MasterPort, ServerIP, ServerPort, executorPath, DbType, DbEnd
 	//Get executor information
 	exec := prepareExecutorInfo(ServerIP, ServerPort, executorPath, DbType, DbEndPoint)
 
-	fTimout := float64(3600)
-
-	fwID, err := typ.Gdb.Get(typ.ETC_CONF_DIR + "/FrameworkID")
-
-	if err != nil {
-		log.Printf("Not registered previously")
-		fwID = ""
-	}
+	fwID, fTimout := GetFrameWorkID()
 
 	// the framework
 	fwinfo := &mesos.FrameworkInfo{

@@ -99,6 +99,9 @@ func (R *RedMon) StartMaster() bool {
 	}
 
 	R.Pid = R.C.Process.Pid
+	R.P.Pid = R.C.Process.Pid
+	R.P.Port = fmt.Sprintf("%d", R.Port)
+	R.P.State = "Running"
 	R.P.Sync()
 
 	return true

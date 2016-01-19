@@ -138,6 +138,7 @@ func (P *Proc) Sync() bool {
 	Gdb.Set(P.Nodename+"/Capacity", fmt.Sprintf("%d", P.MemCap))
 	Gdb.Set(P.Nodename+"/MemUsed", fmt.Sprintf("%d", P.MemUsed))
 	Gdb.Set(P.Nodename+"/Pid", fmt.Sprintf("%d", P.Pid))
+	Gdb.Set(P.Nodename+"/Port", P.Port)
 	Gdb.Set(P.Nodename+"/State", P.State)
 	Gdb.Set(P.Nodename+"/Stats", P.Stats)
 	Gdb.Set(P.Nodename+"/Msg", P.Msg)

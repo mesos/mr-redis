@@ -3,6 +3,7 @@ package mesoslib
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/gogo/protobuf/proto"
 	mesos "github.com/mesos/mesos-go/mesosproto"
@@ -26,10 +27,14 @@ func (S *MrRedisScheduler) Registered(driver sched.SchedulerDriver, frameworkId 
 
 	FwIDKey := typ.ETC_CONF_DIR + "/FrameworkID"
 	typ.Gdb.Set(FwIDKey, frameworkId.GetValue())
+	FwTstamp := typ.ETC_CONF_DIR + "/RegesteredAt"
+	typ.Gdb.Set(FwTstamp, time.Now().String())
 }
 
 func (S *MrRedisScheduler) Reregistered(driver sched.SchedulerDriver, masterInfo *mesos.MasterInfo) {
 	log.Printf("MrRedis Re-registered")
+	FwTstamp := typ.ETC_CONF_DIR + "/RegesteredAt"
+	typ.Gdb.Set(FwTstamp, time.Now().String())
 }
 func (S *MrRedisScheduler) Disconnected(sched.SchedulerDriver) {
 	log.Printf("MrRedis Disconnected")
