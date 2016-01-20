@@ -18,7 +18,7 @@ type Instance struct {
 	Slaves     int              //Number of slaves in this Instance
 	ExpMasters int              //Expected number of Masters
 	ExpSlaves  int              //Expected number of Slaves
-	Status     string           //Status of this instance "CREATING/ACTIVE/DELETED/DISABLED"
+	Status     string           //Status of this instance "CREATING/RUNNING/DISABLED"
 	Mname      string           //Name / task id of the master redis proc
 	Snames     []string         //Name of the slave
 	Procs      map[string]*Proc //An array of redis procs to be filled later
@@ -145,9 +145,19 @@ func (I *Instance) SyncType(string) bool {
 
 	node_name := etcd.ETC_INST_DIR + "/" + I.Name + "/"
 	Gdb.Set(node_name+"Type", I.Type)
-	return false
+	return true
 }
 
+func (I *Instance) SyncStatus() bool {
+
+	if Gdb.IsSetup() != true {
+		return false
+	}
+
+	node_name := etcd.ETC_INST_DIR + "/" + I.Name + "/"
+	Gdb.Set(node_name+"Status", I.Status)
+	return true
+}
 func (I *Instance) SyncSlaves() bool {
 
 	if Gdb.IsSetup() != true {
@@ -156,7 +166,6 @@ func (I *Instance) SyncSlaves() bool {
 
 	node_name := etcd.ETC_INST_DIR + "/" + I.Name + "/"
 	Gdb.Set(node_name+"Slaves", fmt.Sprintf("%d", I.Slaves))
-	Gdb.Set(node_name+"ExpSlaves", fmt.Sprintf("%d", I.ExpSlaves))
 	//Create Section for Slaves and Procs
 	node_name_slaves := node_name + "Snames/"
 
@@ -174,8 +183,21 @@ func (I *Instance) SyncMasters() bool {
 	}
 
 	node_name := etcd.ETC_INST_DIR + "/" + I.Name + "/"
-	Gdb.Set(node_name+"Masters", fmt.Sprintf("%d", I.Slaves))
-	Gdb.Set(node_name+"ExpMasters", fmt.Sprintf("%d", I.ExpSlaves))
+	Gdb.Set(node_name+"Masters", fmt.Sprintf("%d", I.Masters))
 	Gdb.Set(node_name+"Mname", I.Mname)
 	return true
+}
+
+func (I *Instance) LoadProcs() bool {
+
+	if I.Procs == nil {
+		I.Procs = make(map[string]*Proc)
+	}
+
+	for _, n := range I.Snames {
+		I.Procs[n] = LoadProc(I.Name + n)
+	}
+
+	return true
+
 }

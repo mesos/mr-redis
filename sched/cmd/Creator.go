@@ -31,12 +31,19 @@ func Creator() {
 
 			for i := 0; i < moffers; i++ {
 
-				typ.OfferList.PushBack(typ.NewOffer(inst.Name+"::"+id.NewUIIDstr(), cpu, mem, true))
+				typ.OfferList.PushBack(typ.NewOffer(inst.Name+"::"+id.NewUIIDstr(), cpu, mem, true, ""))
 			}
 
-			for i := 0; i < soffers; i++ {
+			//Create slaves only if the master is created
+			if inst.Masters == inst.ExpMasters {
 
-				typ.OfferList.PushBack(typ.NewOffer(inst.Name+"::"+id.NewUIIDstr(), cpu, mem, false))
+				p := inst.Procs[inst.Mname]
+
+				for i := 0; i < soffers; i++ {
+
+					typ.OfferList.PushBack(typ.NewOffer(inst.Name+"::"+id.NewUIIDstr(), cpu, mem, false, p.IP+":"+p.Port))
+				}
+
 			}
 
 			log.Printf("Created %d master offers and %d slave offers capcacity=%d", moffers, soffers, mem)

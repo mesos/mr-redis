@@ -50,3 +50,13 @@ func (inMem *InMem) Delete(name string) (bool, error) {
 	delete(inMem.I, name)
 	return true, nil
 }
+
+func (inMem *InMem) Get(name string) *Instance {
+
+	if i, ok := inMem.I[name]; ok {
+		return i
+	} else {
+		return nil
+	}
+
+}

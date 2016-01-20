@@ -92,7 +92,7 @@ func (S *MrRedisScheduler) ResourceOffers(driver sched.SchedulerDriver, offers [
 			if tsk.IsMaster {
 				tmp_data = []byte(fmt.Sprintf("%d Master", tsk.Mem))
 			} else {
-				tmp_data = []byte(fmt.Sprintf("%d SlaveOf 127.0.0.1", tsk.Mem))
+				tmp_data = []byte(fmt.Sprintf("%d SlaveOf %s", tsk.Mem, tsk.MasterIpPort))
 			}
 
 			if cpus >= tskCpu_float && mems >= tskMem_float {

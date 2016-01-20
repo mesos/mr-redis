@@ -7,7 +7,7 @@ import (
 
 	"github.com/astaxie/beego"
 
-	"../../common/types"
+	typ "../../common/types"
 )
 
 type MainController struct {
@@ -32,28 +32,28 @@ func (this *MainController) CreateInstance() {
 	log.Printf("Instance Name=%s, Capacity=%d, masters=%d, slaves=%d\n", name, capacity, masters, slaves)
 
 	//Check the in-memory map if the instance already exist then return
-	if types.MemDb.IsValid(name) {
+	if typ.MemDb.IsValid(name) {
 		//The instance already exist return cannot create again return error
 		this.Ctx.WriteString(fmt.Sprintf("Instance %s already exist, cannot be create", name))
 		return
 	}
 
 	//Check the central storage  if the instanc already exist then return
-	tmp_instance := types.LoadInstance(name)
+	tmp_instance := typ.LoadInstance(name)
 
 	if tmp_instance != nil {
-		types.MemDb.Add(name, tmp_instance)
+		typ.MemDb.Add(name, tmp_instance)
 		this.Ctx.WriteString(fmt.Sprintf("Instance %s already exist, cannot be create", name))
 		return
 	}
 
 	//create a instance object
-	tmp_instance = types.NewInstance(name, "S", masters, slaves, capacity)
+	tmp_instance = typ.NewInstance(name, "S", masters, slaves, capacity)
 	tmp_instance.Sync()
-	tmp_instance.Status = "STARTING"
+	tmp_instance.Status = typ.INST_STATUS_CREATING
 
 	//Send it across to creator's channel
-	types.Cchan <- tmp_instance
+	typ.Cchan <- tmp_instance
 
 	//this.Ctx.Output.SetStatus(201)
 	this.Ctx.ResponseWriter.WriteHeader(201)
