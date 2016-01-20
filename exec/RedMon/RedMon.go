@@ -19,6 +19,7 @@ import (
 type RedMon struct {
 	P       *typ.Proc //The Proc structure that should be used
 	Pid     int       //The Pid of the running proc
+	IP      string    //IP address the redis instance should bind to
 	Port    int       //The port number of this redis instance to be started
 	Ofile   io.Writer //Stdout log file to be re-directed to this io.writer
 	Efile   io.Writer //stderr of the redis instnace should be re-directed to this file
@@ -35,12 +36,13 @@ type RedMon struct {
 //Capacity Master-SlaveOf IP:Port => This is a New master of the instance with an upgraded memory value so
 //                          Start as slave, Sync data, make it as master, send TASK_RUNNING update and start to Monitor
 
-func NewRedMon(tskName string, Port int, data string) *RedMon {
+func NewRedMon(tskName string, IP string, Port int, data string) *RedMon {
 
 	var R RedMon
 	var P *typ.Proc
 
 	R.Port = Port
+	R.IP = IP
 	split_data := strings.Split(data, " ")
 
 	fmt.Printf("Split data recived is %v\n", data)
@@ -101,6 +103,7 @@ func (R *RedMon) StartMaster() bool {
 	R.Pid = R.C.Process.Pid
 	R.P.Pid = R.C.Process.Pid
 	R.P.Port = fmt.Sprintf("%d", R.Port)
+	R.P.IP = R.IP
 	R.P.State = "Running"
 	R.P.Sync()
 
@@ -109,7 +112,12 @@ func (R *RedMon) StartMaster() bool {
 
 func (R *RedMon) StartSlave() bool {
 	//Command Line
-	R.C = exec.Command("/home/ubuntu/progs/redis-3.0.6/src/redis-server", "--port", fmt.Sprintf("%d", R.Port), "--SlaveOf", R.P.SlaveOf)
+	slaveof := strings.Split(R.P.SlaveOf, ":")
+	if len(slaveof) != 2 {
+		fmt.Printf("Unacceptable SlaveOf value %vn", R.P.SlaveOf)
+		return false
+	}
+	R.C = exec.Command("/home/ubuntu/progs/redis-3.0.6/src/redis-server", "--port", fmt.Sprintf("%d", R.Port), "--SlaveOf", slaveof[0], slaveof[1])
 	err := R.C.Start()
 
 	if err != nil {
@@ -117,11 +125,15 @@ func (R *RedMon) StartSlave() bool {
 		return false
 	}
 
-	R.Pid = R.C.Process.Pid
 	//Monitor the redis PROC to check if the sync is complete
 	for !R.IsSyncComplete() {
 		time.Sleep(time.Second)
 	}
+	R.Pid = R.C.Process.Pid
+	R.P.Pid = R.C.Process.Pid
+	R.P.Port = fmt.Sprintf("%d", R.Port)
+	R.P.IP = R.IP
+	R.P.State = "Running"
 
 	R.P.Sync()
 
@@ -130,7 +142,12 @@ func (R *RedMon) StartSlave() bool {
 
 func (R *RedMon) StartSlaveAndMakeMaster() bool {
 	//Command Line
-	R.C = exec.Command("/home/ubuntu/progs/redis-3.0.6/src/redis-server", "--port", fmt.Sprintf("%d", R.Port), "--SlaveOf", R.P.SlaveOf)
+	slaveof := strings.Split(R.P.SlaveOf, ":")
+	if len(slaveof) != 2 {
+		fmt.Printf("Unacceptable SlaveOf value %vn", R.P.SlaveOf)
+		return false
+	}
+	R.C = exec.Command("/home/ubuntu/progs/redis-3.0.6/src/redis-server", "--port", fmt.Sprintf("%d", R.Port), "--SlaveOf", slaveof[0], slaveof[1])
 	err := R.C.Start()
 
 	if err != nil {
@@ -147,6 +164,11 @@ func (R *RedMon) StartSlaveAndMakeMaster() bool {
 	//Make this Proc as master
 	R.MakeMaster()
 
+	R.Pid = R.C.Process.Pid
+	R.P.Pid = R.C.Process.Pid
+	R.P.Port = fmt.Sprintf("%d", R.Port)
+	R.P.IP = R.IP
+	R.P.State = "Running"
 	R.P.Sync()
 
 	return true

@@ -102,6 +102,7 @@ func (P *Proc) Load() bool {
 	P.MemUsed, err = strconv.Atoi(tmpStr)
 
 	P.Port, err = Gdb.Get(P.Nodename + "/Port")
+	P.IP, err = Gdb.Get(P.Nodename + "/IP")
 
 	tmpStr, err = Gdb.Get(P.Nodename + "/Pid")
 	P.Pid, err = strconv.Atoi(tmpStr)
@@ -138,6 +139,7 @@ func (P *Proc) Sync() bool {
 	Gdb.Set(P.Nodename+"/Capacity", fmt.Sprintf("%d", P.MemCap))
 	Gdb.Set(P.Nodename+"/MemUsed", fmt.Sprintf("%d", P.MemUsed))
 	Gdb.Set(P.Nodename+"/Pid", fmt.Sprintf("%d", P.Pid))
+	Gdb.Set(P.Nodename+"/IP", P.IP)
 	Gdb.Set(P.Nodename+"/Port", P.Port)
 	Gdb.Set(P.Nodename+"/State", P.State)
 	Gdb.Set(P.Nodename+"/Stats", P.Stats)

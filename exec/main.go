@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net"
 
 	exec "github.com/mesos/mesos-go/executor"
 	mesos "github.com/mesos/mesos-go/mesosproto"
@@ -16,6 +17,23 @@ var DbEndPoint = flag.String("DbEndPoint", "", "Endpoint of the database")
 
 type MrRedisExecutor struct {
 	tasksLaunched int
+	HostIP        string
+}
+
+func GetLocalIP() string {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return ""
+	}
+	for _, address := range addrs {
+		// check the address type and if it is not a loopback the display it
+		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				return ipnet.IP.String()
+			}
+		}
+	}
+	return ""
 }
 
 func NewMrRedisExecutor() *MrRedisExecutor {
@@ -24,10 +42,12 @@ func NewMrRedisExecutor() *MrRedisExecutor {
 
 func (exec *MrRedisExecutor) Registered(driver exec.ExecutorDriver, execInfo *mesos.ExecutorInfo, fwinfo *mesos.FrameworkInfo, slaveInfo *mesos.SlaveInfo) {
 	fmt.Println("Registered Executor on slave ", slaveInfo.GetHostname())
+	exec.HostIP = GetLocalIP()
 }
 
 func (exec *MrRedisExecutor) Reregistered(driver exec.ExecutorDriver, slaveInfo *mesos.SlaveInfo) {
 	fmt.Println("Re-registered Executor on slave ", slaveInfo.GetHostname())
+	exec.HostIP = GetLocalIP()
 }
 
 func (exec *MrRedisExecutor) Disconnected(exec.ExecutorDriver) {
@@ -39,7 +59,9 @@ func (exec *MrRedisExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *me
 
 	var runStatus *mesos.TaskStatus
 	exec.tasksLaunched++
-	M := RedMon.NewRedMon(taskInfo.GetTaskId().GetValue(), exec.tasksLaunched+6379, string(taskInfo.Data))
+	M := RedMon.NewRedMon(taskInfo.GetTaskId().GetValue(), exec.HostIP, exec.tasksLaunched+6379, string(taskInfo.Data))
+
+	fmt.Print("The Redmon object = %v\n", *M)
 
 	go func() {
 		if M.Start() {

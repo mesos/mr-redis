@@ -63,6 +63,45 @@ $cat config.json
 
 Please substitute appropriate values with respect to your enviroment in the above config file for MasterIP/Port, ExecutorPath, DBEndPoint and IP adddres of this scheduler's VM that is accessible from the lsaves for artifactIP
 
+If you have a complicated Redis requirement then a simple http comamnd like below 
+```
+$curl -X "POST" http://10.11.12.17:8080/v1/CREATE/1Master21Slaves/1024/1/21
+```
+will result in creating 1 master with 21 Slaves in less than a min, Simples :-)
+
+```
+# Replication
+role:master
+connected_slaves:21
+slave0:ip=10.11.12.20,port=6381,state=online,offset=323,lag=0
+slave1:ip=10.11.12.21,port=6382,state=online,offset=323,lag=0
+slave2:ip=10.11.12.20,port=6382,state=online,offset=323,lag=0
+slave3:ip=10.11.12.21,port=6383,state=online,offset=323,lag=0
+slave4:ip=10.11.12.21,port=6384,state=online,offset=323,lag=0
+slave5:ip=10.11.12.20,port=6383,state=online,offset=323,lag=0
+slave6:ip=10.11.12.21,port=6385,state=online,offset=323,lag=0
+slave7:ip=10.11.12.20,port=6384,state=online,offset=323,lag=0
+slave8:ip=10.11.12.21,port=6386,state=online,offset=323,lag=0
+slave9:ip=10.11.12.20,port=6385,state=online,offset=323,lag=0
+slave10:ip=10.11.12.21,port=6387,state=online,offset=323,lag=0
+slave11:ip=10.11.12.20,port=6386,state=online,offset=323,lag=0
+slave12:ip=10.11.12.21,port=6388,state=online,offset=323,lag=0
+slave13:ip=10.11.12.20,port=6387,state=online,offset=323,lag=0
+slave14:ip=10.11.12.21,port=6389,state=online,offset=323,lag=0
+slave15:ip=10.11.12.21,port=6390,state=online,offset=323,lag=0
+slave16:ip=10.11.12.21,port=6391,state=online,offset=323,lag=0
+slave17:ip=10.11.12.21,port=6392,state=online,offset=323,lag=0
+slave18:ip=10.11.12.21,port=6393,state=online,offset=323,lag=0
+slave19:ip=10.11.12.21,port=6394,state=online,offset=323,lag=0
+slave20:ip=10.11.12.21,port=6395,state=online,offset=323,lag=0
+master_repl_offset:323
+repl_backlog_active:1
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:2
+repl_backlog_histlen:322
+
+```
+
 ### Installation Instruction
 Please Note the pkg dependency management will be done by godep, but we will hold integrating it as the next destination (Transfer this project) of this project from my username is still not clear.
 TODO
