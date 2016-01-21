@@ -97,20 +97,85 @@ func Maintainer() {
 			break
 		case "TASK_FINISHED":
 			log.Printf("Task %s is Finished", ts.Name)
+			//Check if all the procss
+			//
 			break
 		case "TASK_FAILED":
 			log.Printf("Task %s is Failed", ts.Name)
+			switch proc.Type {
+			case "M":
+				//If the task lost is a master then we must select a most updated slave as the next master
+				//Make rest of the slave to start connectin to this new master
+				//Send Request to creator to bring back one more slave
+				//For now lets just start a master for single instnace master
+				if Inst.Type == typ.INST_TYPE_SINGLE {
+					if Inst.Masters > 0 {
+						Inst.Masters--
+						Inst.Mname = ""
+						Inst.SyncMasters()
+						typ.Cchan <- Inst
+					}
+				}
+				break
+			case "S":
+				//Just send requst to bring back one more slave to the creator
+				if Inst.Slaves > 0 {
+					Inst.Slaves--
+					//Remove this lsave from the list of slaves
+					var tmp_Snames []string
+					for _, pid := range Inst.Snames {
+						if pid != ProcID {
+							tmp_Snames = append(tmp_Snames, pid)
+						}
+					}
+					Inst.Snames = tmp_Snames
+					Inst.SyncSlaves()
+					typ.Cchan <- Inst
+				}
+				break
+			}
 			break
 		case "TASK_KILLED":
 			log.Printf("Task %s is Killed", ts.Name)
 			break
 		case "TASK_LOST":
 			log.Printf("Task %s is Lost", ts.Name)
+			switch proc.Type {
+			case "M":
+				//If the task lost is a master then we must select a most updated slave as the next master
+				//Make rest of the slave to start connectin to this new master
+				//Send Request to creator to bring back one more slave
+				//For now lets just start a master for single instnace master
+				if Inst.Type == typ.INST_TYPE_SINGLE {
+					if Inst.Masters > 0 {
+						Inst.Masters--
+						Inst.Mname = ""
+						Inst.SyncMasters()
+						typ.Cchan <- Inst
+					}
+				}
+				break
+			case "S":
+				//Just send requst to bring back one more slave to the creator
+				if Inst.Slaves > 0 {
+					Inst.Slaves--
+					//Remove this lsave from the list of slaves
+					var tmp_Snames []string
+					for _, pid := range Inst.Snames {
+						if pid != ProcID {
+							tmp_Snames = append(tmp_Snames, pid)
+						}
+					}
+					Inst.Snames = tmp_Snames
+					Inst.SyncSlaves()
+					typ.Cchan <- Inst
+				}
+				break
+			}
 			break
 		case "TASK_ERROR":
 			log.Printf("Task %s is Error", ts.Name)
 			break
-
 		}
 	}
 

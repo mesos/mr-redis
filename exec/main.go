@@ -42,12 +42,10 @@ func NewMrRedisExecutor() *MrRedisExecutor {
 
 func (exec *MrRedisExecutor) Registered(driver exec.ExecutorDriver, execInfo *mesos.ExecutorInfo, fwinfo *mesos.FrameworkInfo, slaveInfo *mesos.SlaveInfo) {
 	fmt.Println("Registered Executor on slave ", slaveInfo.GetHostname())
-	exec.HostIP = GetLocalIP()
 }
 
 func (exec *MrRedisExecutor) Reregistered(driver exec.ExecutorDriver, slaveInfo *mesos.SlaveInfo) {
 	fmt.Println("Re-registered Executor on slave ", slaveInfo.GetHostname())
-	exec.HostIP = GetLocalIP()
 }
 
 func (exec *MrRedisExecutor) Disconnected(exec.ExecutorDriver) {
@@ -85,12 +83,17 @@ func (exec *MrRedisExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *me
 		// this is where one would perform the requested task
 		//
 
-		M.C.Wait() //TODO: Collect the return value of the process and send appropriate TaskUpdate eg:TaskFinished only on clean shutdown others will get TaskFailed
+		exit_state := mesos.TaskState_TASK_FINISHED.Enum()
+
+		exit_err := M.C.Wait() //TODO: Collect the return value of the process and send appropriate TaskUpdate eg:TaskFinished only on clean shutdown others will get TaskFailed
+		if exit_err != nil {
+			exit_state = mesos.TaskState_TASK_FAILED.Enum()
+		}
 		// finish task
 		fmt.Println("Finishing task", taskInfo.GetName())
 		finStatus := &mesos.TaskStatus{
 			TaskId: taskInfo.GetTaskId(),
-			State:  mesos.TaskState_TASK_FINISHED.Enum(),
+			State:  exit_state,
 		}
 		_, err = driver.SendStatusUpdate(finStatus)
 		if err != nil {
@@ -125,8 +128,10 @@ func main() {
 	fmt.Println("Starting MrRedis Executor")
 
 	typ.Initialize(*DbType, *DbEndPoint)
+	MrRedisExec := NewMrRedisExecutor()
+	MrRedisExec.HostIP = GetLocalIP()
 	dconfig := exec.DriverConfig{
-		Executor: NewMrRedisExecutor(),
+		Executor: MrRedisExec,
 	}
 	driver, err := exec.NewMesosExecutorDriver(dconfig)
 

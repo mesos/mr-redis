@@ -32,3 +32,15 @@ const (
 	INST_STATUS_RUNNING  = "RUNNING"
 	INST_STATUS_DISABLED = "DISABLED"
 )
+
+//Const for instance type
+const (
+	INST_TYPE_SINGLE       = "S"  //A Single instance redis-server
+	INST_TYPE_MASTER_SLAVE = "MS" //A redis instnace with master-slave
+)
+
+//const for type of the redis-server
+const (
+	PROC_TYPE_MASTER = "M"
+	PROC_TYPE_SLAVE  = "S"
+)

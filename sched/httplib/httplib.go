@@ -48,7 +48,11 @@ func (this *MainController) CreateInstance() {
 	}
 
 	//create a instance object
-	tmp_instance = typ.NewInstance(name, "S", masters, slaves, capacity)
+	inst_type := typ.INST_TYPE_SINGLE
+	if slaves > 0 {
+		inst_type = typ.INST_TYPE_MASTER_SLAVE
+	}
+	tmp_instance = typ.NewInstance(name, inst_type, masters, slaves, capacity)
 	tmp_instance.Sync()
 	tmp_instance.Status = typ.INST_STATUS_CREATING
 
