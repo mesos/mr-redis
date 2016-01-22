@@ -84,6 +84,7 @@ func main() {
 	go cmd.Maintainer()
 
 	//Start the Destroyer
+	go cmd.Destoryer()
 
 	//Start HTTP server and related things to handle restfull calls to the scheduler
 	httplib.Run(Cfg.HTTPPort)

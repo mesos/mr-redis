@@ -170,6 +170,15 @@ func (P *Proc) SyncType() bool {
 	return true
 }
 
+func (P *Proc) SyncMsg() bool {
+	if Gdb.IsSetup() != true {
+		return false
+	}
+	Gdb.Set(P.Nodename+"/Msg", P.Msg)
+
+	return true
+}
+
 func (P *Proc) LoadStats() bool {
 	var err error
 	if Gdb.IsSetup() != true {
@@ -195,4 +204,14 @@ func (P *Proc) LoadType() bool {
 		return false
 	}
 	return true
+}
+
+func (P *Proc) ToJson() string {
+	ret_str := "{"
+
+	ret_str = ret_str + "IP:" + P.IP + ","
+	ret_str = ret_str + "Port:" + P.Port + ","
+	ret_str = ret_str + "}"
+
+	return ret_str
 }

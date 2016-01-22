@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 	"log"
+	"path/filepath"
 	"strconv"
 
 	"../store/etcd"
@@ -65,6 +66,7 @@ func (I *Instance) Load() bool {
 
 	var err error
 	var tmp_str string
+	var SnamesKey []string
 
 	if Gdb.IsSetup() != true {
 		return false
@@ -86,17 +88,17 @@ func (I *Instance) Load() bool {
 	I.Mname, err = Gdb.Get(node_name + "Mname")
 
 	node_name_slaves := node_name + "Snames/"
-	I.Snames, err = Gdb.ListSection(node_name_slaves, false)
-
+	SnamesKey, err = Gdb.ListSection(node_name_slaves, false)
 	if err != nil {
 		log.Printf("The error value is %v", err)
 	}
 
-	I.Procs = make(map[string]*Proc)
-
-	for _, n := range I.Snames {
-		I.Procs[n] = LoadProc(I.Name + n)
+	for _, snamekey := range SnamesKey {
+		_, sname := filepath.Split(snamekey)
+		I.Snames = append(I.Snames, sname)
 	}
+
+	I.LoadProcs()
 
 	return true
 }
@@ -125,7 +127,7 @@ func (I *Instance) Sync() bool {
 
 	Gdb.CreateSection(node_name_slaves)
 	for _, sname := range I.Snames {
-		Gdb.Set(node_name_slaves+sname, "slave")
+		Gdb.Set(node_name_slaves+sname, sname)
 	}
 
 	node_name_procs := node_name + "Procs/"
@@ -171,7 +173,7 @@ func (I *Instance) SyncSlaves() bool {
 
 	Gdb.CreateSection(node_name_slaves)
 	for _, sname := range I.Snames {
-		Gdb.Set(node_name_slaves+sname, "slave")
+		Gdb.Set(node_name_slaves+sname, sname)
 	}
 	return true
 }
@@ -194,10 +196,31 @@ func (I *Instance) LoadProcs() bool {
 		I.Procs = make(map[string]*Proc)
 	}
 
+	I.Procs[I.Mname] = LoadProc(I.Name + "::" + I.Mname)
+
 	for _, n := range I.Snames {
-		I.Procs[n] = LoadProc(I.Name + n)
+		log.Printf("Laoding proc key=%v ", n)
+		I.Procs[n] = LoadProc(I.Name + "::" + n)
 	}
 
 	return true
 
+}
+
+func (I *Instance) ToJson() string {
+
+	ret_str := "{"
+	ret_str = ret_str + "Name:" + I.Name + ","
+	ret_str = ret_str + "Type:" + I.Type + ","
+	ret_str = ret_str + "Status:" + I.Status + ","
+	ret_str = ret_str + "Capacity:" + fmt.Sprintf("%d", I.Capacity) + ","
+	if I.Status == INST_STATUS_RUNNING {
+		ret_str = ret_str + "Master:" + I.Procs[I.Mname].ToJson() + ","
+		for i, sname := range I.Snames {
+			ret_str = ret_str + fmt.Sprintf("Slave%d:", i) + I.Procs[sname].ToJson() + ","
+		}
+	}
+
+	ret_str = ret_str + "}"
+	return ret_str
 }

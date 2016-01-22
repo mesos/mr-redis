@@ -67,10 +67,17 @@ func (this *MainController) CreateInstance() {
 func (this *MainController) DeleteInstance() {
 
 	//var name string
+	var name string
 
 	//Parse the input URL
+	name = this.Ctx.Input.Param(":INSTANCENAME") //Get the name of the instnace
 
 	//Check the in-memory map if the instance does not exisy
+	if typ.MemDb.IsValid(name) {
+		//The instance already exist return cannot create again return error
+		this.Ctx.WriteString(fmt.Sprintf("Instance %s already exist, cannot be create", name))
+		return
+	}
 
 	//Check the central storage if the instnace does not exist
 
@@ -81,25 +88,45 @@ func (this *MainController) DeleteInstance() {
 func (this *MainController) Status() {
 
 	//var name string
+	var name string
+	var inst *typ.Instance
 
-	//parse the input URL
+	//Parse the input URL
+	name = this.Ctx.Input.Param(":INSTANCENAME") //Get the name of the instnace
 
-	//Check the in memory map if instnace avaiulable return the status in json
-
-	//Check the central store if yes then return the status
+	//Check in memory map and store if the instance is available
+	inst = typ.MemDb.Get(name)
+	if inst == nil {
+		inst = typ.LoadInstance(name)
+		if inst == nil {
+			this.Ctx.ResponseWriter.WriteHeader(501)
+			this.Ctx.WriteString(fmt.Sprintf("Instance %s does not exist, error", name))
+			return
+		} else {
+			typ.MemDb.Add(name, inst)
+		}
+	}
 
 	//not available in both the retrun error
-	this.Ctx.WriteString("Status of the instance is ")
+	this.Ctx.WriteString(inst.ToJson())
 
 }
 
 func (this *MainController) UpdateMemory() {
 
 	//var name string
+	var name string
 
 	//parse the input URL
+	name = this.Ctx.Input.Param(":INSTANCENAME") //Get the name of the instnace
 
 	//Check the instnace in in-memory
+	if !typ.MemDb.IsValid(name) {
+		//The instance already exist return cannot create again return error
+		this.Ctx.ResponseWriter.WriteHeader(501)
+		this.Ctx.WriteString(fmt.Sprintf("Instance %s already exist, cannot be create", name))
+		return
+	}
 
 	//Check the instance in central storage
 
@@ -111,10 +138,17 @@ func (this *MainController) UpdateMemory() {
 func (this *MainController) UpdateSlaves() {
 
 	//var name string
+	var name string
 
 	//parse the input URL
+	name = this.Ctx.Input.Param(":INSTANCENAME") //Get the name of the instnace
 
 	//Check the instnace in in-memory
+	if typ.MemDb.IsValid(name) {
+		//The instance already exist return cannot create again return error
+		this.Ctx.WriteString(fmt.Sprintf("Instance %s already exist, cannot be create", name))
+		return
+	}
 
 	//Check the instance in central storage
 
