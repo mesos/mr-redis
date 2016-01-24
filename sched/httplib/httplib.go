@@ -72,16 +72,33 @@ func (this *MainController) DeleteInstance() {
 	//Parse the input URL
 	name = this.Ctx.Input.Param(":INSTANCENAME") //Get the name of the instnace
 
-	//Check the in-memory map if the instance does not exisy
+	//Check the in-memory map if the instance already exists
 	if typ.MemDb.IsValid(name) {
+		//get the instance data from central storage
+	    tmp_inst := typ.LoadInstance(name)
+		tmp_inst.LoadProcs()
+
+		//send info about all procs to be Destroyer
+		tmp_proc := tmp_inst.Procs[tmp_inst.Mname]
+		typ.Dchan <- tmp_proc
+
+		for _, n := range tmp_inst.Snames {
+			//ToDo is it needed to load the proc info from store also??
+			//ToDo is there a delay needed between sending multiple values on this channel
+			typ.Dchan <- tmp_inst.Procs[n]
+		}
+
+	}else{
+
 		//The instance already exist return cannot create again return error
-		this.Ctx.WriteString(fmt.Sprintf("Instance %s already exist, cannot be create", name))
+		this.Ctx.ResponseWriter.WriteHeader(401)
+		this.Ctx.WriteString(fmt.Sprintf("Instance %s does not exist", name))
 		return
 	}
 
-	//Check the central storage if the instnace does not exist
-
-	//Send it across to destroyers channel
+	//this.Ctx.Output.SetStatus(201)
+	//ToDo: should this be blocking and the return happens when instance successfully deleted
+	this.Ctx.ResponseWriter.WriteHeader(201)
 	this.Ctx.WriteString("Request Placed for destroying")
 }
 

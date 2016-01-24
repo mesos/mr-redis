@@ -37,6 +37,15 @@ type Proc struct {
 	//cli    redis.Cli
 }
 
+//ToDo the whole stats structure could be a json structure reflecting all the fields what redis info returns
+//currently one field has many new line saperated values;ToDO will this work if returned in API?
+type Stats struct{
+
+	Mem string
+	Cpu string
+	Others string
+}
+
 func NewProc(TskName string, Capacity int, Type string, SlaveOf string) *Proc {
 
 	var tmpProc Proc
@@ -206,11 +215,40 @@ func (P *Proc) LoadType() bool {
 	return true
 }
 
+func (P *Proc) LoadMsg() bool {
+    var err error
+	if Gdb.IsSetup() != true {
+		return false
+	}
+
+	P.Msg, err = Gdb.Get(P.Nodename + "/Msg")
+	if err != nil {
+		log.Printf("Error occured %v", err)
+		return false
+	}
+
+	return true
+}
+
+
 func (P *Proc) ToJson() string {
 	ret_str := "{"
 
 	ret_str = ret_str + "IP:" + P.IP + ","
 	ret_str = ret_str + "Port:" + P.Port + ","
+	ret_str = ret_str + "}"
+
+	return ret_str
+}
+
+
+func (P *Proc) ToJsonStats(stats Stats) string {
+	ret_str := "{"
+
+	//ToDo there are new lines in each value, to update to complete and nested json
+	ret_str = ret_str + "MEM:" + stats.Mem + ","
+	ret_str = ret_str + "CPU:" + stats.Cpu + ","
+	ret_str = ret_str + "OTHERS:" + stats.Others + ","
 	ret_str = ret_str + "}"
 
 	return ret_str
