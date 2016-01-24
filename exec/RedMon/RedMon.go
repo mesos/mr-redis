@@ -3,13 +3,13 @@ package RedMon
 import (
 	"fmt"
 	"io"
-	//	"log"
+	"log"
 	"os/exec"
 	"strconv"
 	"strings"
 	"time"
 
-	//Redis Client
+	redisclient "gopkg.in/redis.v3"
 	typ "../../common/types"
 )
 
@@ -24,8 +24,8 @@ type RedMon struct {
 	Ofile   io.Writer //Stdout log file to be re-directed to this io.writer
 	Efile   io.Writer //stderr of the redis instnace should be re-directed to this file
 	MS_Sync bool      //Make this as master after sync
-	C       *exec.Cmd
-	//Cli *Redis.Cli 		//redis cli client library connection handler
+	Cmd     *exec.Cmd
+	Client  *redisclient.Client	//redis client library connection handler
 	//cgroup *CgroupManager		//Cgroup manager/cgroup connection pointer
 }
 
@@ -67,6 +67,7 @@ func NewRedMon(tskName string, IP string, Port int, data string) *RedMon {
 		break
 	}
 	R.P = P
+	//ToDo each instance should be started with its own dir and specified config file
 	//ToDo Stdout file to be tskname.stdout
 	//ToDo stderere file to be tskname.stderr
 
@@ -87,21 +88,24 @@ func (R *RedMon) Start() bool {
 			return R.StartSlaveAndMakeMaster()
 		}
 	}
+
+	//get the handle to a connected client to the started server
+	R.Client = R.GetConnectedClient()
 	return false
 }
 
 func (R *RedMon) StartMaster() bool {
 	//Command Line
-	R.C = exec.Command("/home/ubuntu/progs/redis-3.0.6/src/redis-server", "--port", fmt.Sprintf("%d", R.Port))
-	err := R.C.Start()
+	R.Cmd = exec.Command("redis-server", "--port", fmt.Sprintf("%d", R.Port))
+	err := R.Cmd.Start()
 
 	if err != nil {
 		//Print some error
 		return false
 	}
 
-	R.Pid = R.C.Process.Pid
-	R.P.Pid = R.C.Process.Pid
+	R.Pid = R.Cmd.Process.Pid
+	R.P.Pid = R.Cmd.Process.Pid
 	R.P.Port = fmt.Sprintf("%d", R.Port)
 	R.P.IP = R.IP
 	R.P.State = "Running"
@@ -114,11 +118,11 @@ func (R *RedMon) StartSlave() bool {
 	//Command Line
 	slaveof := strings.Split(R.P.SlaveOf, ":")
 	if len(slaveof) != 2 {
-		fmt.Printf("Unacceptable SlaveOf value %vn", R.P.SlaveOf)
+		log.Printf("Unacceptable SlaveOf value %vn", R.P.SlaveOf)
 		return false
 	}
-	R.C = exec.Command("/home/ubuntu/progs/redis-3.0.6/src/redis-server", "--port", fmt.Sprintf("%d", R.Port), "--SlaveOf", slaveof[0], slaveof[1])
-	err := R.C.Start()
+	R.Cmd = exec.Command("redis-server", "--port", fmt.Sprintf("%d", R.Port), "--SlaveOf", slaveof[0], slaveof[1])
+	err := R.Cmd.Start()
 
 	if err != nil {
 		//Print some error
@@ -129,8 +133,8 @@ func (R *RedMon) StartSlave() bool {
 	for !R.IsSyncComplete() {
 		time.Sleep(time.Second)
 	}
-	R.Pid = R.C.Process.Pid
-	R.P.Pid = R.C.Process.Pid
+	R.Pid = R.Cmd.Process.Pid
+	R.P.Pid = R.Cmd.Process.Pid
 	R.P.Port = fmt.Sprintf("%d", R.Port)
 	R.P.IP = R.IP
 	R.P.State = "Running"
@@ -147,15 +151,15 @@ func (R *RedMon) StartSlaveAndMakeMaster() bool {
 		fmt.Printf("Unacceptable SlaveOf value %vn", R.P.SlaveOf)
 		return false
 	}
-	R.C = exec.Command("/home/ubuntu/progs/redis-3.0.6/src/redis-server", "--port", fmt.Sprintf("%d", R.Port), "--SlaveOf", slaveof[0], slaveof[1])
-	err := R.C.Start()
+	R.Cmd = exec.Command("redis-server", "--port", fmt.Sprintf("%d", R.Port), "--SlaveOf", slaveof[0], slaveof[1])
+	err := R.Cmd.Start()
 
 	if err != nil {
 		//Print some error
 		return false
 	}
 
-	R.Pid = R.C.Process.Pid
+	R.Pid = R.Cmd.Process.Pid
 
 	//Monitor the redis PROC to check if the sync is complete
 	for !R.IsSyncComplete() {
@@ -164,14 +168,30 @@ func (R *RedMon) StartSlaveAndMakeMaster() bool {
 	//Make this Proc as master
 	R.MakeMaster()
 
-	R.Pid = R.C.Process.Pid
-	R.P.Pid = R.C.Process.Pid
+	R.Pid = R.Cmd.Process.Pid
+	R.P.Pid = R.Cmd.Process.Pid
 	R.P.Port = fmt.Sprintf("%d", R.Port)
 	R.P.IP = R.IP
 	R.P.State = "Running"
 	R.P.Sync()
 
 	return true
+}
+
+func (R *RedMon) GetConnectedClient() *redisclient.Client {
+
+	log.Printf("Monitoring stats")
+
+	client := redisclient.NewClient(&redisclient.Options{
+		Addr:     R.IP + fmt.Sprintf("%d", R.Port),
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+
+	pong, err := client.Ping().Result()
+	log.Printf(pong, err)
+
+	return client
 }
 
 func (R *RedMon) StatsUpdate() bool {
@@ -184,10 +204,34 @@ func (R *RedMon) StatsUpdate() bool {
 	return true
 }
 
-func (R *RedMon) Die() bool {
-	//send SHUTDOWN cli command for a gracefull exit of the redis-server
+
+func (R *RedMon) Stop() bool {
+
+
+   //send SHUTDOWN command for a gracefull exit of the redis-server
+	//the server exited gracefully will reflect at the task status FINISHED
+	err := R.Client.Shutdown()
+	if err != nil{
+		log.Printf("problem shutting down the server at IP:%s and port:%d with error %v", R.IP, R.Port, err)
+		return false
+
+	}
 	return true
+
 }
+
+func (R *RedMon) Die() bool {
+	//err := nil
+	err := R.Cmd.Process.Kill()
+	if err != nil {
+		log.Printf("Unable to kill the process %v", err)
+		return false
+	}
+
+ 	return true
+}
+
+
 
 //Should be called by the Monitors on Slave Procs, this gives the boolien anser if the sync is complegted or not
 func (R *RedMon) IsSyncComplete() bool {
