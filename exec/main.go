@@ -18,6 +18,7 @@ var DbEndPoint = flag.String("DbEndPoint", "", "Endpoint of the database")
 type MrRedisExecutor struct {
 	tasksLaunched int
 	HostIP        string
+	monMap        map[string](*RedMon.RedMon)
 }
 
 func GetLocalIP() string {
@@ -61,6 +62,9 @@ func (exec *MrRedisExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *me
 
 	fmt.Print("The Redmon object = %v\n", *M)
 
+	tid := taskInfo.GetTaskId().GetValue()
+	exec.monMap[tid] = M
+
 	go func() {
 		if M.Start() {
 			runStatus = &mesos.TaskStatus{
@@ -79,16 +83,14 @@ func (exec *MrRedisExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *me
 		}
 
 		fmt.Println("Total tasks launched ", exec.tasksLaunched)
-		//
-		// this is where one would perform the requested task
-		//
 
-		exit_state := mesos.TaskState_TASK_FINISHED.Enum()
+        exit_state := mesos.TaskState_TASK_FINISHED.Enum()
 
-		exit_err := M.C.Wait() //TODO: Collect the return value of the process and send appropriate TaskUpdate eg:TaskFinished only on clean shutdown others will get TaskFailed
+		exit_err := M.Cmd.Wait() //TODO: Collect the return value of the process and send appropriate TaskUpdate eg:TaskFinished only on clean shutdown others will get TaskFailed
 		if exit_err != nil {
 			exit_state = mesos.TaskState_TASK_FAILED.Enum()
 		}
+
 		// finish task
 		fmt.Println("Finishing task", taskInfo.GetName())
 		finStatus := &mesos.TaskStatus{
@@ -103,8 +105,12 @@ func (exec *MrRedisExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *me
 	}()
 }
 
-func (exec *MrRedisExecutor) KillTask(exec.ExecutorDriver, *mesos.TaskID) {
-	fmt.Println("Kill task")
+func (exec *MrRedisExecutor) KillTask(driver exec.ExecutorDriver, taskID *mesos.TaskID) {
+	tid := taskID.GetValue()
+	//tbd: is there any error check needed
+	exec.monMap[tid].Die()
+
+	fmt.Println("Killed task with task id:", tid)
 }
 
 func (exec *MrRedisExecutor) FrameworkMessage(driver exec.ExecutorDriver, msg string) {
@@ -130,10 +136,13 @@ func main() {
 	typ.Initialize(*DbType, *DbEndPoint)
 	MrRedisExec := NewMrRedisExecutor()
 	MrRedisExec.HostIP = GetLocalIP()
+        MrRedisExec.monMap = make(map[string](*RedMon.RedMon))
+
 	dconfig := exec.DriverConfig{
 		Executor: MrRedisExec,
 	}
 	driver, err := exec.NewMesosExecutorDriver(dconfig)
+
 
 	if err != nil {
 		fmt.Println("Unable to create a ExecutorDriver ", err.Error())
