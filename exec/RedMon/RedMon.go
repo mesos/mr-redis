@@ -75,6 +75,43 @@ func NewRedMon(tskName string, IP string, Port int, data string) *RedMon {
 	return &R
 }
 
+func (R *RedMon) getConnectedClient() *redisclient.Client {
+
+	log.Printf("Monitoring stats")
+
+	client := redisclient.NewClient(&redisclient.Options{
+		Addr:     R.IP + fmt.Sprintf("%d", R.Port),
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+
+	pong, err := client.Ping().Result()
+	log.Printf(pong, err)
+
+	return client
+}
+
+func (R *RedMon) launchRedisServer(isSlave bool, IP string, port string) bool {
+
+
+	if isSlave {
+		R.Cmd = exec.Command("redis-server", "--port", fmt.Sprintf("%d", R.Port), "--SlaveOf", IP, port)
+	}else {
+		R.Cmd = exec.Command("redis-server", "--port", fmt.Sprintf("%d", R.Port))
+	}
+
+	err := R.Cmd.Start()
+
+	if err != nil {
+		//Print some error
+		return false
+	}
+
+    //get the connected client immediately after for monitoring and other functions
+    R.Client = R.getConnectedClient()
+	return true
+}
+
 //Start the redis Proc be it Master or Slave
 func (R *RedMon) Start() bool {
 
@@ -94,13 +131,12 @@ func (R *RedMon) Start() bool {
 }
 
 func (R *RedMon) StartMaster() bool {
-	//Command Line
-	R.Cmd = exec.Command("redis-server", "--port", fmt.Sprintf("%d", R.Port))
-	err := R.Cmd.Start()
 
-	if err != nil {
-		//Print some error
-		return false
+	var ret = false
+	//Command Line
+	ret = R.launchRedisServer(false, "", "")
+	if ret != true {
+		return ret
 	}
 
 	R.Pid = R.Cmd.Process.Pid
@@ -114,18 +150,18 @@ func (R *RedMon) StartMaster() bool {
 }
 
 func (R *RedMon) StartSlave() bool {
+	var ret = false
 	//Command Line
 	slaveof := strings.Split(R.P.SlaveOf, ":")
 	if len(slaveof) != 2 {
 		log.Printf("Unacceptable SlaveOf value %vn", R.P.SlaveOf)
 		return false
 	}
-	R.Cmd = exec.Command("redis-server", "--port", fmt.Sprintf("%d", R.Port), "--SlaveOf", slaveof[0], slaveof[1])
-	err := R.Cmd.Start()
 
-	if err != nil {
-		//Print some error
-		return false
+	//Command Line
+	ret = R.launchRedisServer(true, slaveof[0], slaveof[1])
+	if ret != true {
+		return ret
 	}
 
 	//Monitor the redis PROC to check if the sync is complete
@@ -144,18 +180,17 @@ func (R *RedMon) StartSlave() bool {
 }
 
 func (R *RedMon) StartSlaveAndMakeMaster() bool {
+	var ret = false
 	//Command Line
 	slaveof := strings.Split(R.P.SlaveOf, ":")
 	if len(slaveof) != 2 {
 		fmt.Printf("Unacceptable SlaveOf value %vn", R.P.SlaveOf)
 		return false
 	}
-	R.Cmd = exec.Command("redis-server", "--port", fmt.Sprintf("%d", R.Port), "--SlaveOf", slaveof[0], slaveof[1])
-	err := R.Cmd.Start()
 
-	if err != nil {
-		//Print some error
-		return false
+	ret = R.launchRedisServer(true, slaveof[0], slaveof[1])
+	if ret != true {
+		return ret
 	}
 
 	R.Pid = R.Cmd.Process.Pid
@@ -177,21 +212,6 @@ func (R *RedMon) StartSlaveAndMakeMaster() bool {
 	return true
 }
 
-func (R *RedMon) GetConnectedClient() *redisclient.Client {
-
-	log.Printf("Monitoring stats")
-
-	client := redisclient.NewClient(&redisclient.Options{
-		Addr:     R.IP + fmt.Sprintf("%d", R.Port),
-		Password: "", // no password set
-		DB:       0,  // use default DB
-	})
-
-	pong, err := client.Ping().Result()
-	log.Printf(pong, err)
-
-	return client
-}
 
 func (R *RedMon) UpdateStats() bool {
 
@@ -233,8 +253,6 @@ func (R *RedMon) Monitor() bool {
    	//wait for a second for the server to start
 	//ToDo: is it needed
 	time.Sleep(1 * time.Second)
-	//then initiate a connection to it; for stats
-	R.Client = R.GetConnectedClient()
 
 	for {
 		select {
@@ -245,6 +263,7 @@ func (R *RedMon) Monitor() bool {
 			return false
 
 		case <-time.After(100 * time.Millisecond):
+			//this is to check communication from scheduler; mesos messages are not reliable
 			R.CheckMsg()
 
 		case <-time.After(1 * time.Second):
@@ -263,19 +282,17 @@ func (R *RedMon) Stop() bool {
 	err := R.Client.Shutdown()
 	if err != nil{
 		log.Printf("problem shutting down the server at IP:%s and port:%d with error %v", R.IP, R.Port, err)
-		//in the error case also we need to tell scheduler that graceful shutdown did not happen
-		//scheduler can send a kill on executor with the task ID
-		R.P.Msg = "SHUTDOWN_ERROR"
-		errMsg := R.P.SyncMsg()
+
+		//in this error case the scheduler will get a task killed notification
+		//but will also see that the status it updated was SHUTDOWN, thus will handle it as OK
+
+		errMsg := R.Die()
 		if !errMsg{//message should be read by scheduler
-			log.Printf("could not update the message to scheduler SHUTDOWN_ERROR FOR IP:%s and port:%d", R.IP, R.Port)
+			log.Printf("Killing the redis server also did not work for  IP:%s and port:%d", R.IP, R.Port)
 		}
 		return false
 	}
 
-	//in case of a successful shutdown we should stop monitoring also
-	//the redis client will anyways return error
-	R.monChan <-1
 	return true
 
 }
@@ -288,6 +305,7 @@ func (R *RedMon) Die() bool {
 		return false
 	}
 
+	//either the shutdown or a kill will stop the monitor also
  	return true
 }
 
@@ -295,7 +313,7 @@ func (R *RedMon) CheckMsg() {
 	//check message from scheduler
 	//currently we do it to see if scheduler asks us to quit
 
-	//better error handling needed
+	//ToDo better error handling needed
 	err := R.P.LoadMsg()
 	if err{
 
@@ -309,6 +327,8 @@ func (R *RedMon) CheckMsg() {
 
 			log.Printf("failed to stop the REDIS server")
 		}
+		//in any case lets stop monitoring
+		R.monChan <-1
 	}
 
 }
