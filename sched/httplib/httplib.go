@@ -80,6 +80,9 @@ func (this *MainController) DeleteInstance() {
 
 		//send info about all procs to be Destroyer
 		tmp_proc := tmp_inst.Procs[tmp_inst.Mname]
+
+		log.Printf("SENT Destorying proc %v from Instance %v", tmp_proc.ID, tmp_proc.Instance)
+
 		typ.Dchan <- tmp_proc
 
 		for _, n := range tmp_inst.Snames {
