@@ -107,7 +107,15 @@ Please Note the pkg dependency management will be done by godep, but we will hol
 TODO
 
 ### Contribution Guidlines
-TODO
+We have ourselves fallen into pitfalls to arrive at working code faster, some simple rules more to inculcate in our own future work and for reference to contributors
+Go already provides a nice documentation on coding conventions and guidelines; just try to adhere to that [Effective Go](https://golang.org/doc/effective_go.html) :-) 
+Also try and inculcate all the good things at Effective go programming https://golang.org/doc/effective_go.html
+Specifically 
+- Format code using go fmt, if an already prebuilt auto formatter is not their in your editor
+- We suggest using extensive comments, as this code base is still evolving
+- Try to stress on error handling as per [Effective error handling in Go](https://golang.org/doc/effective_go.html#errors) (which we ourselves have probably missed at places)
+- Please use this framework; We are looking forward for issues, and nothing greater then an issue and a fix. Nonetheless, if interested in contributing something specific, please raise an issue outright to let us know that you are doing "this"
+- We have not set up tests and test code yet, this is one obvious area to contribute without saying 
 
 ### Documentation 
 TODO
