@@ -60,7 +60,7 @@ func Maintainer() {
 			log.Printf("Task %s is Running", ts.Name)
 			switch proc.Type {
 			case "M":
-				if Inst.Masters <= Inst.ExpMasters {
+				if Inst.Masters < Inst.ExpMasters {
 					//
 					Inst.Masters++
 				} else {
@@ -81,10 +81,11 @@ func Maintainer() {
 				typ.Cchan <- Inst
 				break
 			case "S":
-				if Inst.Slaves <= Inst.ExpSlaves {
+				if Inst.Slaves < Inst.ExpSlaves {
 					Inst.Slaves++
 					Inst.Snames = append(Inst.Snames, ProcID)
 					Inst.SyncSlaves()
+					Inst.Procs[proc.ID] = proc
 				} else {
 					log.Printf("Unknown Slave %v  created for this instnace", ts.Name)
 				}

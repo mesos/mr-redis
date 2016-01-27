@@ -50,7 +50,7 @@ func (S *MrRedisScheduler) ResourceOffers(driver sched.SchedulerDriver, offers [
 		for i, offer := range offers {
 			ids[i] = offer.Id
 		}
-		driver.LaunchTasks(ids, []*mesos.TaskInfo{}, &mesos.Filters{RefuseSeconds: proto.Float64(1)})
+		driver.LaunchTasks(ids, []*mesos.TaskInfo{}, &mesos.Filters{})
 		//log.Printf("No task to peform reject all the offer")
 		return
 	}
@@ -81,7 +81,7 @@ func (S *MrRedisScheduler) ResourceOffers(driver sched.SchedulerDriver, offers [
 		var tasks []*mesos.TaskInfo
 
 		//Loop through the tasks
-		for tsk_ele := typ.OfferList.Front(); tsk_ele != nil; tsk_ele = tsk_ele.Next() {
+		for tsk_ele := typ.OfferList.Front(); tsk_ele != nil; {
 
 			tsk := tsk_ele.Value.(typ.Offer)
 			tskCpu_float := float64(tsk.Cpu)
@@ -111,13 +111,16 @@ func (S *MrRedisScheduler) ResourceOffers(driver sched.SchedulerDriver, offers [
 				mems -= tskMem_float
 				cpus -= tskCpu_float
 
-				typ.OfferList.Remove(tsk_ele)
+				current_task := tsk_ele
+				tsk_ele = tsk_ele.Next()
+				typ.OfferList.Remove(current_task)
 				tasks = append(tasks, mesos_tsk)
 
 			}
 			//Check if this task is suitable for this offer
 		}
 		driver.LaunchTasks([]*mesos.OfferID{offer.Id}, tasks, &mesos.Filters{})
+		log.Printf("Launched %d tasks from this offer", len(tasks))
 	}
 	log.Printf("MrRedis Recives offer")
 }

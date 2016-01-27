@@ -60,7 +60,7 @@ func (exec *MrRedisExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *me
 	exec.tasksLaunched++
 	M := RedMon.NewRedMon(taskInfo.GetTaskId().GetValue(), exec.HostIP, exec.tasksLaunched+6379, string(taskInfo.Data))
 
-	fmt.Print("The Redmon object = %v\n", *M)
+	fmt.Printf("The Redmon object = %v\n", *M)
 
 	tid := taskInfo.GetTaskId().GetValue()
 	exec.monMap[tid] = M

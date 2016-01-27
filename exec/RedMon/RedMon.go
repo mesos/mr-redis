@@ -288,7 +288,7 @@ func (R *RedMon) Stop() bool {
 
 	//send SHUTDOWN command for a gracefull exit of the redis-server
 	//the server exited gracefully will reflect at the task status FINISHED
-	err := R.Client.Shutdown()
+	_, err := R.Client.Shutdown().Result()
 	if err != nil {
 		R.L.Printf("problem shutting down the server at IP:%s and port:%d with error %v", R.IP, R.Port, err)
 
@@ -329,7 +329,8 @@ func (R *RedMon) CheckMsg() {
 		return
 	}
 
-	if "SHUTDOWN" == R.P.Msg {
+	switch R.P.Msg {
+	case "SHUTDOWN":
 		err = R.Stop()
 		if err {
 
@@ -337,6 +338,10 @@ func (R *RedMon) CheckMsg() {
 		}
 		//in any case lets stop monitoring
 		R.monChan <- 1
+	case "MASTER":
+		R.MakeMaster()
+	case "SLAVEOF":
+		//If this is the message then this particular redis proc will become slave of a different master
 	}
 
 }
@@ -346,37 +351,43 @@ func (R *RedMon) IsSyncComplete() bool {
 
 	//time.Sleep(1 * time.Second)
 
+	if R.Client == nil {
+		return false
+	}
+
 	respStr, err := R.Client.Info("replication").Result()
 	if err != nil {
 		R.L.Printf("getting the repication stats from server at IP:%s and port:%d", R.IP, R.Port)
 		//dont return but try next time in another second/.1 second
 	}
 
-	for {
-		respArr := strings.Split(respStr, "\n")
-		for _, resp := range respArr {
-			r := strings.Split(resp, ":")
-			switch r[0] {
-			case "role":
-				if r[1] != "slave" {
-					R.L.Printf("Trying to call is sync, but this server is not really a slave IP:%s, port:%d", R.IP, R.Port)
-					return false
-				}
-				continue
-			case "master_sync_in_progress":
-				if r[1] != "0" {
-					R.L.Printf("Sync not complete yet in slave IP:%s, port:%d", R.IP, R.Port)
-					return false
-				} else {
-					return true
-				}
-			default:
-				continue
+	respArr := strings.Split(respStr, "\n")
+	for _, resp := range respArr {
+		R.L.Printf("resp = %v", resp)
+		r := strings.Split(resp, ":")
+		switch r[0] {
+		case "role":
+			if !strings.Contains(r[1], "slave") {
+				R.L.Printf("Trying to call is sync, but this server is not really a slave IP:%s, port:%d", R.IP, R.Port)
+				return false
 			}
-
+			continue
+		case "master_sync_in_progress":
+			if !strings.Contains(r[1], "0") {
+				R.L.Printf("Sync not complete yet in slave IP:%s, port:%d", R.IP, R.Port)
+				return false
+			} else {
+				return true
+			}
+		case "master_sync_last_io_seconds_ago":
+			//If the sync is completed then return true
+			return true
+		default:
+			continue
 		}
 
 	}
+
 	//if we did not find a master_sync_in_progress or slave in return at all, then some other problem, try again
 	return false
 }

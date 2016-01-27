@@ -132,6 +132,21 @@ func (this *MainController) Status() {
 
 }
 
+func (this *MainController) StatusAll() {
+
+	//var name string
+	var statusAll string
+
+	for _, inst := range typ.MemDb.I {
+		if inst.Status == typ.INST_STATUS_RUNNING {
+			statusAll = statusAll + inst.ToJson() + "\n"
+		}
+	}
+
+	//not available in both the retrun error
+	this.Ctx.WriteString(statusAll)
+
+}
 func (this *MainController) UpdateMemory() {
 
 	//var name string
