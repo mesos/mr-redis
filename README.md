@@ -6,13 +6,13 @@ Mesos runs Redis.
 
 A minimalistic framework for Redis workload on Apache Mesos
 
-This framework supports the following freatures
+This framework supports the following features
 
  * Creates/Maintains Single Redis-instance
  * Creates/Maintains Redis-Instances with Master-Slave setup 
  * Vertical Auto/Manual scaling of a running redis-instance in terms of memory
  * Provides a cli to manage/monitor the redis instances those are being created 
- * A centralized persistance layer enabled by etcd
+ * A centralized persistance layer currently enabled by etcd
 
 For example
 
@@ -21,7 +21,7 @@ $mrr create --name=app1-cache --mem=2G
 OK: Job Submitted to the framework
 ```
 
-The cli itslef is async in nature as it does not wait for the operation to complete
+The cli itself will be async in nature as it does not wait for the operation to complete
 
 ```
 $mrr status --name=app1-cache 
@@ -61,7 +61,7 @@ $cat config.json
 
 ```
 
-Please substitute appropriate values with respect to your enviroment in the above config file for MasterIP/Port, ExecutorPath, DBEndPoint and IP adddres of this scheduler's VM that is accessible from the lsaves for artifactIP
+Please substitute appropriate values with respect to your enviroment in the above config file for MasterIP/Port, ExecutorPath, DBEndPoint and IP adddres of this scheduler's VM that is accessible from the slaves for artifactIP
 
 If you have a complicated Redis requirement then a simple http comamnd like below 
 ```
@@ -103,13 +103,13 @@ repl_backlog_histlen:322
 ```
 
 ### Installation Instruction
-Please Note the pkg dependency management will be done by godep, but we will hold integrating it as the next destination (Transfer this project) of this project from my username is still not clear.
+Please Note the pkg dependency management will be done by godep, but we will hold integrating it as the next destination (Transfer this project) of this project from current location is still not clear.
 TODO
 
 ### Contribution Guidlines
 We have ourselves fallen into pitfalls to arrive at working code faster, some simple rules more to inculcate in our own future work and for reference to contributors
 Go already provides a nice documentation on coding conventions and guidelines; just try to adhere to that [Effective Go](https://golang.org/doc/effective_go.html) :-) 
-Also try and inculcate all the good things at Effective go programming https://golang.org/doc/effective_go.html
+
 Specifically 
 - Format code using go fmt, if an already prebuilt auto formatter is not their in your editor
 - We suggest using extensive comments, as this code base is still evolving
