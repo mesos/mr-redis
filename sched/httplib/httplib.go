@@ -75,7 +75,7 @@ func (this *MainController) DeleteInstance() {
 	//Check the in-memory map if the instance already exists
 	if typ.MemDb.IsValid(name) {
 		//get the instance data from central storage
-	    tmp_inst := typ.LoadInstance(name)
+		tmp_inst := typ.LoadInstance(name)
 		tmp_inst.LoadProcs()
 
 		//send info about all procs to be Destroyer
@@ -91,7 +91,7 @@ func (this *MainController) DeleteInstance() {
 			typ.Dchan <- tmp_inst.Procs[n]
 		}
 
-	}else{
+	} else {
 
 		//The instance already exist return cannot create again return error
 		this.Ctx.ResponseWriter.WriteHeader(401)

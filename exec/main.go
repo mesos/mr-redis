@@ -85,11 +85,11 @@ func (exec *MrRedisExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *me
 		fmt.Println("Total tasks launched ", exec.tasksLaunched)
 
 		//our server is now running, lets start monitoring it also
-		go func(){
+		go func() {
 			M.Monitor()
 		}()
 
-        exit_state := mesos.TaskState_TASK_FINISHED.Enum()
+		exit_state := mesos.TaskState_TASK_FINISHED.Enum()
 
 		exit_err := M.Cmd.Wait() //TODO: Collect the return value of the process and send appropriate TaskUpdate eg:TaskFinished only on clean shutdown others will get TaskFailed
 		if exit_err != nil {
@@ -141,13 +141,12 @@ func main() {
 	typ.Initialize(*DbType, *DbEndPoint)
 	MrRedisExec := NewMrRedisExecutor()
 	MrRedisExec.HostIP = GetLocalIP()
-        MrRedisExec.monMap = make(map[string](*RedMon.RedMon))
+	MrRedisExec.monMap = make(map[string](*RedMon.RedMon))
 
 	dconfig := exec.DriverConfig{
 		Executor: MrRedisExec,
 	}
 	driver, err := exec.NewMesosExecutorDriver(dconfig)
-
 
 	if err != nil {
 		fmt.Println("Unable to create a ExecutorDriver ", err.Error())

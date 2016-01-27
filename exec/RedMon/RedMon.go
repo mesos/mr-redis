@@ -1,18 +1,18 @@
 package RedMon
 
 import (
-	"os"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 	"time"
-	"io/ioutil"
 
-	redisclient "gopkg.in/redis.v3"
 	typ "../../common/types"
+	redisclient "gopkg.in/redis.v3"
 )
 
 //This structure is used to implement a monitor thread/goroutine for a running Proc(redisProc)
@@ -28,8 +28,8 @@ type RedMon struct {
 	MS_Sync bool      //Make this as master after sync
 	monChan chan int
 	Cmd     *exec.Cmd
-	Client  *redisclient.Client	//redis client library connection handler
-	L  *log.Logger  //to redirect log outputs to a file
+	Client  *redisclient.Client //redis client library connection handler
+	L       *log.Logger         //to redirect log outputs to a file
 	//cgroup *CgroupManager		//Cgroup manager/cgroup connection pointer
 }
 
@@ -49,8 +49,7 @@ func NewRedMon(tskName string, IP string, Port int, data string) *RedMon {
 	R.Port = Port
 	R.IP = IP
 
-
-		//initialise logger also
+	//initialise logger also
 	out, _ = os.Create("/tmp/MrRedisExecutor.log")
 	//ToDo does this need error handling
 	R.L = log.New(out, "[Info]", log.Lshortfile)
@@ -66,7 +65,7 @@ func NewRedMon(tskName string, IP string, Port int, data string) *RedMon {
 
 	Cap, _ := strconv.Atoi(split_data[0])
 
-		switch split_data[1] {
+	switch split_data[1] {
 	case "Master":
 		P = typ.NewProc(tskName, Cap, "M", "")
 		R.L.Printf("created proc for new MASTER\n")
@@ -105,10 +104,9 @@ func (R *RedMon) getConnectedClient() *redisclient.Client {
 
 func (R *RedMon) launchRedisServer(isSlave bool, IP string, port string) bool {
 
-
 	if isSlave {
 		R.Cmd = exec.Command("redis-server", "--port", fmt.Sprintf("%d", R.Port), "--SlaveOf", IP, port)
-	}else {
+	} else {
 		R.Cmd = exec.Command("redis-server", "--port", fmt.Sprintf("%d", R.Port))
 	}
 
@@ -119,11 +117,11 @@ func (R *RedMon) launchRedisServer(isSlave bool, IP string, port string) bool {
 		return false
 	}
 
-    //hack otherwise its too quick to have the server receiving connections
+	//hack otherwise its too quick to have the server receiving connections
 	time.Sleep(time.Second)
 
 	//get the connected client immediately after for monitoring and other functions
-    R.Client = R.getConnectedClient()
+	R.Client = R.getConnectedClient()
 	return true
 }
 
@@ -227,7 +225,6 @@ func (R *RedMon) StartSlaveAndMakeMaster() bool {
 	return true
 }
 
-
 func (R *RedMon) UpdateStats() bool {
 
 	var redisStats typ.Stats
@@ -254,18 +251,16 @@ func (R *RedMon) UpdateStats() bool {
 	R.P.Stats = R.P.ToJsonStats(redisStats)
 
 	errSync := R.P.SyncStats()
-	if !errSync{
+	if !errSync {
 		R.L.Printf("Error syncing stats to store")
 		return false
 	}
 	return true
 }
 
-
 func (R *RedMon) Monitor() bool {
 
-
-   	//wait for a second for the server to start
+	//wait for a second for the server to start
 	//ToDo: is it needed
 	time.Sleep(1 * time.Second)
 
@@ -273,8 +268,8 @@ func (R *RedMon) Monitor() bool {
 		select {
 
 		case <-R.monChan:
-		//ToDo:update state if needed
-		//signal to stop monitoring this
+			//ToDo:update state if needed
+			//signal to stop monitoring this
 			return false
 
 		case <-time.After(time.Second):
@@ -291,18 +286,17 @@ func (R *RedMon) Monitor() bool {
 
 func (R *RedMon) Stop() bool {
 
-
-   //send SHUTDOWN command for a gracefull exit of the redis-server
+	//send SHUTDOWN command for a gracefull exit of the redis-server
 	//the server exited gracefully will reflect at the task status FINISHED
 	err := R.Client.Shutdown()
-	if err != nil{
+	if err != nil {
 		R.L.Printf("problem shutting down the server at IP:%s and port:%d with error %v", R.IP, R.Port, err)
 
 		//in this error case the scheduler will get a task killed notification
 		//but will also see that the status it updated was SHUTDOWN, thus will handle it as OK
 
 		errMsg := R.Die()
-		if !errMsg{//message should be read by scheduler
+		if !errMsg { //message should be read by scheduler
 			R.L.Printf("Killing the redis server also did not work for  IP:%s and port:%d", R.IP, R.Port)
 		}
 		return false
@@ -321,7 +315,7 @@ func (R *RedMon) Die() bool {
 	}
 
 	//either the shutdown or a kill will stop the monitor also
- 	return true
+	return true
 }
 
 func (R *RedMon) CheckMsg() {
@@ -330,40 +324,39 @@ func (R *RedMon) CheckMsg() {
 
 	//ToDo better error handling needed
 	err := R.P.LoadMsg()
-	if !err{
+	if !err {
 		R.L.Printf("Failed While Loading msg for proc %v from node %v", R.P.ID, R.P.Nodename)
 		return
 	}
 
-	if "SHUTDOWN" == R.P.Msg{
+	if "SHUTDOWN" == R.P.Msg {
 		err = R.Stop()
-		if err{
+		if err {
 
 			R.L.Printf("failed to stop the REDIS server")
 		}
 		//in any case lets stop monitoring
-		R.monChan <-1
+		R.monChan <- 1
 	}
 
 }
 
-
 //Should be called by the Monitors on Slave Procs, this gives the boolien anser if the sync is complegted or not
 func (R *RedMon) IsSyncComplete() bool {
 
-    //time.Sleep(1 * time.Second)
+	//time.Sleep(1 * time.Second)
 
-	respStr, err :=  R.Client.Info("replication").Result()
-	if err != nil{
+	respStr, err := R.Client.Info("replication").Result()
+	if err != nil {
 		R.L.Printf("getting the repication stats from server at IP:%s and port:%d", R.IP, R.Port)
 		//dont return but try next time in another second/.1 second
 	}
 
 	for {
 		respArr := strings.Split(respStr, "\n")
-		for _, resp := range respArr{
-        	r := strings.Split(resp, ":")
-            switch r[0] {
+		for _, resp := range respArr {
+			r := strings.Split(resp, ":")
+			switch r[0] {
 			case "role":
 				if r[1] != "slave" {
 					R.L.Printf("Trying to call is sync, but this server is not really a slave IP:%s, port:%d", R.IP, R.Port)
@@ -374,7 +367,7 @@ func (R *RedMon) IsSyncComplete() bool {
 				if r[1] != "0" {
 					R.L.Printf("Sync not complete yet in slave IP:%s, port:%d", R.IP, R.Port)
 					return false
-				}else {
+				} else {
 					return true
 				}
 			default:
@@ -391,8 +384,8 @@ func (R *RedMon) IsSyncComplete() bool {
 func (R *RedMon) MakeMaster() bool {
 
 	//send the slaveof no one command to server
-    _, err := R.Client.SlaveOf("no", "one").Result()
-	if err != nil{
+	_, err := R.Client.SlaveOf("no", "one").Result()
+	if err != nil {
 		R.L.Printf("Error turning the slave to Master at IP:%s and port:%d", R.IP, R.Port)
 		return false
 	}
