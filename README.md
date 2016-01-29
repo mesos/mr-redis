@@ -10,9 +10,18 @@ This framework supports the following features
 
  * Creates/Maintains Single Redis-instance
  * Creates/Maintains Redis-Instances with Master-Slave setup 
- * Vertical Auto/Manual scaling of a running redis-instance in terms of memory
- * Provides a cli to manage/monitor the redis instances those are being created 
  * A centralized persistance layer currently enabled by etcd
+
+
+## Why MrRedis?
+At [Huawei] (http://www.huawei.com/en/) we forsee creating, running and maintaing huge number of redis instances on our datacenters.  We intially evaluated few cluster managers for this job, but due to the specific requirements of 'redis' itslef those solutions did not satisfy most of our needs.  We quickly did a POC by writing a framework exclusively for Redis on Apache Mesos. Based on the outcome we decided to initate this project and work with the opensource community to build a robust custom framework for Redis which will be usefull for Huawei as well as rest of the world.
+
+##Who should use MrRedis
+* If your organization has a requirement of creating and maintaing huge number of redis service instances.
+* If you are is planning to host a 'redis' as a Service 
+* If redis instances need to be created in seconds and not in minutes
+* If you are already using Apache Mesos as a Resource Manager for your Datacenter and want to add Redis workload to it
+
 
 For example
 
