@@ -116,6 +116,8 @@ func (S *MrRedisScheduler) ResourceOffers(driver sched.SchedulerDriver, offers [
 				typ.OfferList.Remove(current_task)
 				tasks = append(tasks, mesos_tsk)
 
+			} else {
+				tsk_ele = tsk_ele.Next()
 			}
 			//Check if this task is suitable for this offer
 		}

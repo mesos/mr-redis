@@ -48,6 +48,10 @@ func Maintainer() {
 
 		proc := typ.LoadProc(ts.Name)
 
+		if Inst.Procs == nil {
+			Inst.LoadProcs()
+		}
+
 		switch ts.State {
 
 		case "TASK_STAGING":
@@ -98,8 +102,25 @@ func Maintainer() {
 			break
 		case "TASK_FINISHED":
 			log.Printf("Task %s is Finished", ts.Name)
-			//Check if all the procss
-			//
+			switch proc.Type {
+			case "M":
+				if Inst.Masters > 0 {
+					Inst.Masters--
+					Inst.SyncMasters()
+
+				}
+
+			case "S":
+				if Inst.Slaves > 0 {
+					Inst.Slaves--
+					//Remove this lsave from the list of slaves
+					Inst.SyncSlaves()
+				}
+			}
+			if Inst.Slaves == 0 && Inst.Masters == 0 {
+				Inst.Status = typ.INST_STATUS_DELETED
+				Inst.SyncStatus()
+			}
 			break
 		case "TASK_FAILED":
 			log.Printf("Task %s is Failed", ts.Name)

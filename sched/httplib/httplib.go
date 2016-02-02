@@ -32,19 +32,22 @@ func (this *MainController) CreateInstance() {
 	log.Printf("Instance Name=%s, Capacity=%d, masters=%d, slaves=%d\n", name, capacity, masters, slaves)
 
 	//Check the in-memory map if the instance already exist then return
-	if typ.MemDb.IsValid(name) {
-		//The instance already exist return cannot create again return error
-		this.Ctx.WriteString(fmt.Sprintf("Instance %s already exist, cannot be create", name))
-		return
+	tmp_instance := typ.MemDb.Get(name)
+	if tmp_instance == nil {
+		tmp_instance = typ.LoadInstance(name)
 	}
 
 	//Check the central storage  if the instanc already exist then return
-	tmp_instance := typ.LoadInstance(name)
 
 	if tmp_instance != nil {
 		typ.MemDb.Add(name, tmp_instance)
-		this.Ctx.WriteString(fmt.Sprintf("Instance %s already exist, cannot be create", name))
-		return
+		if tmp_instance.Status == typ.INST_STATUS_DELETED {
+
+			this.Ctx.WriteString(fmt.Sprintf("Instance %s already exist, but in deleted state re-creating it", name))
+		} else {
+			this.Ctx.WriteString(fmt.Sprintf("Instance %s already exist, cannot be create", name))
+			return
+		}
 	}
 
 	//create a instance object
@@ -53,8 +56,14 @@ func (this *MainController) CreateInstance() {
 		inst_type = typ.INST_TYPE_MASTER_SLAVE
 	}
 	tmp_instance = typ.NewInstance(name, inst_type, masters, slaves, capacity)
-	tmp_instance.Sync()
 	tmp_instance.Status = typ.INST_STATUS_CREATING
+
+	tmp_instance.Sync()
+	ok, _ := typ.MemDb.Add(name, tmp_instance)
+	if !ok {
+		//It appears that the element is already there but in deleted state so update it
+		typ.MemDb.Update(name, tmp_instance)
+	}
 
 	//Send it across to creator's channel
 	typ.Cchan <- tmp_instance
@@ -73,29 +82,45 @@ func (this *MainController) DeleteInstance() {
 	name = this.Ctx.Input.Param(":INSTANCENAME") //Get the name of the instnace
 
 	//Check the in-memory map if the instance already exists
-	if typ.MemDb.IsValid(name) {
+	tmp_inst := typ.MemDb.Get(name)
+	if tmp_inst == nil {
+		tmp_inst = typ.LoadInstance(name)
+	}
+	if tmp_inst != nil {
 		//get the instance data from central storage
-		tmp_inst := typ.LoadInstance(name)
-		tmp_inst.LoadProcs()
+
+		if tmp_inst.Status == typ.INST_STATUS_DELETED {
+			this.Ctx.ResponseWriter.WriteHeader(401)
+			this.Ctx.WriteString(fmt.Sprintf("Instance %s is already deleted", name))
+			return
+
+		}
 
 		//send info about all procs to be Destroyer
 		tmp_proc := tmp_inst.Procs[tmp_inst.Mname]
 
-		log.Printf("SENT Destorying proc %v from Instance %v", tmp_proc.ID, tmp_proc.Instance)
+		log.Printf("Destorying master %v from Instance %v", tmp_proc.ID, tmp_inst.Name)
 
 		typ.Dchan <- tmp_proc
 
 		for _, n := range tmp_inst.Snames {
 			//ToDo is it needed to load the proc info from store also??
 			//ToDo is there a delay needed between sending multiple values on this channel
-			typ.Dchan <- tmp_inst.Procs[n]
+			tmp_proc = tmp_inst.Procs[n]
+			if tmp_proc != nil {
+				log.Printf("Destorying slave %v from Instance %v", tmp_proc.ID, tmp_inst.Name)
+			} else {
+				log.Printf("Destroying Proc of the slave = %v is nil ", n)
+			}
+
+			typ.Dchan <- tmp_proc
 		}
 
 	} else {
 
 		//The instance already exist return cannot create again return error
 		this.Ctx.ResponseWriter.WriteHeader(401)
-		this.Ctx.WriteString(fmt.Sprintf("Instance %s does not exist", name))
+		this.Ctx.WriteString(fmt.Sprintf("Instance %s does not exist, cannot be deleted", name))
 		return
 	}
 
