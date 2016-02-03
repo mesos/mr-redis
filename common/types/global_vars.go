@@ -11,7 +11,7 @@ var (
 	MemDb *InMem   //In memory store
 
 	OfferList *list.List       //list for having offer
-	Cchan     chan *Instance   //Channel for Creator
+	Cchan     chan TaskCreate  //Channel for Creator
 	Mchan     chan *TaskUpdate //Channel for Maintainer
 	Dchan     chan *Proc       //Channel for Destroyer
 )

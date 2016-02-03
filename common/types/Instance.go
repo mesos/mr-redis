@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"path/filepath"
@@ -207,20 +208,47 @@ func (I *Instance) LoadProcs() bool {
 
 }
 
+type Instance_Json struct {
+	Name     string
+	Type     string
+	Status   string
+	Capacity int
+	Master   Proc_Json
+	Slaves   []Proc_Json
+}
+
+type Proc_Json struct {
+	IP   string
+	Port string
+}
+
 func (I *Instance) ToJson() string {
 
-	ret_str := "{"
-	ret_str = ret_str + "Name:" + I.Name + ","
-	ret_str = ret_str + "Type:" + I.Type + ","
-	ret_str = ret_str + "Status:" + I.Status + ","
-	ret_str = ret_str + "Capacity:" + fmt.Sprintf("%d", I.Capacity) + ","
+	var res Instance_Json
+	res.Name = I.Name
+	res.Type = I.Type
+	res.Capacity = I.Capacity
+	res.Status = I.Status
+
 	if I.Status == INST_STATUS_RUNNING {
-		ret_str = ret_str + "Master:" + I.Procs[I.Mname].ToJson() + ","
-		for i, sname := range I.Snames {
-			ret_str = ret_str + fmt.Sprintf("Slave%d:", i) + I.Procs[sname].ToJson() + ","
+		var p *Proc
+		p = I.Procs[I.Mname]
+		res.Master.IP = p.IP
+		res.Master.Port = p.Port
+		for _, sname := range I.Snames {
+			p = I.Procs[sname]
+			var s Proc_Json
+			s.IP = p.IP
+			s.Port = p.Port
+			res.Slaves = append(res.Slaves, s)
 		}
 	}
 
-	ret_str = ret_str + "}"
-	return ret_str
+	b, err := json.Marshal(res)
+
+	if err != nil {
+		return "Marshaling error"
+	}
+
+	return string(b)
 }

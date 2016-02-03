@@ -82,7 +82,7 @@ func Maintainer() {
 				Inst.SyncMasters()
 				Inst.Procs[proc.ID] = proc
 				//Send the instance detail to Create so that slaves can be created now
-				typ.Cchan <- Inst
+				typ.Cchan <- typ.CreateSlaves(Inst, Inst.ExpSlaves)
 				break
 			case "S":
 				if Inst.Slaves < Inst.ExpSlaves {
@@ -135,7 +135,7 @@ func Maintainer() {
 						Inst.Masters--
 						Inst.Mname = ""
 						Inst.SyncMasters()
-						typ.Cchan <- Inst
+						typ.Cchan <- typ.CreateMaster(Inst)
 					}
 				}
 				break
@@ -152,7 +152,7 @@ func Maintainer() {
 					}
 					Inst.Snames = tmp_Snames
 					Inst.SyncSlaves()
-					typ.Cchan <- Inst
+					typ.Cchan <- typ.CreateSlaves(Inst, 1)
 				}
 				break
 			}
@@ -173,7 +173,7 @@ func Maintainer() {
 						Inst.Masters--
 						Inst.Mname = ""
 						Inst.SyncMasters()
-						typ.Cchan <- Inst
+						typ.Cchan <- typ.CreateMaster(Inst)
 					}
 				}
 				break
@@ -190,7 +190,7 @@ func Maintainer() {
 					}
 					Inst.Snames = tmp_Snames
 					Inst.SyncSlaves()
-					typ.Cchan <- Inst
+					typ.Cchan <- typ.CreateSlaves(Inst, 1)
 				}
 				break
 			}

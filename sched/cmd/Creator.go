@@ -19,34 +19,36 @@ func Creator() {
 				break
 		*/
 
-		case inst := <-typ.Cchan:
-			log.Printf("Recived offer %v", inst)
-
+		case tc := <-typ.Cchan:
+			log.Printf("Recived offer %v", tc)
 			//Push back the offer in the offer list
+			inst := tc.I
 			cpu := 1
 			mem := inst.Capacity
 
-			moffers := inst.ExpMasters - inst.Masters //Number of offers for creating masters
-			soffers := inst.ExpSlaves - inst.Slaves   //Number of offers to be selected for the lsaves
+			if tc.M {
 
-			for i := 0; i < moffers; i++ {
+				for i := 0; i < tc.C; i++ {
 
-				typ.OfferList.PushBack(typ.NewOffer(inst.Name+"::"+id.NewUIIDstr(), cpu, mem, true, ""))
-			}
-
-			//Create slaves only if the master is created
-			if inst.Masters == inst.ExpMasters {
-
-				p := inst.Procs[inst.Mname]
-
-				for i := 0; i < soffers; i++ {
-
-					typ.OfferList.PushBack(typ.NewOffer(inst.Name+"::"+id.NewUIIDstr(), cpu, mem, false, p.IP+":"+p.Port))
+					typ.OfferList.PushBack(typ.NewOffer(inst.Name+"::"+id.NewUIIDstr(), cpu, mem, true, ""))
 				}
+				log.Printf("Created %d master offers for Instnace %v", tc.C, inst.Name)
 
+			} else {
+
+				//Create slaves only if the master is created
+				if inst.Masters == inst.ExpMasters {
+
+					p := inst.Procs[inst.Mname]
+
+					for i := 0; i < tc.C; i++ {
+
+						typ.OfferList.PushBack(typ.NewOffer(inst.Name+"::"+id.NewUIIDstr(), cpu, mem, false, p.IP+":"+p.Port))
+					}
+
+				}
+				log.Printf("Created %d slave offers for Instnace %v", tc.C, inst.Name)
 			}
-
-			log.Printf("Created %d master offers and %d slave offers capcacity=%d", moffers, soffers, mem)
 
 			break
 		}

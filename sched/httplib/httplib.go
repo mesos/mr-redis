@@ -66,7 +66,7 @@ func (this *MainController) CreateInstance() {
 	}
 
 	//Send it across to creator's channel
-	typ.Cchan <- tmp_instance
+	typ.Cchan <- typ.CreateMaster(tmp_instance)
 
 	//this.Ctx.Output.SetStatus(201)
 	this.Ctx.ResponseWriter.WriteHeader(201)
