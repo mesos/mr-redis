@@ -45,7 +45,9 @@ COMMANDS:
 
 GLOBAL OPTIONS:
    --help, -h   show help
-
+```
+Help on a specific command 
+``
 $mrr help create
 NAME:
    mrr create - Create a Redis Instance
@@ -73,13 +75,20 @@ Master = 10.11.12.31:6380
         Slave1 = 10.11.12.33:6380
 ```
 
-### Sample Run
-After cloning the project and setting up the GOPATH for dependent libraries (should use go version 1.5)
+### Sample Build and Run
+After cloning the project and setting up the GOPATH for dependent libraries (should use go version 1.5 or atlesat go 1.4)
+Perform go get in all the three directories namely (sched, exec and cli) then follow this build order
 ```
 $cd exec
 $go build -o MrRedisExecutor main.go
+$cd ../cli
+$go build -o mrr
 $cd ../sched
 $go build main.go
+```
+to start the scheduler
+
+```
 $./main -config="./config.json"
 2016/01/17 16:35:11 *****************************************************************
 2016/01/17 16:35:11 *********************Starting MrRedis-Scheduler******************
