@@ -14,7 +14,7 @@ This framework supports the following features
 
 
 ## Why MrRedis?
-At [Huawei] (http://www.huawei.com/en/) we forsee creating, running and maintaing huge number of redis instances on our datacenters.  We intially evaluated few cluster managers for this job, but due to the specific requirements of 'redis' itslef those solutions did not satisfy most of our needs.  We quickly did a POC by writing a framework exclusively for Redis on Apache Mesos. Based on the outcome we decided to initate this project and work with the opensource community to build a robust custom framework for Redis which will be usefull for Huawei as well as rest of the world.
+At [Huawei] (http://www.huawei.com/en/) we foresee creating, running and maintaing huge number of redis instances on our datacenters.  We intially evaluated few cluster managers for this job, but due to the specific requirements of 'redis' itslef those solutions did not satisfy most of our needs.  We quickly did a POC by writing a framework exclusively for Redis on Apache Mesos. Based on the outcome we decided to initate this project and work with the opensource community to build a robust custom framework for Redis which will be usefull for Huawei as well as rest of the world.
 
 ##Who should use MrRedis
 * If your organization has a requirement of creating and maintaing huge number of redis service instances.
@@ -26,19 +26,51 @@ At [Huawei] (http://www.huawei.com/en/) we forsee creating, running and maintain
 For example
 
 ```
-$mrr create --name=app1-cache --mem=2G 
-OK: Job Submitted to the framework
+$mrr help
+NAME:
+   mrr - MrRedis Command Line Interface
+
+USAGE:
+   mrr [global options] command [command options] [arguments...]
+
+VERSION:
+   0.0.0
+
+COMMANDS:
+   init, i      $mrr init <http://MrRedisEndPoint>
+   create, c    Create a Redis Instance
+   status, s    Status of a Redis Instance
+   delete, d    Delete a Redis Instance
+   help, h      Shows a list of commands or help for one command
+
+GLOBAL OPTIONS:
+   --help, -h   show help
+
+$mrr help create
+NAME:
+   mrr create - Create a Redis Instance
+
+USAGE:
+   mrr create [command options] [arguments...]
+
+OPTIONS:
+   --name, -n           Name of the Redis Instance
+   --memory, -m "0"     Memory in MB
+   --slaves, -s "0"     Number of Slaves
+   --wait, -w           Wait for the Instnace to be create (by default the command is async)
+
 ```
 
-The cli itself will be async in nature as it does not wait for the operation to complete
+The cli itself will be async in nature (by default) as it does not wait for the operation to complete
 
 ```
-$mrr status --name=app1-cache 
-Status		= RUNNING
-IP:PORT		= 176.134.0.10:45001
-MemoryAvail	= 2GB
-MemoryUsed	= 100MB
-Slaves		= None
+$mrr status -n hello1
+Status = RUNNING
+Type = MS
+Capacity = 100
+Master = 10.11.12.31:6380
+        Slave0 = 10.11.12.33:6381
+        Slave1 = 10.11.12.33:6380
 ```
 
 ### Sample Run
@@ -72,43 +104,76 @@ $cat config.json
 
 Please substitute appropriate values with respect to your enviroment in the above config file for MasterIP/Port, ExecutorPath, DBEndPoint and IP adddres of this scheduler's VM that is accessible from the slaves for artifactIP
 
-If you have a complicated Redis requirement then a simple http comamnd like below 
+If you have a complicated Redis requirement then a simple comamnd like below 
 ```
-$curl -X "POST" http://10.11.12.17:8080/v1/CREATE/1Master21Slaves/1024/1/21
-```
-will result in creating 1 master with 21 Slaves in less than a min, Simples :-)
+$time mrr create -n hello50 -m 100 -s 50 -w true
+Attempting to Creating a Redis Instance (hello50) with mem=100 slaves=50
+Instance Creation accepted................
+Instance Created.
+
+real    0m14.269s
+user    0m0.033s
+sys     0m0.037s
 
 ```
-# Replication
-role:master
-connected_slaves:21
-slave0:ip=10.11.12.20,port=6381,state=online,offset=323,lag=0
-slave1:ip=10.11.12.21,port=6382,state=online,offset=323,lag=0
-slave2:ip=10.11.12.20,port=6382,state=online,offset=323,lag=0
-slave3:ip=10.11.12.21,port=6383,state=online,offset=323,lag=0
-slave4:ip=10.11.12.21,port=6384,state=online,offset=323,lag=0
-slave5:ip=10.11.12.20,port=6383,state=online,offset=323,lag=0
-slave6:ip=10.11.12.21,port=6385,state=online,offset=323,lag=0
-slave7:ip=10.11.12.20,port=6384,state=online,offset=323,lag=0
-slave8:ip=10.11.12.21,port=6386,state=online,offset=323,lag=0
-slave9:ip=10.11.12.20,port=6385,state=online,offset=323,lag=0
-slave10:ip=10.11.12.21,port=6387,state=online,offset=323,lag=0
-slave11:ip=10.11.12.20,port=6386,state=online,offset=323,lag=0
-slave12:ip=10.11.12.21,port=6388,state=online,offset=323,lag=0
-slave13:ip=10.11.12.20,port=6387,state=online,offset=323,lag=0
-slave14:ip=10.11.12.21,port=6389,state=online,offset=323,lag=0
-slave15:ip=10.11.12.21,port=6390,state=online,offset=323,lag=0
-slave16:ip=10.11.12.21,port=6391,state=online,offset=323,lag=0
-slave17:ip=10.11.12.21,port=6392,state=online,offset=323,lag=0
-slave18:ip=10.11.12.21,port=6393,state=online,offset=323,lag=0
-slave19:ip=10.11.12.21,port=6394,state=online,offset=323,lag=0
-slave20:ip=10.11.12.21,port=6395,state=online,offset=323,lag=0
-master_repl_offset:323
-repl_backlog_active:1
-repl_backlog_size:1048576
-repl_backlog_first_byte_offset:2
-repl_backlog_histlen:322
+will result in creating one redis instance with 1 master and 50 Slaves in less than 15 secs, Simples :-)
 
+```
+$mrr status -n hello50
+Status = RUNNING
+Type = MS
+Capacity = 100
+Master = 10.11.12.21:6380
+        Slave0 = 10.11.12.31:6381
+        Slave1 = 10.11.12.31:6383
+        Slave2 = 10.11.12.31:6384
+        Slave3 = 10.11.12.31:6385
+        Slave4 = 10.11.12.31:6382
+        Slave5 = 10.11.12.31:6386
+        Slave6 = 10.11.12.31:6387
+        Slave7 = 10.11.12.31:6388
+        Slave8 = 10.11.12.31:6391
+        Slave9 = 10.11.12.31:6392
+        Slave10 = 10.11.12.31:6390
+        Slave11 = 10.11.12.31:6389
+        Slave12 = 10.11.12.31:6393
+        Slave13 = 10.11.12.31:6394
+        Slave14 = 10.11.12.31:6395
+        Slave15 = 10.11.12.20:6380
+        Slave16 = 10.11.12.20:6381
+        Slave17 = 10.11.12.20:6383
+        Slave18 = 10.11.12.20:6384
+        Slave19 = 10.11.12.20:6387
+        Slave20 = 10.11.12.20:6385
+        Slave21 = 10.11.12.20:6386
+        Slave22 = 10.11.12.20:6382
+        Slave23 = 10.11.12.29:6380
+        Slave24 = 10.11.12.29:6381
+        Slave25 = 10.11.12.29:6382
+        Slave26 = 10.11.12.29:6384
+        Slave27 = 10.11.12.29:6385
+        Slave28 = 10.11.12.29:6383
+        Slave29 = 10.11.12.29:6387
+        Slave30 = 10.11.12.29:6386
+        Slave31 = 10.11.12.29:6389
+        Slave32 = 10.11.12.29:6391
+        Slave33 = 10.11.12.29:6392
+        Slave34 = 10.11.12.29:6388
+        Slave35 = 10.11.12.29:6390
+        Slave36 = 10.11.12.29:6394
+        Slave37 = 10.11.12.29:6395
+        Slave38 = 10.11.12.29:6393
+        Slave39 = 10.11.12.21:6383
+        Slave40 = 10.11.12.21:6384
+        Slave41 = 10.11.12.21:6386
+        Slave42 = 10.11.12.21:6385
+        Slave43 = 10.11.12.21:6387
+        Slave44 = 10.11.12.21:6388
+        Slave45 = 10.11.12.21:6390
+        Slave46 = 10.11.12.21:6389
+        Slave47 = 10.11.12.21:6391
+        Slave48 = 10.11.12.21:6381
+        Slave49 = 10.11.12.21:6382
 ```
 
 ### Installation Instruction
