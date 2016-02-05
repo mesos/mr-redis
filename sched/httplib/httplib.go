@@ -104,8 +104,6 @@ func (this *MainController) DeleteInstance() {
 		typ.Dchan <- tmp_proc
 
 		for _, n := range tmp_inst.Snames {
-			//ToDo is it needed to load the proc info from store also??
-			//ToDo is there a delay needed between sending multiple values on this channel
 			tmp_proc = tmp_inst.Procs[n]
 			if tmp_proc != nil {
 				log.Printf("Destorying slave %v from Instance %v", tmp_proc.ID, tmp_inst.Name)
@@ -126,7 +124,7 @@ func (this *MainController) DeleteInstance() {
 
 	//this.Ctx.Output.SetStatus(201)
 	//ToDo: should this be blocking and the return happens when instance successfully deleted
-	this.Ctx.ResponseWriter.WriteHeader(201)
+	this.Ctx.ResponseWriter.WriteHeader(200)
 	this.Ctx.WriteString("Request Placed for destroying")
 }
 

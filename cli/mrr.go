@@ -87,8 +87,12 @@ func main() {
 			Name:    "delete",
 			Aliases: []string{"d"},
 			Usage:   "Delete a Redis Instance",
-			Action: func(c *cli.Context) {
-				println("Redis Instnace is deleted..: ", c.Args().First())
+			Action:  DeleteCmd,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "name, n",
+					Usage: "Name of the Redis Instance",
+				},
 			},
 		},
 	}
