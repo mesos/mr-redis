@@ -12,11 +12,10 @@ This framework supports the following features
  * Creates/Maintains Redis-Instances with Master-Slave setup 
  * A centralized persistance layer currently enabled by etcd
 
-
 ## Why MrRedis?
 At [Huawei] (http://www.huawei.com/en/) we foresee creating, running and maintaing huge number of redis instances on our datacenters.  We intially evaluated few cluster managers for this job, but due to the specific requirements of 'redis' itslef those solutions did not satisfy most of our needs.  We quickly did a POC by writing a framework exclusively for Redis on Apache Mesos. Based on the outcome we decided to initate this project and work with the opensource community to build a robust custom framework for Redis which will be usefull for Huawei as well as rest of the world.
 
-##Who should use MrRedis
+## Who should use MrRedis
 * If your organization has a requirement of creating and maintaing huge number of redis service instances.
 * If you are is planning to host a 'redis' as a Service 
 * If redis instances need to be created in seconds and not in minutes
@@ -24,7 +23,6 @@ At [Huawei] (http://www.huawei.com/en/) we foresee creating, running and maintai
 
 
 For example
-
 ```
 $mrr help
 NAME:
@@ -46,8 +44,8 @@ COMMANDS:
 GLOBAL OPTIONS:
    --help, -h   show help
 ```
-Help on a specific command 
-``
+Help on a specific command
+```
 $mrr help create
 NAME:
    mrr create - Create a Redis Instance
@@ -60,19 +58,24 @@ OPTIONS:
    --memory, -m "0"     Memory in MB
    --slaves, -s "0"     Number of Slaves
    --wait, -w           Wait for the Instnace to be create (by default the command is async)
-
+   
 ```
 
 The cli itself will be async in nature (by default) as it does not wait for the operation to complete
 
 ```
-$mrr status -n hello1
+$mrr create -n testInst -m 200 -s 1
+Attempting to Creating a Redis Instance (testInst) with mem=200 slaves=1
+Instance Creation accepted..
+Check $mrr status -n testInst for status
+```
+```
+$mrr status -n testInst
 Status = RUNNING
 Type = MS
-Capacity = 100
-Master = 10.11.12.31:6380
-        Slave0 = 10.11.12.33:6381
-        Slave1 = 10.11.12.33:6380
+Capacity = 200
+Master = 10.11.12.33:6389
+        Slave0 = 10.11.12.32:6380
 ```
 
 ### Sample Build and Run
@@ -94,6 +97,8 @@ $./main -config="./config.json"
 2016/01/17 16:35:11 *********************Starting MrRedis-Scheduler******************
 2016/01/17 16:35:11 *****************************************************************
 2016/01/17 16:35:11 Starting the HTTP server at port 8080
+.
+.
 ```
 
 The configuration file should be of json format
@@ -108,7 +113,6 @@ $cat config.json
         "DBEndPoint": "http://11.12.13.14:2379",
         "ArtifactIP": "12.13.14.15"
 }
-
 ```
 
 Please substitute appropriate values with respect to your enviroment in the above config file for MasterIP/Port, ExecutorPath, DBEndPoint and IP adddres of this scheduler's VM that is accessible from the slaves for artifactIP
@@ -123,7 +127,6 @@ Instance Created.
 real    0m14.269s
 user    0m0.033s
 sys     0m0.037s
-
 ```
 will result in creating one redis instance with 1 master and 50 Slaves in less than 15 secs, Simples :-)
 
