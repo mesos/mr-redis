@@ -105,9 +105,9 @@ func (R *RedMon) getConnectedClient() *redisclient.Client {
 func (R *RedMon) launchRedisServer(isSlave bool, IP string, port string) bool {
 
 	if isSlave {
-		R.Cmd = exec.Command("redis-server", "--port", fmt.Sprintf("%d", R.Port), "--SlaveOf", IP, port)
+		R.Cmd = exec.Command("./redis-server", "--port", fmt.Sprintf("%d", R.Port), "--SlaveOf", IP, port)
 	} else {
-		R.Cmd = exec.Command("redis-server", "--port", fmt.Sprintf("%d", R.Port))
+		R.Cmd = exec.Command("./redis-server", "--port", fmt.Sprintf("%d", R.Port))
 	}
 
 	err := R.Cmd.Start()

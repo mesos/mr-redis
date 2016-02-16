@@ -39,9 +39,11 @@ func serveExecutorArtifact(path string, IP, Port string) (*string, string) {
 	return &hostURI, base
 }
 
-func prepareExecutorInfo(IP, Port, executorPath, DbType, DbEndPoint string) *mesos.ExecutorInfo {
+func prepareExecutorInfo(IP, Port, executorPath, redisPath, DbType, DbEndPoint string) *mesos.ExecutorInfo {
 	executorUris := []*mesos.CommandInfo_URI{}
 	uri, executorCmd := serveExecutorArtifact(executorPath, IP, Port)
+	executorUris = append(executorUris, &mesos.CommandInfo_URI{Value: uri, Executable: proto.Bool(true)})
+	uri, _ = serveExecutorArtifact(redisPath, IP, Port)
 	executorUris = append(executorUris, &mesos.CommandInfo_URI{Value: uri, Executable: proto.Bool(true)})
 
 	executorCommand := fmt.Sprintf("./%s -logtostderr=true -DbType=%s -DbEndPoint=%s", executorCmd, DbType, DbEndPoint)
@@ -127,6 +129,7 @@ func GetFrameWorkID() (string, float64) {
 	}
 
 	delta_t := time.Now().Sub(t)
+	log.Printf("Delta of the previously registred framework is = %v", delta_t)
 
 	if (delta_t / time.Second) < FailoverTime {
 		return fwID, fTimout
@@ -136,14 +139,14 @@ func GetFrameWorkID() (string, float64) {
 
 }
 
-func Run(MasterIP, MasterPort, ServerIP, ServerPort, executorPath, DbType, DbEndPoint string) {
+func Run(MasterIP, MasterPort, ServerIP, ServerPort, executorPath, redisPath, DbType, DbEndPoint string) {
 
 	//Split the configuration string
 
 	//MasterIP, MasterPort, ServerIP, ServerPort = parseConfig(config)
 
 	//Get executor information
-	exec := prepareExecutorInfo(ServerIP, ServerPort, executorPath, DbType, DbEndPoint)
+	exec := prepareExecutorInfo(ServerIP, ServerPort, executorPath, redisPath, DbType, DbEndPoint)
 
 	fwID, fTimout := GetFrameWorkID()
 

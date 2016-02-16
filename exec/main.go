@@ -42,11 +42,11 @@ func NewMrRedisExecutor() *MrRedisExecutor {
 }
 
 func (exec *MrRedisExecutor) Registered(driver exec.ExecutorDriver, execInfo *mesos.ExecutorInfo, fwinfo *mesos.FrameworkInfo, slaveInfo *mesos.SlaveInfo) {
-	fmt.Println("Registered Executor on slave ", slaveInfo.GetHostname())
+	fmt.Println("Registered Executor on slave ") //, slaveInfo.GetHostname())
 }
 
 func (exec *MrRedisExecutor) Reregistered(driver exec.ExecutorDriver, slaveInfo *mesos.SlaveInfo) {
-	fmt.Println("Re-registered Executor on slave ", slaveInfo.GetHostname())
+	fmt.Println("Re-registered Executor on slave ") //, slaveInfo.GetHostname())
 }
 
 func (exec *MrRedisExecutor) Disconnected(exec.ExecutorDriver) {
