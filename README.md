@@ -109,6 +109,7 @@ $cat config.json
         "MasterIP":"10.11.12.13",
         "MasterPort":"5050",
         "ExecutorPath":"/home/ubuntu/MrRedis/exec/MrRedisExecutor",
+        "RedisPath":"/home/ubuntu/MrRedis/redisbin/redis-server",
         "DBType":"etcd",
         "DBEndPoint": "http://11.12.13.14:2379",
         "ArtifactIP": "12.13.14.15"
