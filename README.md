@@ -15,6 +15,9 @@ This framework supports the following features
 ## Why MrRedis?
 At [Huawei] (http://www.huawei.com/en/) we foresee creating, running and maintaing huge number of redis instances on our datacenters.  We intially evaluated few cluster managers for this job, but due to the specific requirements of 'redis' itslef those solutions did not satisfy most of our needs.  We quickly did a POC by writing a framework exclusively for Redis on Apache Mesos. Based on the outcome we decided to initate this project and work with the opensource community to build a robust custom framework for Redis which will be usefull for Huawei as well as rest of the world.
 
+##Project Status is Alpha.
+This project is waiting to be evaluated by Mesosphere team and then intented to be moved (transfered) to [mesos github organization] (https://github.com/mesos).  In the meanwhile please feel free to try this out and give us feedback by creating PR and Issues. 
+
 ## Who should use MrRedis
 * If your organization has a requirement of creating and maintaing huge number of redis service instances.
 * If you are is planning to host a 'redis' as a Service 
@@ -213,3 +216,18 @@ TODO
 - [ ] Support a Proxy mechanism to expose Redis Instance Endpoint
 - [ ] Build a UI for Create/Maintain/Monitor the entier redis framework
 - [ ] Benchmakr Utility for testing the RedisFramework 
+
+##License
+Copyright 2015 Huawei Technologies Co. Ltd.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this project except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
