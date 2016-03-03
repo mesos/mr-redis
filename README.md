@@ -16,7 +16,7 @@ This framework supports the following features
 At [Huawei] (http://www.huawei.com/en/) we foresee creating, running and maintaing huge number of redis instances on our datacenters.  We intially evaluated few cluster managers for this job, but due to the specific requirements of 'redis' itslef those solutions did not satisfy most of our needs.  We quickly did a POC by writing a framework exclusively for Redis on Apache Mesos. Based on the outcome we decided to initate this project and work with the opensource community to build a robust custom framework for Redis which will be usefull for Huawei as well as rest of the world.
 
 ##Project Status is Alpha.
-This project is waiting to be evaluated by Mesosphere team and then intented to be moved (transfered) to [mesos github organization] (https://github.com/mesos).  We have built a basic working functionality and would like to build a strong functional framework for Redis along with the community.  In the meanwhile please feel free to try this out and give us feedback by creating PR and Issues. 
+ We have built a basic working functionality and would like to build a strong functional framework for Redis along with the community.  In the meanwhile please feel free to try this out and give us feedback by creating PR and Issues. 
 
 ## Who should use MrRedis
 * If your organization has a requirement of creating and maintaing huge number of redis service instances.
@@ -193,8 +193,7 @@ Master = 10.11.12.21:6380
 ```
 
 ### Installation Instruction
-Please Note the pkg dependency management will be done by godep, but we will hold integrating it as the next destination (Transfer this project) of this project from current location is still not clear.
-TODO
+Please Note the pkg dependency management will be done by godep.
 
 ### Contribution Guidlines
 We have ourselves fallen into pitfalls to arrive at working code faster, some simple rules more to inculcate in our own future work and for reference to contributors
