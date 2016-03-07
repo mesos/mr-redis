@@ -1,0 +1,45 @@
+{
+	"ImportPath": "github.com/mesos/mr-redis/cli",
+	"GoVersion": "go1.5",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/codegangsta/cli",
+			"Comment": "1.2.0-197-gcf1f63a",
+			"Rev": "cf1f63a7274872768d4037305d572b70b1199397"
+		},
+		{
+			"ImportPath": "github.com/coreos/etcd/client",
+			"Comment": "v2.3.0-alpha.0-281-g1238187",
+			"Rev": "1238187b725b1b5759b8a257c2fc5b9e572608a0"
+		},
+		{
+			"ImportPath": "github.com/coreos/etcd/pkg/pathutil",
+			"Comment": "v2.3.0-alpha.0-281-g1238187",
+			"Rev": "1238187b725b1b5759b8a257c2fc5b9e572608a0"
+		},
+		{
+			"ImportPath": "github.com/coreos/etcd/pkg/types",
+			"Comment": "v2.3.0-alpha.0-281-g1238187",
+			"Rev": "1238187b725b1b5759b8a257c2fc5b9e572608a0"
+		},
+		{
+			"ImportPath": "github.com/mesos/mr-redis/common/store",
+			"Rev": "da85b0670f3d246e0af42406e2892e129e7b6514"
+		},
+		{
+			"ImportPath": "github.com/mesos/mr-redis/common/types",
+			"Rev": "da85b0670f3d246e0af42406e2892e129e7b6514"
+		},
+		{
+			"ImportPath": "github.com/ugorji/go/codec",
+			"Rev": "187fa0f8af224437e08ecb3f208c4d1a94859a61"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "0cb26f788dd4625d1956c6fd97ffc4c90669d129"
+		}
+	]
+}

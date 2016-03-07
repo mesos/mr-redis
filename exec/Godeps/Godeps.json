@@ -1,0 +1,109 @@
+{
+	"ImportPath": "github.com/mesos/mr-redis/exec",
+	"GoVersion": "go1.5",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/coreos/etcd/client",
+			"Comment": "v2.3.0-alpha.0-281-g1238187",
+			"Rev": "1238187b725b1b5759b8a257c2fc5b9e572608a0"
+		},
+		{
+			"ImportPath": "github.com/coreos/etcd/pkg/pathutil",
+			"Comment": "v2.3.0-alpha.0-281-g1238187",
+			"Rev": "1238187b725b1b5759b8a257c2fc5b9e572608a0"
+		},
+		{
+			"ImportPath": "github.com/coreos/etcd/pkg/types",
+			"Comment": "v2.3.0-alpha.0-281-g1238187",
+			"Rev": "1238187b725b1b5759b8a257c2fc5b9e572608a0"
+		},
+		{
+			"ImportPath": "github.com/davecgh/go-spew/spew",
+			"Rev": "5215b55f46b2b919f50a1df0eaa5886afe4e3b3d"
+		},
+		{
+			"ImportPath": "github.com/gogo/protobuf/proto",
+			"Comment": "v0.1-109-gb25331f",
+			"Rev": "b25331f05786694d634d632a8043fef600a84e62"
+		},
+		{
+			"ImportPath": "github.com/golang/glog",
+			"Rev": "fca8c8854093a154ff1eb580aae10276ad6b1b5f"
+		},
+		{
+			"ImportPath": "github.com/mesos/mesos-go/executor",
+			"Comment": "v0.0.2-27-g657252e",
+			"Rev": "657252ec6fc27975cd86da9f708acd6f4bb1f9ac"
+		},
+		{
+			"ImportPath": "github.com/mesos/mesos-go/mesosproto",
+			"Comment": "v0.0.2-27-g657252e",
+			"Rev": "657252ec6fc27975cd86da9f708acd6f4bb1f9ac"
+		},
+		{
+			"ImportPath": "github.com/mesos/mesos-go/mesosutil",
+			"Comment": "v0.0.2-27-g657252e",
+			"Rev": "657252ec6fc27975cd86da9f708acd6f4bb1f9ac"
+		},
+		{
+			"ImportPath": "github.com/mesos/mesos-go/messenger",
+			"Comment": "v0.0.2-27-g657252e",
+			"Rev": "657252ec6fc27975cd86da9f708acd6f4bb1f9ac"
+		},
+		{
+			"ImportPath": "github.com/mesos/mesos-go/upid",
+			"Comment": "v0.0.2-27-g657252e",
+			"Rev": "657252ec6fc27975cd86da9f708acd6f4bb1f9ac"
+		},
+		{
+			"ImportPath": "github.com/mesos/mr-redis/common/store",
+			"Rev": "da85b0670f3d246e0af42406e2892e129e7b6514"
+		},
+		{
+			"ImportPath": "github.com/mesos/mr-redis/common/types",
+			"Rev": "da85b0670f3d246e0af42406e2892e129e7b6514"
+		},
+		{
+			"ImportPath": "github.com/pborman/uuid",
+			"Rev": "dee7705ef7b324f27ceb85a121c61f2c2e8ce988"
+		},
+		{
+			"ImportPath": "github.com/pmezard/go-difflib/difflib",
+			"Rev": "e8554b8641db39598be7f6342874b958f12ae1d4"
+		},
+		{
+			"ImportPath": "github.com/stretchr/objx",
+			"Rev": "1a9d0bb9f541897e62256577b352fdbc1fb4fd94"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/assert",
+			"Comment": "v1.0-91-g5b9da39",
+			"Rev": "5b9da39b66e8e994455c2525c4421c8cc00a7f93"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/mock",
+			"Comment": "v1.0-91-g5b9da39",
+			"Rev": "5b9da39b66e8e994455c2525c4421c8cc00a7f93"
+		},
+		{
+			"ImportPath": "github.com/ugorji/go/codec",
+			"Rev": "187fa0f8af224437e08ecb3f208c4d1a94859a61"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "0cb26f788dd4625d1956c6fd97ffc4c90669d129"
+		},
+		{
+			"ImportPath": "gopkg.in/bsm/ratelimit.v1",
+			"Rev": "f14ad9c78b155f69b480cfa41cb655259baac260"
+		},
+		{
+			"ImportPath": "gopkg.in/redis.v3",
+			"Comment": "v3.2.27",
+			"Rev": "dd1ac33826064181d7abaa20d976eab31ec12b58"
+		}
+	]
+}
