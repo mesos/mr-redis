@@ -13,7 +13,7 @@ import (
 	util "github.com/mesos/mesos-go/mesosutil"
 	sched "github.com/mesos/mesos-go/scheduler"
 
-	typ "../../common/types"
+	typ "github.com/mesos/mr-redis/common/types"
 )
 
 func serveExecutorArtifact(path string, IP, Port string) (*string, string) {

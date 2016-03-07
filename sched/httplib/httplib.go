@@ -7,7 +7,7 @@ import (
 
 	"github.com/astaxie/beego"
 
-	typ "../../common/types"
+	typ "github.com/mesos/mr-redis/common/types"
 )
 
 type MainController struct {

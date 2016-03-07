@@ -6,10 +6,10 @@ import (
 	"io/ioutil"
 	"log"
 
-	"../common/types"
-	"./cmd"
-	"./httplib"
-	"./mesoslib"
+	"github.com/mesos/mr-redis/common/types"
+	"github.com/mesos/mr-redis/sched/cmd"
+	"github.com/mesos/mr-redis/sched/httplib"
+	"github.com/mesos/mr-redis/sched/mesoslib"
 )
 
 //Declare all the Constants to be used in this file

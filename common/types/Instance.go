@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"../store/etcd"
+	"github.com/mesos/mr-redis/common/store/etcd"
 )
 
 //A structure that will be able to store a tree of data

@@ -8,7 +8,7 @@ import (
 
 	//"../redis"
 	//"../store"
-	"../store/etcd"
+	"github.com/mesos/mr-redis/common/store/etcd"
 )
 
 //A standalone redis KV store is usually started in any slave (Linux) like below
@@ -39,10 +39,9 @@ type Proc struct {
 
 //ToDo the whole stats structure could be a json structure reflecting all the fields what redis info returns
 //currently one field has many new line saperated values;ToDO will this work if returned in API?
-type Stats struct{
-
-	Mem string
-	Cpu string
+type Stats struct {
+	Mem    string
+	Cpu    string
 	Others string
 }
 
@@ -216,7 +215,7 @@ func (P *Proc) LoadType() bool {
 }
 
 func (P *Proc) LoadMsg() bool {
-    var err error
+	var err error
 	if Gdb.IsSetup() != true {
 		return false
 	}
@@ -230,7 +229,6 @@ func (P *Proc) LoadMsg() bool {
 	return true
 }
 
-
 func (P *Proc) ToJson() string {
 	ret_str := "{"
 
@@ -240,7 +238,6 @@ func (P *Proc) ToJson() string {
 
 	return ret_str
 }
-
 
 func (P *Proc) ToJsonStats(stats Stats) string {
 	ret_str := "{"

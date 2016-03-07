@@ -4,7 +4,7 @@ import (
 	"container/list"
 	"log"
 
-	"../store/etcd"
+	"github.com/mesos/mr-redis/common/store/etcd"
 )
 
 func Initialize(dbtype string, config string) (bool, error) {

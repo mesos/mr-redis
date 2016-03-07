@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	typ "../common/types"
 	"github.com/codegangsta/cli"
+	typ "github.com/mesos/mr-redis/common/types"
 )
 
 func IsRunning(name string) bool {

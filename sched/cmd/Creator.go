@@ -5,8 +5,8 @@ import (
 	"log"
 	//	"time"
 
-	"../../common/id"
-	typ "../../common/types"
+	"github.com/mesos/mr-redis/common/id"
+	typ "github.com/mesos/mr-redis/common/types"
 )
 
 func Creator() {

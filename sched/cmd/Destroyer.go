@@ -3,7 +3,7 @@ package cmd
 import (
 	"log"
 
-	typ "../../common/types"
+	typ "github.com/mesos/mr-redis/common/types"
 )
 
 //This shouldbe started as a goroutine as it runs unconditionally

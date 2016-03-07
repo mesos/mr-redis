@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	typ "../../common/types"
+	typ "github.com/mesos/mr-redis/common/types"
 	redisclient "gopkg.in/redis.v3"
 )
 

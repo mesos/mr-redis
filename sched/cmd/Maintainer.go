@@ -4,7 +4,7 @@ import (
 	"log"
 	"strings"
 
-	typ "../../common/types"
+	typ "github.com/mesos/mr-redis/common/types"
 )
 
 //This is the main function that handles all the task updates

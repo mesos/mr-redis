@@ -3,7 +3,7 @@ package types
 import (
 	"container/list"
 
-	"../store"
+	"github.com/mesos/mr-redis/common/store"
 )
 
 var (

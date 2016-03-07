@@ -8,8 +8,8 @@ import (
 	exec "github.com/mesos/mesos-go/executor"
 	mesos "github.com/mesos/mesos-go/mesosproto"
 
-	typ "../common/types"
-	"./RedMon"
+	typ "github.com/mesos/mr-redis/common/types"
+	"github.com/mesos/mr-redis/exec/RedMon"
 )
 
 var DbType = flag.String("DbType", "etcd", "Type of the database etcd/zookeeper etc.,")
