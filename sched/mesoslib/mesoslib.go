@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -48,8 +49,21 @@ func prepareExecutorInfo(IP, Port, executorPath, redisPath, DbType, DbEndPoint s
 
 	executorCommand := fmt.Sprintf("./%s -logtostderr=true -DbType=%s -DbEndPoint=%s", executorCmd, DbType, DbEndPoint)
 
-	go http.ListenAndServe(fmt.Sprintf("%s:%s", IP, Port), nil)
-	log.Printf("Serving executor artifacts...")
+	/* If possible override the artifact hosting IP to below env variable */
+
+	go func(IP, Port string) {
+
+		host_ip := os.Getenv("HOST")
+
+		if host_ip == "" {
+			host_ip = IP
+		}
+
+		log.Printf("host_ip = %s going to listen and serve", host_ip)
+
+		err := http.ListenAndServe(fmt.Sprintf("%s:%s", host_ip, Port), nil)
+		log.Printf("Serving executor artifacts... error = %v", err)
+	}(IP, Port)
 
 	// Create mesos scheduler driver.
 	return &mesos.ExecutorInfo{
@@ -102,7 +116,12 @@ func parseConfig(config string) (string, string, string, string) {
 }
 
 func parseIP(address string) net.IP {
-	addr, err := net.LookupIP(address)
+	host_ip := os.Getenv("HOST")
+
+	if host_ip == "" {
+		host_ip = address
+	}
+	addr, err := net.LookupIP(host_ip)
 	if err != nil {
 		log.Fatal(err)
 	}

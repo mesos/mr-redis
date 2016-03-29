@@ -5,6 +5,7 @@ import (
 	"flag"
 	"io/ioutil"
 	"log"
+	"os"
 
 	"github.com/mesos/mr-redis/common/types"
 	"github.com/mesos/mr-redis/sched/cmd"
@@ -44,7 +45,7 @@ func NewMrRedisDefaultConfig() MrRedisConfig {
 		LogFile:      "stderr",
 		ArtifactIP:   "127.0.0.1",
 		ArtifactPort: "5454",
-		HTTPPort:     "8080",
+		HTTPPort:     "5656",
 	}
 }
 
@@ -70,8 +71,16 @@ func main() {
 	log.Printf("*****************************************************************")
 	//Command line argument parsing
 
+	//Facility to overwrite the etcd endpoint for scheduler if its running in the same docker container and expose a different one for executors
+
+	db_endpoint := os.Getenv("ETCD_LOCAL_ENDPOINT")
+
+	if db_endpoint == "" {
+		db_endpoint = Cfg.DBEndPoint
+	}
+
 	//Initalize the common entities like store, store configuration etc.
-	isInit, err := types.Initialize(Cfg.DBType, Cfg.DBEndPoint)
+	isInit, err := types.Initialize(Cfg.DBType, db_endpoint)
 	if err != nil || isInit != true {
 		log.Fatalf("Failed to intialize Error:%v return %v", err, isInit)
 	}

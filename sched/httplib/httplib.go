@@ -214,10 +214,11 @@ func (this *MainController) UpdateSlaves() {
 	this.Ctx.WriteString("Upgrading the instance slaves")
 
 }
+
 func Run(config string) {
 
 	log.Printf("Starting the HTTP server at port %s", config)
 
-	beego.Run()
+	beego.Run(":" + config)
 
 }

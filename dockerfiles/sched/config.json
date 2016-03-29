@@ -1,0 +1,9 @@
+{
+	"MasterIP":"leader.mesos",
+	"MasterPort":"5050",
+	"ExecutorPath":"/mrredis/bin/MrRedisExecutor",
+	"RedisPath":"/mrredis/bin/redis-server",
+	"DBType":"etcd",
+	"DBEndPoint": "http://mr-redis.marathon.mesos:2379",
+	"ArtifactIP": "mr-redis.marathon.mesos"
+}
