@@ -13,19 +13,88 @@ This framework supports the following features
  * A centralized persistance layer currently enabled by etcd
 
 ## Why mr-redis?
-At [Huawei] (http://www.huawei.com/en/) we foresee creating, running and maintaing huge number of redis instances on our datacenters.  We intially evaluated few cluster managers for this job, but due to the specific requirements of 'redis' itslef those solutions did not satisfy most of our needs.  We quickly did a POC by writing a framework exclusively for Redis on Apache Mesos. Based on the outcome we decided to initate this project and work with the opensource community to build a robust custom framework for Redis which will be usefull for Huawei as well as rest of the world.
+At [Huawei] (http://www.huawei.com/en/) we foresee creating, running and maintaining huge number of redis instances on our datacenters.  We intially evaluated few cluster managers for this job, but due to the specific requirements of 'redis' itslef those solutions did not satisfy most of our needs.  We quickly did a POC by writing a framework exclusively for Redis on Apache Mesos. Based on the outcome we decided to initate this project and work with the opensource community to build a robust custom framework for Redis which will be usefull for Huawei as well as rest of the world.
 
 ##Project Status is Alpha.
  We have built a basic working functionality and would like to build a strong functional framework for Redis along with the community.  In the meanwhile please feel free to try this out and give us feedback by creating PR and Issues. 
 
 ## Who should use mr-redis 
-* If your organization has a requirement of creating and maintaing huge number of redis service instances.
-* If you are is planning to host a 'redis' as a Service 
+* If your organization has a requirement for creating and maintaining huge number of redis service instances
+* If you are planning to host 'redis' as a Service 
 * If redis instances need to be created in seconds and not in minutes
-* If you are already using Apache Mesos as a Resource Manager for your Datacenter and want to add Redis workload to it
+* If you are already using Apache Mesos as a Resource Manager for your Datacenter and want to add Redis (as a service) workload to it
 
+## Installation Instructions
 
-For example
+Installing the scheduler/framework can be done in three ways
+
+### From source code (Developer)
+```
+$git clone https://github.com/mesos/mr-redis.git ${GOPATH}/src/github.com/mesos/mr-redis
+$go get github.com/tools/godep
+$cd ${GOPATH}/src/github.com/mesos/mr-redis/sched
+$godep go build .
+$cd ../exec/
+$godep go build -o MrRedisExecutor .
+$cd ../cli/
+$godep go build -o mrr .
+```
+### From RELEASE (Alpha V1)
+```
+$mkdir mr-redis
+$cd mr-redis
+$wget https://github.com/mesos/mr-redis/releases/download/v0.01-alpha/sched
+$wget https://github.com/mesos/mr-redis/releases/download/v0.01-alpha/MrRedisExecutor
+$wget https://github.com/mesos/mr-redis/releases/download/v0.01-alpha/mrr
+$chmod u+x *
+```
+
+### DC/OS
+MrRedis is integrated with DC/OS's universe, it should be pretty straight forward to install like anyother package.
+```
+$dcos package install mr-redis
+```
+#### NOTE for DC/OS Users:
+Unlike ETCD and other database frameworks installing mr-redis (scheduler) itself will not create any redis instance in your DC/OS environment, you have to further download and use the CLI (mrr) inorder to create redis instance. 
+
+## Starting the Scheduler (not applicable to DC/OS users)
+MrRedis scheduler binary is usually refered as `sched`, the scheduler hosts a file-server which can distribute redis binary and custom Executor.  
+
+The scheduler takes only one argument which is the config file,
+
+```
+$./sched -config="./config.json"
+2016/01/17 16:35:11 *****************************************************************
+2016/01/17 16:35:11 *********************Starting MrRedis-Scheduler******************
+2016/01/17 16:35:11 *****************************************************************
+2016/01/17 16:35:11 Starting the HTTP server at port 8080
+.
+.
+```
+The configuration file should be of json format, below is an example
+```
+$cat config.json
+{
+        "MasterIP":"10.11.12.13",
+        "MasterPort":"5050",
+        "ExecutorPath":"/home/ubuntu/MrRedis/exec/MrRedisExecutor",
+        "RedisPath":"/home/ubuntu/MrRedis/redisbin/redis-server",
+        "DBType":"etcd",
+        "DBEndPoint": "http://11.12.13.14:2379",
+        "ArtifactIP": "12.13.14.15"
+}
+```
+Please substitute appropriate values with respect to your enviroment  for MasterIP/Port, ExecutorPath, DBEndPoint and IP adddres of this scheduler's VM that is accessible from the slaves for artifactIP
+
+## Using the CLI
+mr-redis has built-in cli for creating and destroying redis instances.
+
+CLI should first be initialized with the scheduler with this simple command
+
+```
+$mrr init http://<schedulerIP>:<schedulerPORT>
+```
+If you want to explore other comamnds below is the help screen
 ```
 $mrr help
 NAME:
@@ -47,6 +116,7 @@ COMMANDS:
 GLOBAL OPTIONS:
    --help, -h   show help
 ```
+
 Help on a specific command
 ```
 $mrr help create
@@ -63,8 +133,9 @@ OPTIONS:
    --wait, -w           Wait for the Instnace to be create (by default the command is async)
    
 ```
-
-The cli itself will be async in nature (by default) as it does not wait for the operation to complete
+## More Examples of Using the CLI
+### Example 1:
+The cli itself will be async by default as it does not wait for the operation to complete
 
 ```
 $mrr create -n testInst -m 200 -s 1
@@ -72,6 +143,7 @@ Attempting to Creating a Redis Instance (testInst) with mem=200 slaves=1
 Instance Creation accepted..
 Check $mrr status -n testInst for status
 ```
+
 ```
 $mrr status -n testInst
 Status = RUNNING
@@ -81,47 +153,8 @@ Master = 10.11.12.33:6389
         Slave0 = 10.11.12.32:6380
 ```
 
-### Sample Build and Run
-After cloning the project and setting up the GOPATH for dependent libraries (should use go version 1.5 or atlesat go 1.4)
-Perform go get in all the three directories namely (sched, exec and cli) then follow this build order
-```
-$cd exec
-$go build -o MrRedisExecutor main.go
-$cd ../cli
-$go build -o mrr
-$cd ../sched
-$go build main.go
-```
-to start the scheduler
-
-```
-$./main -config="./config.json"
-2016/01/17 16:35:11 *****************************************************************
-2016/01/17 16:35:11 *********************Starting MrRedis-Scheduler******************
-2016/01/17 16:35:11 *****************************************************************
-2016/01/17 16:35:11 Starting the HTTP server at port 8080
-.
-.
-```
-
-The configuration file should be of json format
-
-```
-$cat config.json
-{
-        "MasterIP":"10.11.12.13",
-        "MasterPort":"5050",
-        "ExecutorPath":"/home/ubuntu/MrRedis/exec/MrRedisExecutor",
-        "RedisPath":"/home/ubuntu/MrRedis/redisbin/redis-server",
-        "DBType":"etcd",
-        "DBEndPoint": "http://11.12.13.14:2379",
-        "ArtifactIP": "12.13.14.15"
-}
-```
-
-Please substitute appropriate values with respect to your enviroment in the above config file for MasterIP/Port, ExecutorPath, DBEndPoint and IP adddres of this scheduler's VM that is accessible from the slaves for artifactIP
-
-If you have a complicated Redis requirement then a simple comamnd like below 
+### Example 2:
+If you have a complicated Redis requirement then a simple comamnd like the one below will result in creating one redis instance with 1 master and 50 Slaves in less than 15 secs, Simples :-)
 ```
 $time mrr create -n hello50 -m 100 -s 50 -w true
 Attempting to Creating a Redis Instance (hello50) with mem=100 slaves=50
@@ -132,8 +165,7 @@ real    0m14.269s
 user    0m0.033s
 sys     0m0.037s
 ```
-will result in creating one redis instance with 1 master and 50 Slaves in less than 15 secs, Simples :-)
-
+To find the status of the redis instance you have created, below is the command
 ```
 $mrr status -n hello50
 Status = RUNNING
@@ -192,22 +224,16 @@ Master = 10.11.12.21:6380
         Slave49 = 10.11.12.21:6382
 ```
 
-### Installation Instruction
-Please Note the pkg dependency management will be done by godep.
 
 ### Contribution Guidlines
-We have ourselves fallen into pitfalls to arrive at working code faster, some simple rules more to inculcate in our own future work and for reference to contributors
 Go already provides a nice documentation on coding conventions and guidelines; just try to adhere to that [Effective Go](https://golang.org/doc/effective_go.html) :-) 
 
-Specifically 
+##Specifically 
 - Format code using go fmt, if an already prebuilt auto formatter is not their in your editor
 - We suggest using extensive comments, as this code base is still evolving
 - Try to stress on error handling as per [Effective error handling in Go](https://golang.org/doc/effective_go.html#errors) (which we ourselves have probably missed at places)
-- Please use this framework; We are looking forward for issues, and nothing greater then an issue and a fix. Nonetheless, if interested in contributing something specific, please raise an issue outright to let us know that you are doing "this"
-- We have not set up tests and test code yet, this is one obvious area to contribute without saying 
-
-### Documentation 
-TODO
+- Please use this framework; We are looking forward for issues, and nothing greater than an issue and a fix. Nonetheless, if interested in contributing something specific, please raise an issue outright to let us know that you are doing "this"
+- We have not set up tests and test code yet, this is one obvious area to contribute without saying.
 
 ### Future Plans
 
