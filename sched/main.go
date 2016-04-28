@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -52,14 +53,26 @@ func NewMrRedisDefaultConfig() MrRedisConfig {
 func main() {
 
 	cfg_file_name := flag.String("config", "./config.json", "Supply the location of MrRedis configuration file")
+	dumpConfig := flag.Bool("DumpEmptyConfig", false, "Dump Empty Config file")
 	flag.Parse()
+
+	Cfg := NewMrRedisDefaultConfig()
+
+	if *dumpConfig == true {
+		config_bytes, err := json.MarshalIndent(Cfg, " ", "  ")
+		if err != nil {
+			log.Printf("Error marshalling the dummy config file. Exiting %v", err)
+			return
+		}
+		fmt.Printf("%s\n", string(config_bytes))
+		return
+	}
 
 	cfg_file, err := ioutil.ReadFile(*cfg_file_name)
 
 	if err != nil {
 		log.Printf("Error Reading the configration file. Resorting to default values")
 	}
-	Cfg := NewMrRedisDefaultConfig()
 	err = json.Unmarshal(cfg_file, &Cfg)
 	if err != nil {
 		log.Fatalf("Error parsing the config file %v", err)

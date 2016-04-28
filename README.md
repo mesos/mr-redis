@@ -84,7 +84,26 @@ $cat config.json
         "ArtifactIP": "12.13.14.15"
 }
 ```
+
 Please substitute appropriate values with respect to your enviroment  for MasterIP/Port, ExecutorPath, DBEndPoint and IP adddres of this scheduler's VM that is accessible from the slaves for artifactIP
+
+if you want to get an empty config for you to start working on you could do this and the scheduler will print you a dummy structure for you to start working on.
+```
+$./sched -DumpEmptyConfig
+{
+   "MasterIP": "127.0.0.1",
+   "MasterPort": "5050",
+   "ExecutorPath": "./MrRedisExecutor",
+   "RedisPath": "./redis-server",
+   "DBType": "etcd",
+   "DBEndPoint": "127.0.0.1:2379",
+   "LogFile": "stderr",
+   "ArtifactIP": "127.0.0.1",
+   "ArtifactPort": "5454",
+   "HTTPPort": "5656"
+ }
+
+```
 
 ## Using the CLI
 mr-redis has built-in cli for creating and destroying redis instances.
