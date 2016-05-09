@@ -1,6 +1,7 @@
 package httplib
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
@@ -157,17 +158,23 @@ func (this *MainController) Status() {
 
 func (this *MainController) StatusAll() {
 
-	//var name string
-	var statusAll string
+	var statusAll []typ.Instance_Json
 
 	for _, inst := range typ.MemDb.I {
 		if inst.Status == typ.INST_STATUS_RUNNING {
-			statusAll = statusAll + inst.ToJson() + "\n"
+			//statusAll = statusAll + inst.ToJson() + "\n"
+			statusAll = append(statusAll, inst.ToJson_Obj())
 		}
 	}
 
 	//not available in both the retrun error
-	this.Ctx.WriteString(statusAll)
+	status_bytes, err := json.Marshal(statusAll)
+	if err != nil {
+
+		this.Ctx.WriteString("STATUSALL: Json Unmarshalling error")
+		return
+	}
+	this.Ctx.WriteString(string(status_bytes))
 
 }
 func (this *MainController) UpdateMemory() {

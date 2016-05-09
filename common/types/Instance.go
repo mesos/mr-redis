@@ -222,6 +222,31 @@ type Proc_Json struct {
 	Port string
 }
 
+func (I *Instance) ToJson_Obj() Instance_Json {
+
+	var res Instance_Json
+	res.Name = I.Name
+	res.Type = I.Type
+	res.Capacity = I.Capacity
+	res.Status = I.Status
+
+	if I.Status == INST_STATUS_RUNNING {
+		var p *Proc
+		p = I.Procs[I.Mname]
+		res.Master.IP = p.IP
+		res.Master.Port = p.Port
+		for _, sname := range I.Snames {
+			p = I.Procs[sname]
+			var s Proc_Json
+			s.IP = p.IP
+			s.Port = p.Port
+			res.Slaves = append(res.Slaves, s)
+		}
+	}
+
+	return res
+}
+
 func (I *Instance) ToJson() string {
 
 	var res Instance_Json
