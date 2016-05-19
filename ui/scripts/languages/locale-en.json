@@ -1,0 +1,12 @@
+{
+	"default" : {
+		"ok" : "Ok",
+		"close" : "Close",
+		"cancel" : "Cancel",
+		"go" : "Go",
+		"details" : "Details",
+		"stop": "Stop",
+		"start" : "Start"
+	},
+	"copyRight" : "Developed by Huawei Technologies India Pvt. Ltd (Get confirmation and change accordigly!)"
+}

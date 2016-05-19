@@ -1,0 +1,193 @@
+<div class="layout-md layout-gt-md layout-lg">	
+  <md-content layout-padding layout="row" layout-align="center">
+        <div flex-gt-md="60" flex-md="80" flex-xs="100">
+            <div>
+                <h4>Angular Data Grid sample using Material Design styling</h4>
+
+                <p>Features enabled: sorting, filtering, sync with browser URLs, pagination and item-per-page functionality.
+                    Out-of-box <a href="https://material.angularjs.org/" target="_blank">Angular Material</a> layout and input controls used,
+                    along with <a href="http://www.getmdl.io/" target="_blank">Material Design Light</a> default CSS for grid styling.
+                    <a href="https://github.com/angular-data-grid/angular-data-grid.github.io"
+                       target="_blank">Project GitHub</a></p>
+            </div>
+            <hr>
+            <div layout-gt-xs="row" layout-xs="column" layout-align="stretch center">
+                <div  layout="row" layout-align="center start">
+                    <md-input-container md-no-float md-is-error="false" class="md-block flex-gt-xs flex-xs">
+                        <input ng-model="code"
+                               class="md-input"
+                               ng-change="gridActions.filter()"
+                               id="order"
+                               placeholder="Search by Order #"
+                               filter-by=""
+                               filter-type="text"
+                               aria-invalid="false">
+                    </md-input-container>
+                </div>
+                <div  layout="row" layout-align="start center">
+                    <md-datepicker ng-model="dateFrom"
+                                   flex="100"
+                                   md-placeholder="From Date"
+                                   is-open="dateFromOpened"
+                                   ng-click="dateFromOpened = true"
+                                   filter-by="placed"
+                                   filter-type="dateFrom"
+                                   ng-change="gridActions.filter()"></md-datepicker>
+                </div>
+                <div  layout="row" layout-align="start center">
+                    <md-datepicker ng-model="dateTo"
+                                   flex="100"
+                                   md-placeholder="To Date"
+                                   is-open="dateToOpened"
+                                   ng-click="dateToOpened = true"
+                                   filter-by="placed"
+                                   filter-type="dateTo"
+                                   ng-change="gridActions.filter()"></md-datepicker>
+                </div>
+                <div  layout="row" layout-align="start center">
+                    <md-button ng-show="dateTo || dateFrom" class="md-raised md-primary" ng-click="dateTo = ''; dateFrom = ''; reloadGrid();">Clear Dates</md-button>
+                </div>
+            </div>
+            <div grid-data id='test' grid-options="gridOptions" grid-actions="gridActions">
+                <div layout-gt-sm="row" layout-sm="column" layout-align="center">
+                    <div flex-gt-sm="25" flex-sm="100" layout="row" layout-align="start center">
+                        <span>{{filtered.length}} items total</span>
+                    </div>
+                    <div flex-gt-sm="75" flex-xs="100">
+                        <div layout-xs="column" layout="row" layout-align-xs="end end" layout-align="end center">
+                            <grid-pagination max-size="5"
+                                             boundary-links="true"
+                                             class="pagination mdl-shadow--2dp"
+                                             ng-if="paginationOptions.totalItems  > paginationOptions.itemsPerPage"
+                                             total-items="paginationOptions.totalItems"
+                                             ng-model="paginationOptions.currentPage"
+                                             ng-change="reloadGrid()"
+                                             items-per-page="paginationOptions.itemsPerPage"></grid-pagination>
+                            <md-input-container flex-offset-gt-xs="5" class="items-per-page">
+                                <md-select ng-init="paginationOptions.itemsPerPage = '10'" ng-model="paginationOptions.itemsPerPage" ng-change="reloadGrid()">
+                                    <md-option>10</md-option>
+                                    <md-option>25</md-option>
+                                    <md-option>50</md-option>
+                                    <md-option>75</md-option>
+                                </md-select>
+                            </md-input-container>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <table class="mdl-data-table mdl-js-data-table mdl-data-table--selectable mdl-shadow--2dp">
+                        <thead>
+                        <tr>
+                            <th sortable="" class="sortable mdl-data-table__cell--non-numeric">
+                                <span>Name</span>
+                            </th>
+                            <!-- <th class="st-sort-disable th-dropdown">
+                                <md-select filter-by="statusDisplay"
+                                           filter-type="select"
+                                           ng-model="status"
+                                           placeholder="Status"
+                                           ng-change="filter()">
+                                    <md-option value="">All Statuses</md-option>
+                                    <md-option ng-repeat="option in statusOptions track by option.value"
+                                               value="{{option.value}}">
+                                        {{option.text}}
+                                    </md-option>
+                                </md-select>
+                            </th> -->
+                            <th sortable="placed" class="sortable">
+                                <span>Type</span>
+                            </th>
+                            <th sortable='total.value' class="sortable">
+                                <span>IP</span>
+                            </th>
+                            <th sortable="placed" class="sortable">
+                                <span>Port</span>
+                            </th>
+                            <th sortable="placed" class="sortable">
+                                <span>Status</span>
+                            </th>
+                            <th sortable="placed" class="sortable">
+                                <span>Memory Utilizatio</span>
+                            </th>
+                            <th sortable="placed" class="sortable">
+                                <span>No. of Slaves</span>
+                            </th>
+                            <th>
+                                <span>Actions</span>
+                            </th>
+
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="database in gridOptions.data">
+                          <td>{{database.Name}}</td>
+                          <td>{{database.Type}}</td>                                            
+                          <td>{{database.Master.IP}}</td>
+                          <td>{{database.Master.Port}}</td>
+                          <td><i class="fa fa-cog fa-spin fa-lg fa-fw margin-bottom"></i>{{database.Status}}</td>
+                          <td>{{database.Capacity}}</td>
+                          <td ng-if="null === database.Slaves">0</td>
+                          <td ng-if="null !== database.Slaves">{{database.Slaves.length}}</td>
+                          <td> 
+                          <div class="instanceActions">
+                            <md-button aria-label="View Details" class="md-icon-button" ng-click="displayInstanceDetails(database.Slaves, $event)" ng-disabled="null === database.Slaves">
+                              <ng-md-icon icon="open_in_new" style="line-height: 30px;" size="18">
+                                <md-tooltip md-direction="top" ng-if="null !== database.Slaves">
+                                  This instance does not have any slaves.
+                                </md-tooltip> 
+                                <md-tooltip md-direction="top">
+                                  View Details
+                                </md-tooltip>                     
+                              </ng-md-icon> 
+                            </md-button>
+                            <md-button aria-label="Delete Instance" class="md-icon-button" ng-click="showDeleteInstance(database.Name, $event)">
+                              <ng-md-icon icon="delete_forever" style="line-height: 30px;" size="18">
+                                <md-tooltip md-direction="top">
+                                  Delete Instance
+                                </md-tooltip> 
+                              </ng-md-icon> 
+                            </md-button>
+                            <md-button aria-label="Delete Multiple Instance" class="md-icon-button" ng-click=""> <!-- showMultiSelect($event) -->
+                              <ng-md-icon icon="delete_sweep" style="line-height: 30px;" size="18">
+                                <md-tooltip md-direction="top">
+                                  Delete Multiple Instance
+                                </md-tooltip> 
+                              </ng-md-icon> 
+                            </md-button>
+                          </div>
+                          </td>                
+
+                        </tr>      
+                        <!-- <tr grid-item>
+                            <td class="mdl-data-table__cell--non-numeric">                            
+                                <span ng-bind="item.code"></span>
+                            </td>
+                            <td ng-bind="item.statusDisplay"></td>
+                            <td ng-bind="item.placed | date:'MM/dd/yyyy'"></td>
+                            <td ng-bind="item.total.formattedValue"></td>
+                        </tr> -->
+                        </tbody>
+                    </table>
+                </div>
+                <div layout-xs="column" layout="row" layout-align-xs="end end" layout-align="end center">
+                    <grid-pagination max-size="5"
+                                     boundary-links="true"
+                                     class="pagination"
+                                     ng-if="paginationOptions.totalItems  > paginationOptions.itemsPerPage"
+                                     total-items="paginationOptions.totalItems"
+                                     ng-model="paginationOptions.currentPage"
+                                     ng-change="reloadGrid()"
+                                     items-per-page="paginationOptions.itemsPerPage"></grid-pagination>
+                    <md-input-container flex-offset-gt-xs="5" class="items-per-page">
+                        <md-select ng-init="paginationOptions.itemsPerPage = '10'" ng-model="paginationOptions.itemsPerPage" ng-change="reloadGrid()">
+                            <md-option>10</md-option>
+                            <md-option>25</md-option>
+                            <md-option>50</md-option>
+                            <md-option>75</md-option>
+                        </md-select>
+                    </md-input-container>
+                </div>
+            </div>
+        </div>
+    </md-content>  
+</div>

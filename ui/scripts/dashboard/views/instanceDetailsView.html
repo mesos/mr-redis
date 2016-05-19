@@ -1,0 +1,91 @@
+<md-dialog class="instanceDetailsView" aria-label="Single Instance Details View" flex="35"> 
+	<md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>Instance Details</h2>
+        <span flex></span>
+        <md-button class="md-icon-button" ng-click="close()">
+          <ng-md-icon icon="close" aria-label="Close"></md-icon>
+        </md-button>
+      </div>
+    </md-toolbar>
+    <div layout="row">
+    	<div layout="column" flex="50">
+    		<md-subheader class="">Database: <span class="strongText">{{dbShowDetails.Name}}</span></md-subheader>
+    	</div>
+    	<div layout="column" flex>
+    		<md-subheader class="md-primary">Number of Slaves: <span class="strongText">{{dbShowDetails.Slaves.length}}</span></md-subheader>
+    	</div>    	
+    </div>
+    <div layout="row">
+    	<div layout="column" flex="50">
+    		<md-subheader class="md-primary">Capacity: <span class="strongText">{{dbShowDetails.Capacity}} MB</span></md-subheader>
+    	</div>
+    	<div layout="column" flex>
+    		<md-subheader class="md-primary">Utilization: <span class="strongText">50 / {{dbShowDetails.Capacity}} MB | {{(50/dbShowDetails.Capacity)*100 | number:2}} %</span></md-subheader> <!-- ng-class="{ md-warn: {{((100/dbShowDetails.Capacity)*100) > 20}} == 'true' }" -->
+    	</div>     	
+    </div>     	       
+	<md-content class="md-padding">
+		<md-table-container>
+      		<table md-table md-progress="promise">
+        		<thead md-head>
+          			<tr md-row>
+			          	<th md-column md-desc>
+			            	<span>IP Address</span>
+			            	<ng-md-icon icon="info" style="line-height: 60px;" size="18">
+			            	<md-tooltip md-direction="top">
+			      				IP address of the Slave
+			    			</md-tooltip> 
+			            	</ng-md-icon>
+			            </th>
+			            <th md-column>
+			            	<span>Port Number</span>
+			            	<ng-md-icon icon="info" style="line-height: 60px;" size="18">
+			            	<md-tooltip md-direction="top">
+			      				Endpoint Port Number on the Slave
+			    			</md-tooltip> 
+			            	</ng-md-icon>
+			            </th>
+			            <th md-column>
+			            	<span>Delete Slave</span>
+			            	<ng-md-icon icon="info" style="line-height: 60px;" size="18">
+			            	<md-tooltip md-direction="top">
+			      				Delete the Slave
+			    			</md-tooltip> 
+			            	</ng-md-icon>
+			            </th>
+			        </tr>
+			    </thead>
+			  	<tbody md-body>
+			  		<tr md-row md-select="dbSlaves" ng-repeat="dbSlave in dbShowDetails.Slaves">
+
+			  			<td md-cell>{{dbSlave.IP}}</td>
+            			<td md-cell>{{dbSlave.Port}}</td>
+            			<td md-cell>
+            				<md-button aria-label="Delete Slave" class="md-icon-button" ng-click="showDeleteSlave(dbSlave, $event)">
+				                <ng-md-icon icon="delete_forever" style="fill: #ff0000;line-height: 30px;" size="24">
+				                  <md-tooltip md-direction="top">
+				                    Delete Slave
+				                  </md-tooltip> 
+				                </ng-md-icon> 
+				             </md-button>
+            			</td>
+			  		</tr>
+			  		
+			  	</tbody>
+			 </table>
+		</md-table-container>
+	</md-content> 
+	<div class="md-dialog-actions" layout="row"> 
+		<span flex></span> 
+		<md-button aria-label="Add Slaves" class="md-primary md-raised" ng-click="addSlaves(database, $event)" >
+            <ng-md-icon  icon="my_library_add" style="line-height: 30px;" size="24">
+                <md-tooltip md-direction="top">
+                	Add Slaves
+                </md-tooltip>                     
+            </ng-md-icon>
+            Add Slaves                                 
+          </md-button>		
+		<md-button ng-click="close()" class="md-raised md-primary"> Close </md-button> 
+		
+	</div>
+</md-dialog>
