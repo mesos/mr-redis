@@ -1,63 +1,43 @@
 <md-dialog class="deleteInstanceView" aria-label="Delete Instance View" flex="25"> 
 	<md-toolbar class="md-warn">
-      <div class="md-toolbar-tools">
-      <i class="fa fa-exclamation-triangle md-warn fa-fw" aria-hidden="true"></i>         
-        <h2>Delete Database Instance?</h2>
-        <span flex></span>
-        <md-button class="md-icon-button" ng-click="close()">
-          <ng-md-icon icon="close" aria-label="Close"></md-icon>
-        </md-button>
-      </div>
-    </md-toolbar>
-    <md-subheader class="md-warn">You requested the deletion of the following database: <span class="strongText">{{dbToDelete.Name}}</span></md-subheader>	 
+		<div class="md-toolbar-tools">
+			<i class="fa fa-exclamation-triangle md-warn fa-fw" aria-hidden="true"></i>         
+			<h2>Delete Database Instance?</h2>
+			<span flex></span>
+			<md-button class="md-icon-button" ng-click="close()">
+				<ng-md-icon icon="close" aria-label="Close"></md-icon>
+			</md-button>
+		</div>
+	</md-toolbar>
+	<md-subheader class="md-warn">You requested the deletion of the following database: <span class="strongText">{{dbToDelete.Name}}</span></md-subheader> 
 	<md-content class="md-padding">
-		
 		<md-table-container>
-      		<table md-table>
-        		<thead md-head>
-          			<tr md-row>
-			          	<th md-column md-numeric md-desc>
-			            	<span>IP Address</span>
-			            	<!-- <ng-md-icon icon="info" style="line-height: 60px;" size="18">
-			            	<md-tooltip md-direction="top">
-			      				IP address
-			    			</md-tooltip> 
-			            	</ng-md-icon> -->
-			            </th>
-			            <th md-column md-numeric>
-			            	<span>Port Number</span>
-			            	<!-- <ng-md-icon icon="info" style="line-height: 60px;" size="18">
-			            	<md-tooltip md-direction="top">
-			      				Endpoint Port Number
-			    			</md-tooltip> 
-			            	</ng-md-icon> -->
-			            </th>
-			            <th md-column md-numeric>
-			            	<span>Number of Slaves</span>
-			            	<!-- <ng-md-icon icon="info" style="line-height: 60px;" size="18">
-			            	<md-tooltip md-direction="top">
-			      				Number of Slaves
-			    			</md-tooltip> 
-			            	</ng-md-icon> -->
-			            </th>
-			        </tr>
-			    </thead>
-			  	<tbody md-body>
-			  		<tr md-row>
-			  			<td md-cell>{{dbToDelete.Master.IP}}</td>
-            			<td md-cell>{{dbToDelete.Master.Port}}</td>
-            			<td md-cell>{{dbToDelete.Slaves.length}}</td>
-            				
-			  		</tr>
-			  		
-			  	</tbody>
-			 </table>
+			<table md-table>
+				<thead md-head>
+					<tr md-row>
+						<th md-column md-numeric md-desc>
+							<span>IP Address</span>			            	
+						</th>
+						<th md-column md-numeric>
+							<span>Port Number</span>			            	
+						</th>
+						<th md-column md-numeric>
+							<span>Number of Slaves</span>			            	
+						</th>
+					</tr>
+				</thead>
+				<tbody md-body>
+					<tr md-row>
+						<td md-cell>{{dbToDelete.Master.IP}}</td>
+						<td md-cell>{{dbToDelete.Master.Port}}</td>
+						<td md-cell>{{dbToDelete.Slaves.length}}</td>
+					</tr>
+				</tbody>
+			</table>
 		</md-table-container>
 	</md-content>
-	<md-content class="md-padding">
-		<!-- <ng-md-icon icon="warning" class="md-warn" style="fill:red; line-height: 60px;" size="30" ></ng-md-icon>  -->
+	<md-content class="md-padding">		
 		<div class="md-warn md-subhead">This process is irreversible. Are you sure? </div>
-
 	</md-content>
 	<div class="md-dialog-actions" layout="row"> 
 		<span flex></span> 

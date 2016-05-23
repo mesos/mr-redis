@@ -37,11 +37,13 @@
 				var newInstance = ajaxService.call(url, api.dbCreate.method, newInstanceData);
 				
 				newInstance.then(function (response) {
+					console.log("Response after Create Service: ");
 					console.log(response);
-					defer.resolve();
+					defer.resolve(response);
 				},function(error){
-				console.log(error);
-				defer.reject(error);
+					console.log("Response Error after Create Service: ");
+					console.log(error);
+					defer.reject(error);
 				});
 				return defer.promise;        		
 			};
@@ -61,5 +63,23 @@
 				});
 				return defer.promise;
 			};
+
+			//Delete database slave 
+			this.deleteSlaveService = function(database){
+				var defer = $q.defer();
+				var url = api.dbDelete.url +'/'+ database.Name +'/'+ database.SlaveId;
+				var delInstance = ajaxService.call(url, api.dbDelete.method, null);
+				delInstance.then(function(response){
+					console.log("Response after Delete Service: ");
+					console.log(response);
+					defer.resolve(response);
+				},function(error){
+					console.log("Response Error after Delete Service: " + error);
+					defer.reject(error);
+				});
+				return defer.promise;
+			};
+
+
 		}
 ])

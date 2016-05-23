@@ -13,11 +13,9 @@
             $mdDialog.hide(answer);
         }
         
-      	$scope.dbShowDetails = dbDetails;
+        
+      	$scope.dbShowDetails = dbDetails;        
         console.log('The DB to show details: ');
         console.log($scope.dbShowDetails);
-      	
-      
-
-      
+        
 }]);

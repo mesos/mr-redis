@@ -5,16 +5,9 @@
         <div ng-hide="options.rowSelection && selected.length" flex></div>
         <div class="md-toolbar-tools" layout-fill>
           <!-- <span>Databases</span> -->       
-          <div flex></div>                       
-              <!-- <ng-md-icon icon="search" style="line-height: 60px;" size="18">
-                <md-tooltip md-direction="top">
-                  Search
-                </md-tooltip> 
-              </ng-md-icon>
-              <input type="text" name="searchBox" placeholder="Search" ng-model="filter.search">       -->        
-
-          <input type="text" name="searchBox" ng-model="filter.search" ng-show="showSearch">
-          <md-button class="md-icon-button" aria-label="Search Table" ng-mouseover="toggleSearch()">
+          <div flex></div>
+          <input type="text" name="searchBox" ng-model="filter.search" ng-hide="isHidden">
+          <md-button class="md-icon-button" aria-label="Search Table" ng-click="toggleSearch()">
             <md-tooltip md-direction="top">
             Search
             </md-tooltip>              
@@ -27,12 +20,9 @@
             </md-tooltip>              
             <i class="fa fa-refresh fa-lg" aria-hidden="true"></i>
           </md-button>        
-          <md-button class="md-primary md-raised" aria-label="Create Instance" ng-click="showAdd($event)">
+          <md-button class="md-primary md-raised" aria-label="Create Instance" ng-click="showCreate($event)">
             <i class="fa fa-plus-circle fa-lg fa-fw margin-bottom"></i>Create Instance
-          </md-button>
-          <!-- <md-button class="md-warn md-raised  mad-hue-2" aria-label="Delete" ng-click="showDeleteInstance($event)">
-            <ng-md-icon icon="delete"></ng-md-icon>Delete Instance
-          </md-button> -->
+          </md-button>          
           
         </div>
       </div>
@@ -107,12 +97,6 @@
             </th>                             
             <th md-column hide-gt-xs show-gt-md>
               <span>Actions</span>
-              <!-- <ng-md-icon icon="info" style="line-height: 60px;" size="18">
-                <md-tooltip md-direction="top">
-                  View Instance Details
-                </md-tooltip> 
-              </ng-md-icon> -->
-
             </th>
 
           </tr>
@@ -162,39 +146,9 @@
                     Delete Instance
                   </md-tooltip> 
                 </ng-md-icon> 
-              </md-button>
-              <!-- FAB Speed dial to put together actions -->
-              <!-- <md-fab-speed-dial ng-hide="demo.hidden" md-direction="left" md-open="demo.isOpen" class="md-fling md-fab-top-right" ng-class="{ 'md-hover-full': demo.hover }" ng-mouseenter="demo.isOpen=true" ng-mouseleave="demo.isOpen=false">
-                <md-fab-trigger>
-                  <md-button aria-label="menu" class="md-fab md-primary">
-                    <md-tooltip md-direction="top" md-visible="tooltipVisible">Menu</md-tooltip>
-                    <ng-md-icon icon="menu" aria-label="menu"></ng-md-icon>
-                  </md-button>
-                </md-fab-trigger>
-
-                <md-fab-actions>
-                  <div ng-repeat="item in demo.items">
-                    <md-button aria-label="{{item.name}}" class="md-fab md-raised md-mini" ng-click="demo.openDialog($event, item)">
-                      <md-tooltip md-direction="{{item.direction}}" md-visible="tooltipVisible" md-autohide="false">
-                        {{item.name}}
-                      </md-tooltip>
-
-                      <md-icon md-svg-src="{{item.icon}}" aria-label="{{item.name}}"></md-icon>
-                    </md-button>
-                  </div>
-                </md-fab-actions>
-              </md-fab-speed-dial> -->
-              <!-- showMultiSelect($event) -->
-              <!-- <md-button aria-label="Delete Multiple Instance" class="md-icon-button" ng-click=""> 
-                <ng-md-icon icon="delete_sweep" style="line-height: 30px;" size="18">
-                  <md-tooltip md-direction="top">
-                    Delete Multiple Instance
-                  </md-tooltip> 
-                </ng-md-icon> 
-              </md-button> -->
-            </div>
-            </td>                
-
+              </md-button> 
+              </div>
+            </td>
           </tr>      
         </tbody>
       </table>

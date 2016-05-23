@@ -19,17 +19,16 @@ angular.module('mrredisApp.dashboard')
 			}];
 
 			//Reload the table
-			$scope.reload = function(){
-				/*var deferred = $q.defer();
-				$scope.refreshPromise = deferred.promise;
-				deferred.resolve();*/
+			$scope.reload = function(){				
 				$state.reload();
 
 			};
+			
 
 			 // Toolbar search toggle
+			 $scope.isHidden = true;
  			$scope.toggleSearch = function(element) {
-    			$scope.showSearch = !$scope.showSearch;
+    			$scope.isHidden = $scope.isHidden ? false : true;
   			};
   			//Set the md Data table options
 			$scope.options = {
@@ -68,39 +67,30 @@ angular.module('mrredisApp.dashboard')
 			}
 
 			//Create new Database instance form in modal
-			$scope.showAdd = function (event) {
+			$scope.showCreate = function (event) {
 				$mdDialog.show({
 					clickOutsideToClose: false,  
 					controller: 'instanceCreateDialogController',    
 					focusOnOpen: false,
 					targetEvent: event,
-					templateUrl: 'scripts/dashboard/views/createInstanceView.html',
-				}).then(function(answer) {
-					$scope.alert = 'You said the information was "' + answer + '".';
-				}, function() {
-					$scope.alert = 'You cancelled the dialog.';
-				});
-			};
-
-			//Display Single Database Instance details 
-			$scope.displayInstanceDetails = function (database, event) {			          
-				$mdDialog.show({
-					clickOutsideToClose: false,  
-					controller: 'instanceDetailsDialogController',    
-					focusOnOpen: false,
-					targetEvent: event,
-					templateUrl: 'scripts/dashboard/views/instanceDetailsView.html',
-					dbDetails: database					
+					templateUrl: 'scripts/dashboard/views/instanceCreateView.html',
 				}).then(function(response) {
 						console.log("entered the success state after creation");
 						if(true === response.reload){
-							$mdToast.show(
-				                $mdToast.simple()
+							var toast = $mdToast.simple()
 				                  .textContent(response.data)
 				                  .action('Ok')
 				                  .hideDelay(5000)
-				                  .position('bottom left')
-			              	); 
+				                  .position('bottom left');
+							$mdToast.show(toast).then(function(response){
+								console.log("Response from the toast promise on create success: ")
+								console.log(response);
+								if(response === "ok"){
+									$state.reload();		
+								}
+							$state.reload();	
+							});
+			             	 	 
 						}
 					}, function(error) {
 						console.log("Database not created. Entered Error");
@@ -113,6 +103,22 @@ angular.module('mrredisApp.dashboard')
 			            );
 					});
 			};
+
+			//Display Single Database Instance details 
+			$scope.displayInstanceDetails = function (database, event) {			          
+				$mdDialog.show({
+					clickOutsideToClose: false,  
+					controller: 'instanceDetailsDialogController',    
+					focusOnOpen: false,
+					targetEvent: event,
+					templateUrl: 'scripts/dashboard/views/instanceDetailsView.html',
+					dbDetails: database					
+				}).then(function(response) {
+					$scope.alert = 'You said the information was "' + answer + '".';
+				}, function() {
+					$scope.alert = 'You cancelled the dialog.';
+				});
+			};
 			
 			//Delete Single Database instance
 			$scope.showDeleteInstance = function(database, event) {
@@ -122,28 +128,33 @@ angular.module('mrredisApp.dashboard')
 					templateUrl: 'scripts/dashboard/views/instanceDeleteView.html',
 					targetEvent: event,
 					db: database
-				})
-				.then(function(response) {
+				}).then(function(response) {
 					if(true === response.reload){
-						$mdToast.show(
-		                $mdToast.simple()
-		                  .textContent(response.data)
-		                  .action('Ok')
-		                  .hideDelay(6000)
-		                  .position('bottom left')
-		              	);
-		              	$state.reload();
+						var toast = $mdToast.simple()
+							.textContent(response.data)
+							.action('Ok')
+							.hideDelay(6000)
+							.position('bottom left');
+						$mdToast.show(toast).then(function(response){
+							console.log("Response from the toast promise on create success: ")
+							console.log(response);
+							if(response === "ok"){
+								$state.reload();		
+							}
+							$state.reload();		
+						});
+
 					}
 				}, function(error) {
 					if(error && error.status === -1){	
 						$mdToast.show(
-		                $mdToast.simple()
-		                  .textContent(error.msg)
-		                  .action('Ok')
-		                  .hideDelay(6000)
-		                  .position('bottom left')
-		              	);
-		            }
+						$mdToast.simple()
+							.textContent(error.msg)
+							.action('Ok')
+							.hideDelay(6000)
+							.position('bottom left')
+						);
+					}
 				});
 			};  
 

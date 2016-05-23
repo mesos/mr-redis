@@ -1,4 +1,4 @@
-<md-dialog class="instanceDetailsView" aria-label="Single Instance Details View" flex="35"> 
+<md-dialog class="instanceDetailsView" aria-label="Single Instance Details View" flex="45"> 
 	<md-toolbar>
       <div class="md-toolbar-tools">
         <h2>Instance Details</h2>
@@ -44,31 +44,14 @@
 			      				Endpoint Port Number on the Slave
 			    			</md-tooltip> 
 			            	</ng-md-icon>
-			            </th>
-			            <th md-column>
-			            	<span>Delete Slave</span>
-			            	<ng-md-icon icon="info" style="line-height: 60px;" size="18">
-			            	<md-tooltip md-direction="top">
-			      				Delete the Slave
-			    			</md-tooltip> 
-			            	</ng-md-icon>
-			            </th>
+			            </th>			            
 			        </tr>
 			    </thead>
 			  	<tbody md-body>
 			  		<tr md-row md-select="dbSlaves" ng-repeat="dbSlave in dbShowDetails.Slaves">
 
 			  			<td md-cell>{{dbSlave.IP}}</td>
-            			<td md-cell>{{dbSlave.Port}}</td>
-            			<td md-cell>
-            				<md-button aria-label="Delete Slave" class="md-icon-button" ng-click="showDeleteSlave(dbSlave, $event)">
-				                <ng-md-icon icon="delete_forever" style="fill: #ff0000;line-height: 30px;" size="24">
-				                  <md-tooltip md-direction="top">
-				                    Delete Slave
-				                  </md-tooltip> 
-				                </ng-md-icon> 
-				             </md-button>
-            			</td>
+            			<td md-cell>{{dbSlave.Port}}</td>            			
 			  		</tr>
 			  		
 			  	</tbody>

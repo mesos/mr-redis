@@ -36,22 +36,22 @@
 
       //Create new database instance
 
-$scope.processCreateInstanceForm = function () {
-  $scope.checkDBName($scope.newInstance.name, function(){
-    dashboardServices.createInstance($scope.newInstance).then(function(response){
-    console.log('This is response from dashboardServices createInstance: ');
-    console.log(response);
-    if(response && response.status === 200){
-      response.reload = true;
-      $mdDialog.hide(response);                              
-    }
-    },function(error){
-      if(error && error.status === -1){
-        error.msg = "Uh-oh! Something went wrong. We could not create the DB";
-        $mdDialog.hide(error); 
+      $scope.processCreateInstanceForm = function () {
+        $scope.checkDBName($scope.newInstance.name, function(){
+          dashboardServices.createInstance($scope.newInstance).then(function(response){
+            console.log('This is response from dashboardServices createInstance: ');
+            console.log(response);
+            if(response && response.status === 201){
+              response.reload = true;
+              $mdDialog.hide(response);                              
+            }
+          },function(error){
+            if(error && error.status === -1){
+              error.msg = "Uh-oh! Something went wrong. We could not create the DB";
+              $mdDialog.hide(error); 
+            }
+          });
+
+        });
       }
-    });
-    
-  });
-}
 }]);
