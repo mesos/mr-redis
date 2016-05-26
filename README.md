@@ -26,6 +26,13 @@ At [Huawei] (http://www.huawei.com/en/) we foresee creating, running and maintai
 
 ## Installation Instructions
 
+###Prerequisite
+For Mr-Redis to work you will need below softwares already available in your DataCenter (Cloud)
+* [Apache Mesos](http://mesos.apache.org/gettingstarted/) :- The Resource Manager of your DC to which mr-redis scheduler will connect to.
+* [Golang Dev Environment] (https://golang.org/doc/install) :- If you are planning to build mr-redis from source you will need to setup standard golang development environment. 
+* [etcd](https://github.com/coreos/etcd#getting-started) :- mr-redis uses etcd to store its state information so a running instance of etcd is required in your datacenter
+* [redis-server](https://github.com/antirez/redis#building-redis) :- mr-redis scheduler is capable of distributing redis-server (redis binary). Scheduler needs a valid location of redis-server binary that can be distributed to the slave.
+
 Installing the scheduler/framework can be done in three ways
 
 ### From source code (Developer)
