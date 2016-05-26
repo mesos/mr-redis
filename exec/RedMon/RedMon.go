@@ -225,32 +225,62 @@ func (R *RedMon) StartSlaveAndMakeMaster() bool {
 	return true
 }
 
+func fetchSubSection(value string, SubSection string) string {
+	arr := strings.Split(value, "\r\n")
+
+	for _, key := range arr {
+		if strings.Contains(key, SubSection) {
+			sub_arr := strings.Split(key, ":")
+			if len(sub_arr) != 2 {
+				return ""
+			}
+			return sub_arr[1]
+		}
+	}
+	return ""
+}
+
+func (R *RedMon) GetRedisInfo(Section string, Subsection string) string {
+
+	value, err := R.Client.Info(Section).Result()
+	if err != nil {
+		R.L.Printf("STATS collection returned error on IP:%s and PORT:%d Err:%v for section %s subsection %s", R.IP, R.Port, err, Section, Subsection)
+		return ""
+	}
+	return fetchSubSection(value, Subsection)
+}
+
 func (R *RedMon) UpdateStats() bool {
 
 	var redisStats typ.Stats
+	var txt string
 	var err error
 
-	redisStats.Mem, err = R.Client.Info("memory").Result()
+	txt = R.GetRedisInfo("Memory", "used_memory")
+	redisStats.Mem, err = strconv.ParseInt(txt, 10, 64)
 	if err != nil {
-		R.L.Printf("STATS collection returned error on IP:%s and PORT:%d Err:%v", R.IP, R.Port, err)
-		return false
+		log.Printf("UpdateStats() Unable to convert %s to number", txt)
 	}
 
-	redisStats.Cpu, err = R.Client.Info("cpu").Result()
+	txt = R.GetRedisInfo("Server", "uptime_in_seconds")
+	redisStats.Uptime, err = strconv.ParseInt(txt, 10, 64)
 	if err != nil {
-		R.L.Printf("STATS collection returned error on IP:%s and PORT:%d Err:%v", R.IP, R.Port, err)
-		return false
+		log.Printf("UpdateStats() Unable to convert %s to number", txt)
 	}
 
-	redisStats.Others, err = R.Client.Info("stats").Result()
+	txt = R.GetRedisInfo("Clients", "connected_clients")
+	redisStats.Clients, err = strconv.Atoi(txt)
 	if err != nil {
-		R.L.Printf("STATS collection returned error on IP:%s and PORT:%d Err:%v", R.IP, R.Port, err)
-		return false
+		log.Printf("UpdateStats() Unable to convert %s to number", txt)
 	}
 
-	R.P.Stats = R.P.ToJsonStats(redisStats)
+	txt = R.GetRedisInfo("Replication", "master_last_io_seconds_ago")
+	redisStats.LastSyced, err = strconv.Atoi(txt)
+	if err != nil {
+		log.Printf("UpdateStats() Unable to convert %s to number", txt)
+	}
 
-	errSync := R.P.SyncStats()
+	errSync := R.P.SyncStats(redisStats)
 	if !errSync {
 		R.L.Printf("Error syncing stats to store")
 		return false

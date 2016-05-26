@@ -13,7 +13,7 @@ func GetHostname(hostnameOverride string) string {
 	if string(hostname) == "" {
 		// Note: We use exec here instead of os.Hostname() because we
 		// want the FQDN, and this is the easiest way to get it.
-		fqdn, err := exec.Command("hostname", "-f").Output()
+		fqdn, err := exec.Command("hostname", "-A").Output()
 		if err != nil {
 			log.Fatalf("Couldn't determine hostname: %v", err)
 		}

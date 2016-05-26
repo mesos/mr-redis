@@ -44,9 +44,10 @@ func (this *MainController) CreateInstance() {
 		typ.MemDb.Add(name, tmp_instance)
 		if tmp_instance.Status == typ.INST_STATUS_DELETED {
 
+			this.Ctx.ResponseWriter.WriteHeader(201)
 			this.Ctx.WriteString(fmt.Sprintf("Instance %s already exist, but in deleted state re-creating it", name))
 		} else {
-			this.Ctx.WriteString(fmt.Sprintf("Instance %s already exist, cannot be create", name))
+			this.Ctx.WriteString(fmt.Sprintf("Instance %s already exist, cannot be created", name))
 			return
 		}
 	}
@@ -160,6 +161,11 @@ func (this *MainController) StatusAll() {
 
 	var statusAll []typ.Instance_Json
 
+	if len(typ.MemDb.I) == 0 {
+		this.Ctx.WriteString("[]")
+		return
+	}
+
 	for _, inst := range typ.MemDb.I {
 		if inst.Status == typ.INST_STATUS_RUNNING {
 			//statusAll = statusAll + inst.ToJson() + "\n"
@@ -177,6 +183,7 @@ func (this *MainController) StatusAll() {
 	this.Ctx.WriteString(string(status_bytes))
 
 }
+
 func (this *MainController) UpdateMemory() {
 
 	//var name string

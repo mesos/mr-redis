@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
@@ -40,9 +41,20 @@ type Proc struct {
 //ToDo the whole stats structure could be a json structure reflecting all the fields what redis info returns
 //currently one field has many new line saperated values;ToDO will this work if returned in API?
 type Stats struct {
-	Mem    string
-	Cpu    string
-	Others string
+	Uptime    int64
+	Mem       int64
+	Clients   int
+	LastSyced int
+}
+
+type ProcJson struct {
+	IP                 string
+	Port               string
+	MemoryCapacity     int
+	MemoryUsed         int64
+	Uptime             int64
+	ClientsConnected   int
+	LastSyncedToMaster int
 }
 
 func NewProc(TskName string, Capacity int, Type string, SlaveOf string) *Proc {
@@ -159,10 +171,19 @@ func (P *Proc) Sync() bool {
 	return true
 }
 
-func (P *Proc) SyncStats() bool {
+func (P *Proc) SyncStats(s Stats) bool {
 	if Gdb.IsSetup() != true {
 		return false
 	}
+
+	s_bytes, err := json.Marshal(s)
+
+	if err != nil {
+		log.Printf("SyncStats() unbale to marshal error %v", err)
+		return false
+	}
+
+	P.Stats = string(s_bytes)
 
 	Gdb.Set(P.Nodename+"/Stats", P.Stats)
 
@@ -187,18 +208,26 @@ func (P *Proc) SyncMsg() bool {
 	return true
 }
 
-func (P *Proc) LoadStats() bool {
+func (P *Proc) LoadStats() *Stats {
 	var err error
+	var s Stats
 	if Gdb.IsSetup() != true {
-		return false
+		return nil
 	}
 	P.Stats, err = Gdb.Get(P.Nodename + "/Stats")
 
 	if err != nil {
 		log.Printf("Error occured %v", err)
-		return false
+		return nil
 	}
-	return true
+
+	err = json.Unmarshal([]byte(P.Stats), &s)
+
+	if err != nil {
+		log.Printf("Error occured un-marshalling stats LoadStats() %v stats=%s", err, P.Stats)
+		return nil
+	}
+	return &s
 }
 
 func (P *Proc) LoadType() bool {
@@ -229,24 +258,49 @@ func (P *Proc) LoadMsg() bool {
 	return true
 }
 
-func (P *Proc) ToJson() string {
-	ret_str := "{"
+func (P *Proc) ToJson() *ProcJson {
 
-	ret_str = ret_str + "IP:" + P.IP + ","
-	ret_str = ret_str + "Port:" + P.Port + ","
-	ret_str = ret_str + "}"
+	var p_json ProcJson
+	p_json.IP = P.IP
+	p_json.Port = P.Port
+	p_json.MemoryCapacity = P.MemCap
+	stats := P.LoadStats()
+	if stats == nil {
+		return nil
+	}
+	p_json.MemoryUsed = stats.Mem
+	p_json.ClientsConnected = stats.Clients
+	p_json.Uptime = stats.Uptime
+	p_json.LastSyncedToMaster = stats.LastSyced
 
-	return ret_str
+	return &p_json
+
+	/*
+		ret_bytes, err := json.Marshal(p_json)
+
+		if err != nil {
+			return "{LoadStats Failed PROC}"
+		}
+
+		return string(ret_bytes)
+	*/
 }
 
 func (P *Proc) ToJsonStats(stats Stats) string {
-	ret_str := "{"
 
 	//ToDo there are new lines in each value, to update to complete and nested json
-	ret_str = ret_str + "MEM:" + stats.Mem + ","
-	ret_str = ret_str + "CPU:" + stats.Cpu + ","
-	ret_str = ret_str + "OTHERS:" + stats.Others + ","
-	ret_str = ret_str + "}"
+	/*
+		ret_str = ret_str + "MEM:" + stats.Mem + ","
+		ret_str = ret_str + "CPU:" + stats.Cpu + ","
+		ret_str = ret_str + "OTHERS:" + stats.Others + ","
+		ret_str = ret_str + "}"
+	*/
 
-	return ret_str
+	ret_bytes, err := json.Marshal(stats)
+
+	if err != nil {
+		return "{Invalid Stats}"
+	}
+
+	return string(ret_bytes)
 }
