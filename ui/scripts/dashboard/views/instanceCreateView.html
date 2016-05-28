@@ -15,10 +15,10 @@
 			<div layout layout-gt-sm="column"> 
 				<md-input-container flex> 
 					<label>Enter DB Instance Name</label> 
-					<input name="instanceName" required="required" type="text" value="" ng-maxlength="32" ng-model="newInstance.name" ng-blur="checkDBName(newInstance.name)" > 					
+					<input name="instanceName" required="required" type="text" value="" ng-maxlength="100" ng-model="newInstance.name" ng-blur="checkDBName(newInstance.name)"> 					
 					<div ng-messages="createInstanceForm.instanceName.$error" ng-messages-multiple>
 				        <div ng-message="required">Instance Name is required.</div>
-				        <div ng-message="md-maxlength">The name has to be less than 32 characters.</div>
+				        <div ng-message="md-maxlength">The name has to be less than 100 characters.</div>
 				        <div ng-if="duplicateName">Instance Name already exists.</div> 
 				    </div>
 				</md-input-container> 

@@ -1,9 +1,9 @@
 <div class="dashboardView layout-md layout-gt-md layout-lg">	
-  <md-content layout="column" flex>
+  <md-content layout="column" flex >
       <span flex></span>
       <div>
         <div ng-hide="options.rowSelection && selected.length" flex></div>
-        <div class="md-toolbar-tools" layout-fill>
+        <div class="md-toolbar-tools" layout-fill ng-if="false === databases.noInstances">
           <!-- <span>Databases</span> -->       
           <div flex></div>
           <input type="text" name="searchBox" ng-model="filter.search" ng-hide="isHidden">
@@ -21,20 +21,24 @@
             <i class="fa fa-refresh fa-lg" aria-hidden="true"></i>
           </md-button>        
           <md-button class="md-primary md-raised" aria-label="Create Instance" ng-click="showCreate($event)">
-            <i class="fa fa-plus-circle fa-lg fa-fw margin-bottom"></i>Create Instance
+            <i class="fa fa-plus-circle fa-lg fa-fw margin-bottom"></i>Create Single Instance
+          </md-button>
+          <md-button class="md-primary md-raised" aria-label="Batch Create Instance" ng-click="batchCreate($event)">
+            <i class="fa fa-clone fa-lg fa-fw margin-bottom"></i>Create Multiple Instances
           </md-button>          
+          
           
         </div>
       </div>
 
-      <md-toolbar class="md-table-toolbar alternate" ng-show="options.rowSelection && selected.length">        	
+      <!-- <md-toolbar class="md-table-toolbar alternate" ng-show="options.rowSelection && selected.length">        	
         <div class="md-toolbar-tools">
           <span>{{selected.length}} {{selected.length > 1 ? 'items' : 'item'}} selected</span>        
         </div>
-      </md-toolbar>
+      </md-toolbar> -->
 
     <!--Display the Data tables -->
-  <md-card>  
+  <md-card ng-if="false === databases.noInstances">  
     <md-table-container>
       <table md-table class="mdl-shadow--2dp" md-row-select="options.rowSelection" multiple="{{options.multiSelect}}" ng-model="selected" md-progress="refreshPromise">
         <thead class="md-primary md-hue-2" md-head md-order="query.order" md-on-reorder="logOrder">
@@ -80,10 +84,18 @@
               </ng-md-icon>
             </th>
             <th md-column md-numeric md-order-by="InstanceCapacity">
-              <span>Memory Utilization</span>
+              <span>Capacity | Memory Utilization</span>
               <ng-md-icon icon="info" style="line-height: 60px;" size="18">
                 <md-tooltip md-direction="top">
-                  Memory Utilization | Usage / Capacity | %age
+                  Memory Utilization: Usage / Capacity | %age
+                </md-tooltip> 
+              </ng-md-icon>
+            </th>
+            <th md-column md-numeric md-order-by="InstanceClientsConnected.value" hide-gt-xs show-gt-md>
+              <span>Active Connections</span>
+              <ng-md-icon icon="info" style="line-height: 60px;" size="18">
+                <md-tooltip md-direction="top">
+                  Number of Redis clients connected to this instance.
                 </md-tooltip> 
               </ng-md-icon>
             </th>
@@ -103,14 +115,20 @@
         </thead>        
         <tbody md-body>
           <tr md-row ng-class-odd="'greyRow'" md-select="database" md-on-select="logItem" md-auto-select="options.autoSelect" ng-disabled="" ng-repeat="database in databases.data | filter: filter.search | orderBy: query.order | limitTo: query.limit : (query.page -1) * query.limit">
-            <td md-cell>{{database.Name}}</td>
+            <td md-cell>{{$index}} {{database.Name}}</td>
             <td md-cell>{{database.Type}}</td>                	                          
             <td md-cell>{{database.Master.IP}}</td>
             <td md-cell>{{database.Master.Port}}</td>
             <td md-cell><i class="fa fa-cog fa-spin fa-lg fa-fw margin-bottom"></i>{{database.Status}}</td>
-            <td md-cell>{{database.Capacity}}</td>
+            <td md-cell>
+              <span class="label"  ng-class="{'label-success': database.Master.UtilCode === 'green', 'label-warning': database.Master.UtilCode === 'orange', 'label-danger': database.Master.UtilCode === 'red'}">
+                {{database.Master.UtilMB}} / {{database.Master.MemoryCapacity}} MB |
+                 {{database.Master.UtilLevel}} %
+              </span> <!-- <i class="fa fa-exclamation-triangle md-warn fa-lg" aria-hidden="true" ng-if="database.Master.UtilCode === 'red'"></i> -->
+            </td>
+            <td md-cell>{{database.Master.ClientsConnected}}</td>
             <td md-cell ng-if="null === database.Slaves">0</td>
-            <td md-cell ng-if="null !== database.Slaves">{{database.Slaves.length}}</td>
+            <td md-cell ng-if="null !== database.Slaves && true !== database.notReady">{{database.Slaves.length}}</td>
             <td md-cell> 
             <div class="instanceActions">            
               <md-button aria-label="View Details" class="md-icon-button" ng-click="displayInstanceDetails(database, $event)" ng-disabled="null === database.Slaves">
@@ -121,9 +139,9 @@
                   <md-tooltip md-direction="top">
                     View Details
                   </md-tooltip>                     
-                </ng-md-icon>	
+                </ng-md-icon>
               </md-button>
-              <md-button aria-label="View Metrics" class="md-icon-button" ng-click="displayInstanceMetrics(database, $event)" ng-disabled="null === database.Slaves">
+              <!-- <md-button aria-label="View Metrics" class="md-icon-button" ng-click="displayInstanceMetrics(database, $event)" ng-disabled="null === database.Slaves">
                 <ng-md-icon icon="insert_chart" style="line-height: 30px;" size="18">                
                   <md-tooltip md-direction="top" ng-if="null === database.Slaves">
                     This instance does not have any slaves.
@@ -132,7 +150,7 @@
                     View Metrics
                   </md-tooltip>                     
                 </ng-md-icon> 
-              </md-button>
+              </md-button> -->
               <md-button aria-label="Add Slaves" class="md-icon-button" ng-click="addSlaves(database, $event)" >
                 <ng-md-icon icon="my_library_add" style="line-height: 30px;" size="18">                                  
                   <md-tooltip md-direction="top">
@@ -154,7 +172,22 @@
       </table>
     </md-table-container>
   </md-card>
-    <md-table-pagination md-limit="query.limit" md-limit-options="limitOptions" md-page="query.page" md-total="{{databases.count}}" md-page-select="options.pageSelect" md-boundary-links="options.boundaryLinks" md-on-paginate="logPagination"></md-table-pagination>
-
+  <md-table-pagination ng-if="false === databases.noInstances" md-limit="query.limit" md-limit-options="limitOptions" md-page="query.page" md-total="{{databases.count}}" md-page-select="options.pageSelect" md-boundary-links="options.boundaryLinks" md-on-paginate="logPagination">
+      <div layout="row"><span class="label label-success">0-85%</span> | <span class="label label-warning">85-95%</span> \ <span class="label label-danger">95-100%</span></div>
+  </md-table-pagination>
+  <div ng-if="true === databases.noInstances" layout layout-align="center center" class="container-fluid">    
+    
+      <div class="jumbotron">
+      <h1>No Instances Provisioned Yet!</h1>
+      <p>Hey! Looks like there are no instances provisioned. Would you like to create one now?</p>
+      <md-button class="md-primary md-raised" aria-label="Create Instance" ng-click="showCreate($event)">
+          <i class="fa fa-plus-circle fa-lg fa-fw margin-bottom"></i>Create Single Instance
+      </md-button>
+      <md-button class="md-primary md-raised" aria-label="Batch Create Instance" ng-click="batchCreate($event)">
+            <i class="fa fa-clone fa-lg fa-fw margin-bottom"></i>Create Multiple Instances
+      </md-button>
+    </div>
+    
+  </div>
   </md-content>	  
 </div>

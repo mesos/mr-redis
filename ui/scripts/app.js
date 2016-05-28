@@ -10,7 +10,7 @@
  */
 angular
   .module('mrredisApp', ['ngAnimate','ngCookies','ngResource','ngRoute','ngSanitize','ngMaterial', 'ui.router','ngMdIcons', 'md.data.table','ngMessages',
-                        'mrredisApp.base', 'mrredisApp.dashboard', 'pascalprecht.translate'])
+                        'pascalprecht.translate','highcharts-ng','mrredisApp.base', 'mrredisApp.config', 'mrredisApp.dashboard'])
 
   .config(function($mdThemingProvider) {
     $mdThemingProvider.theme('default')
@@ -24,8 +24,8 @@ angular
     .warnPalette('red', {
       'default': '900', // by default use shade 400 from the pink palette for primary intentions
       'hue-1': 'A700', // use shade 100 for the <code>md-hue-1</code> class
-      'hue-2': '600', // use shade 600 for the <code>md-hue-2</code> class
-      'hue-3': '700' // use shade A100 for the <code>md-hue-3</code> class
+      'hue-2': '700', // use shade 600 for the <code>md-hue-2</code> class
+      'hue-3': '600' // use shade A100 for the <code>md-hue-3</code> class
     });
   })
   .config(['$httpProvider', function($httpProvider) {
@@ -34,15 +34,16 @@ angular
     }])
     .constant('_',
       window._
-    );
-  /*.run(['$state', '$cookies', '$rootScope', function($state, $cookies, $rootScope){
+    )
+  .run(['$state', '$cookies', '$rootScope', function($state, $cookies, $rootScope){
         $rootScope.$on('$stateChangeStart',function(e, toState, toParams, fromState, fromParams){
-            if(toState.name === 'main'){
-
-            }
-            else{
-
+            if(undefined === $rootScope.endPoint && null === window.localStorage.getItem('endPoint')){
+              if(toState.name !== 'config'){
+                e.preventDefault();
+                $state.go('config');
+              }
+            }else if(null !== window.localStorage.getItem('endPoint')){
+              $rootScope.endPoint = window.localStorage.getItem('endPoint');
             }
         });
-
-  }]);*/
+  }]);
