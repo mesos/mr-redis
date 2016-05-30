@@ -105,9 +105,9 @@ func (R *RedMon) getConnectedClient() *redisclient.Client {
 func (R *RedMon) launchRedisServer(isSlave bool, IP string, port string) bool {
 
 	if isSlave {
-		R.Cmd = exec.Command("./redis-server", "--port", fmt.Sprintf("%d", R.Port), "--SlaveOf", IP, port)
+		R.Cmd = exec.Command("./redis-server", "--protected-mode", "no", "--port", fmt.Sprintf("%d", R.Port), "--SlaveOf", IP, port)
 	} else {
-		R.Cmd = exec.Command("./redis-server", "--port", fmt.Sprintf("%d", R.Port))
+		R.Cmd = exec.Command("./redis-server", "--protected-mode", "no", "--port", fmt.Sprintf("%d", R.Port))
 	}
 
 	err := R.Cmd.Start()
@@ -292,9 +292,13 @@ func (R *RedMon) Monitor() bool {
 
 	//wait for a second for the server to start
 	//ToDo: is it needed
-	time.Sleep(1 * time.Second)
+
+	CheckMsgCh := time.After(time.Second)
+	UpdateStatsCh := time.After(2 * time.Second) 
+
 
 	for {
+		if R.P.State == "Running" {
 		select {
 
 		case <-R.monChan:
@@ -302,13 +306,18 @@ func (R *RedMon) Monitor() bool {
 			//signal to stop monitoring this
 			return false
 
-		case <-time.After(time.Second):
+		case <- CheckMsgCh:
 			//this is to check communication from scheduler; mesos messages are not reliable
 			R.CheckMsg()
+			CheckMsgCh = time.After(time.Second)
 
-		case <-time.After(1 * time.Second):
+		case <- UpdateStatsCh:
 			R.UpdateStats()
+			UpdateStatsCh = time.After(2 * time.Second)
 		}
+		} else {
+		time.Sleep(time.Second)
+}
 
 	}
 
