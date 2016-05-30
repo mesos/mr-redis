@@ -8,4 +8,4 @@ angular.module('mrredisApp.base')
 		        $state.go('base.dashboard');
 		    }
 		}
-	]);			
+	]);	

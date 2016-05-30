@@ -8,7 +8,10 @@
           $mdDialog.hide();
         }
         $scope.close = function() {
-            $mdDialog.cancel();
+          var error = {
+            status : true
+          }
+            $mdDialog.cancel(error);
         }
         $scope.save = function() {
             $mdDialog.hide(answer);
@@ -23,16 +26,18 @@
 
       $scope.checkDBName = function (newInstanceName, callBack) {
         dashboardServices.getDBList().then(function(data){
-            if( undefined !== _.findWhere(data, {Name: newInstanceName})){
-              $scope.duplicateName = true;
+          console.log('name being checked for returned data: ');
+          console.log(data);
+            if( undefined !== _.findWhere(data.data, {Name: newInstanceName})){
+                $scope.duplicateName = true;
             }else{
-              $scope.duplicateName = false;
-              if(callBack){
-                callBack();
+                $scope.duplicateName = false;
+                if(callBack){
+                  callBack();
+                }
               }
-            }
-        });
-      };
+          });
+        };
 
       //Create new database instance
 
@@ -43,6 +48,7 @@
             console.log(response);
             if(response && response.status === 201){
               response.reload = true;
+              response.noInstances = false;
               $mdDialog.hide(response);                              
             }
           },function(error){

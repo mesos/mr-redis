@@ -1,10 +1,10 @@
 'use strict';
 angular.module('mrredisApp')
-	.factory('ajaxService', ['$http', '$q', 'api', function($http, $q, api){
+	.factory('ajaxService', ['$rootScope','$http', '$q', function($rootScope, $http, $q){
 
 		function call(url, method, payload){
 			var defer = $q.defer();
-			var endPoint = api.endPoint.url + url;
+			var endPoint = $rootScope.endPoint + url;
 			$http({
 				url : endPoint,
 				method : method,

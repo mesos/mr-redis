@@ -2,13 +2,18 @@
 angular.module('mrredisApp.dashboard')
 	.controller('dashboardController', ['$state', '$mdEditDialog', '$q', '$scope', '$timeout','$mdDialog', '$mdMedia', '$mdToast', 'dashboardServices', 'dbList',
 		function ($state, $mdEditDialog, $q, $scope, $timeout, $mdDialog, $mdMedia, $mdToast, dashboardServices, dbList) {
+			
 			//Populating the data tables source.
 			//The database list is sent from the dashboard and ajax service as dbList
-			$scope.dbList = dbList;				
-			$scope.databases = {
-				"count": 7,
-				"data": $scope.dbList
-			};
+			
+				$scope.dbList = dbList;
+				$scope.databases = {				
+					"count": 10,
+					"data": $scope.dbList.data,
+					"noInstances" : $scope.dbList.noInstances
+				};
+			
+			
 			
 			$scope.selected = [];
 			$scope.limitOptions = [5, 10, 15, {
@@ -17,6 +22,9 @@ angular.module('mrredisApp.dashboard')
 					return $scope.databases ? $scope.databases.data.count : 0;
 				}
 			}];
+
+			//Search box focus on show
+			$scope.isFocused = false;
 
 			//Reload the table
 			$scope.reload = function(){				
@@ -27,7 +35,7 @@ angular.module('mrredisApp.dashboard')
 
 			 // Toolbar search toggle
 			 $scope.isHidden = true;
- 			$scope.toggleSearch = function(element) {
+ 			$scope.toggleSearch = function() {
     			$scope.isHidden = $scope.isHidden ? false : true;
   			};
   			//Set the md Data table options
@@ -50,9 +58,8 @@ angular.module('mrredisApp.dashboard')
 
 			$scope.toggleLimitOptions = function () {
 				$scope.limitOptions = $scope.limitOptions ? undefined : [5, 10, 15];
-			}; 
-			
-		  			  
+			};
+
 			$scope.logItem = function (item) {
 				console.log(item.name, 'was selected');
 			};
@@ -75,25 +82,67 @@ angular.module('mrredisApp.dashboard')
 					targetEvent: event,
 					templateUrl: 'scripts/dashboard/views/instanceCreateView.html',
 				}).then(function(response) {
-						console.log("entered the success state after creation");
+						
 						if(true === response.reload){
 							var toast = $mdToast.simple()
 				                  .textContent(response.data)
 				                  .action('Ok')
 				                  .hideDelay(5000)
 				                  .position('bottom left');
-							$mdToast.show(toast).then(function(response){
-								console.log("Response from the toast promise on create success: ")
-								console.log(response);
-								if(response === "ok"){
+							/*$mdToast.show(toast);
+							(function(){
+							  var promise = $timeout(function(){
+							    console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
+							    console.log('RELOADING THE STATE');
+							    $state.reload();
+							    $timeout.cancel(promise);
+							  }, 2000);
+							})();*/
+							$mdToast.show(toast).then(function(response){								
+								if(response === "ok" || undefined === response){
 									$state.reload();		
 								}
 							$state.reload();	
 							});
-			             	 	 
 						}
 					}, function(error) {
-						console.log("Database not created. Entered Error");
+						if(false === error.status){
+							$mdToast.show(
+					            $mdToast.simple()
+					              .textContent(error.msg)
+					              .action('Ok')
+					              .hideDelay(5000)
+					              .position('bottom left')
+			            	);
+						}
+						
+					});
+			};
+
+			//Show batch Create new instances form in modal
+			$scope.batchCreate = function (event) {
+				$mdDialog.show({
+					clickOutsideToClose: false,  
+					controller: 'instanceBatchCreateDialogController',    
+					focusOnOpen: false,
+					targetEvent: event,
+					templateUrl: 'scripts/dashboard/views/batchCreateInstanceView.html',
+				}).then(function(response) {
+						if(true === response.reload){
+							var toast = $mdToast.simple()
+				                  .textContent('Batch Create has been provisioned')
+				                  .action('Ok')
+				                  .hideDelay(5000)
+				                  .position('bottom left');
+							$mdToast.show(toast);
+							(function(){
+							  var promise = $timeout(function(){
+							    $state.reload();
+							    $timeout.cancel(promise);
+							  }, 2000);
+							})();
+						}
+					}, function(error) {
 						$mdToast.show(
 				            $mdToast.simple()
 				              .textContent(error.msg)
@@ -122,7 +171,6 @@ angular.module('mrredisApp.dashboard')
 			
 			//Delete Single Database instance
 			$scope.showDeleteInstance = function(database, event) {
-				console.log("database name sent to delete dialog: " + database.Name);
 				$mdDialog.show({
 					controller: 'instanceDeleteDialogController',
 					templateUrl: 'scripts/dashboard/views/instanceDeleteView.html',
@@ -136,8 +184,6 @@ angular.module('mrredisApp.dashboard')
 							.hideDelay(6000)
 							.position('bottom left');
 						$mdToast.show(toast).then(function(response){
-							console.log("Response from the toast promise on create success: ")
-							console.log(response);
 							if(response === "ok"){
 								$state.reload();		
 							}
@@ -160,7 +206,6 @@ angular.module('mrredisApp.dashboard')
 
 			//Add slaves dynamically to the master
 			$scope.addSlaves = function(database, event){
-				console.log('The database to add slaves to:' + database.Name);
 				$mdDialog.show({
 					controller: 'addSlavesDialogController',
 					templateUrl: 'scripts/dashboard/views/addSlavesView.html',

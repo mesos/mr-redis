@@ -1,0 +1,68 @@
+
+<md-dialog class="batchCreateInstanceView" aria-label="Create Multiple Instance Form" flex="60"> 
+	<md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>Create Multiple Instances</h2>
+        <span flex></span>
+        <md-button class="md-icon-button" ng-click="close()">
+          <ng-md-icon icon="close" aria-label="Close"></md-icon>
+        </md-button>
+      </div>
+    </md-toolbar>
+    <md-subheader class="md-primary md-subhead" ng-if="!showBatchProgress">Create your new Redis Instances by entering the following fields</md-subheader><md-subheader class="md-primary md-subhead" ng-if="showBatchProgress">Your Request is being processed</md-subheader>
+	<md-content class="md-padding" 	ng-if="!showBatchProgress"> 
+		<form name="batchCreateInstanceForm"> 
+			<div layout layout-gt-sm="row"> 
+				<md-input-container flex="50"> 
+					<label>Enter DB Instance Name</label> 
+					<input name="batchInstanceName" required="required" type="text" value="" ng-maxlength="32" ng-model="newBatchInstance.name" md-autofocus> 					
+					<div ng-messages="batchCreateInstanceForm.batchInstanceName.$error" ng-messages-multiple>
+				        <div ng-message="required">Instance Name is required.</div>
+				        <div ng-message="md-maxlength">The name has to be less than 32 characters.</div>
+				        <div ng-if="duplicateBatchName">Instance Name already exists.</div> 
+				    </div>
+				</md-input-container> 
+				<md-input-container flex> 
+					<label>Enter Memory Capacity (MB)</label> 
+					<input name="batchInstanceCapacity" required="required" type="number" ng-model="newBatchInstance.capacity"> 
+					
+					<div ng-messages="batchCreateInstanceForm.batchInstanceCapacity.$error" ng-if="batchCreateInstanceForm.batchInstanceCapacity.$dirty" ng-messages-multiple>
+				        <div ng-message="required">Instance Capacity is required.</div>
+				     </div>
+				</md-input-container> 
+			</div>
+			<div layout layout-gt-sm="row"> 
+			<md-input-container flex="50"> 
+					<label>Enter Number of Instances (Max: 100)</label> 
+					<input name="batchInstanceQuantity" required="required" type="number" max="120" ng-model="newBatchInstance.quantity"> 
+					<div ng-messages="batchCreateInstanceForm.batchInstanceQuantity.$error" ng-if="batchCreateInstanceForm.batchInstanceQuantity.$dirty" ng-messages-multiple>
+						<div ng-message="required">Number of Instances is required. Enter 0 for no slaves.</div>				          
+					    <div ng-message="max">The number of Instances cannot be more than 120.</div>
+					</div>
+				</md-input-container>
+				<md-input-container flex> 
+					<label>Enter Number of Slaves (Max: 5)</label> 
+					<input name="batchInstanceSlaves" required="required" type="number" max="5" ng-model="newBatchInstance.slaves"> 
+					<div ng-messages="batchCreateInstanceForm.batchInstanceSlaves.$error" ng-if="batchCreateInstanceForm.batchInstanceSlaves.$dirty" ng-messages-multiple>
+						<div ng-message="required">Number of slaves is required. Enter 0 for no slaves.</div>				          
+					    <div ng-message="max">The number of slaves cannot be more than 5.</div>
+					</div>
+				</md-input-container>	
+			</div> 
+		</form> 
+	</md-content> 
+	<div class="md-dialog-actions" layout="row" ng-if="!showBatchProgress"> 
+		<span flex></span> 
+		<md-button ng-click="close()"> Cancel </md-button> 
+		<md-button id="batchCreateInstanceFormSubmitBtn" type="submit" class="md-raised md-primary" ng-disabled="batchCreateInstanceForm.$invalid || duplicateBatchName" ng-click="processBatchCreateInstanceForm()"> Create </md-button> 
+	</div>
+	<md-content ng-if="showBatchProgress">
+		<h2>Creating new instances {{timer}}</h2>
+	</md-content>
+	<div class="md-dialog-actions" layout="row" ng-if="showBatchProgress"> 
+		<span flex></span> 
+		<md-button class="md-raised md-primary" ng-click="close()"> Ok </md-button> 		
+	</div>
+	
+
+</md-dialog>

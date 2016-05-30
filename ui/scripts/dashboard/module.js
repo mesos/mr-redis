@@ -8,6 +8,9 @@ angular.module('mrredisApp.dashboard', [])
 					dbList :  function(dashboardServices){
 						return dashboardServices.getDBList().then(function(data){
 							return data;
+						}, function(error){
+							console.log('Entered error block in dashboard module. No instances: ');
+							console.log(error);
 						});
 					}
 				},

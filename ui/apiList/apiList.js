@@ -1,9 +1,9 @@
 'use strict';
 angular.module('mrredisApp')
 	.constant('api', {
-		'endPoint' :{
+		/*'endPoint' :{
 			'url' : 'http://10.145.208.107:8089/v1'
-		},
+		},*/
 		'dbStatus' : {
 			'url' : '/STATUS',
 			'method' : 'GET'
