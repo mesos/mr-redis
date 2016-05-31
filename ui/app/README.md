@@ -40,4 +40,5 @@ Run development web-server:
 UI components built with [Angular Material](https://material.angularjs.org/).
 
 Mr. Redis Logo Design by Sourabh D. Kulkarni
+
 UI Developed by [Anvith KS](https://in.linkedin.com/in/anvithks)
