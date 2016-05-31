@@ -36,7 +36,7 @@ angular
       window._
     )
   .run(['$state', '$cookies', '$rootScope', function($state, $cookies, $rootScope){
-        $rootScope.$on('$stateChangeStart',function(e, toState, toParams, fromState, fromParams){
+        $rootScope.$on('$stateChangeStart',function(e, toState/*, toParams, fromState, fromParams*/){
             if(undefined === $rootScope.endPoint && null === window.localStorage.getItem('endPoint')){
               if(toState.name !== 'config'){
                 e.preventDefault();
@@ -44,6 +44,10 @@ angular
               }
             }else if(null !== window.localStorage.getItem('endPoint')){
               $rootScope.endPoint = window.localStorage.getItem('endPoint');
+              if(toState.name === 'config'){
+                e.preventDefault();
+                $state.go('base.dashboard');
+              }
             }
         });
   }]);

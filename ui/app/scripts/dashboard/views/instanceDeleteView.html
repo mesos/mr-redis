@@ -4,13 +4,14 @@
 			<i class="fa fa-exclamation-triangle md-warn fa-fw" aria-hidden="true"></i>         
 			<h2>Delete Instance?</h2>
 			<span flex></span>
-			<md-button class="md-icon-button" ng-click="close()">
+			<md-button ng-if="false === deletingInstance" class="md-icon-button" ng-click="close()">
 				<ng-md-icon icon="close" aria-label="Close"></md-icon>
 			</md-button>
 		</div>
 	</md-toolbar>
-	<md-subheader class="md-warn">You requested the deletion of the following instance: <span class="strongText">{{dbToDelete.Name}}</span></md-subheader> 
-	<md-content class="md-padding">
+	<md-subheader ng-if="false === deletingInstance" class="md-warn">You requested the deletion of the following instance: <span class="strongText">{{dbToDelete.Name}}</span></md-subheader> 
+	<md-subheader ng-if="true === deletingInstance" class="md-warn">Deleting: <span class="strongText">{{dbToDelete.Name}}</span></md-subheader> 
+	<md-content ng-if="false === deletingInstance" class="md-padding">
 		<md-table-container>
 			<table md-table>
 				<thead md-head>
@@ -40,12 +41,21 @@
 			</table>
 		</md-table-container>
 	</md-content>
-	<md-content class="md-padding">		
+	<md-content ng-if="false === deletingInstance" class="md-padding">		
 		<div class="md-warn md-subhead">This process is irreversible. Are you sure? </div>
 	</md-content>
-	<div class="md-dialog-actions" layout="row"> 
+	<div ng-if="false === deletingInstance" class="md-dialog-actions" layout="row"> 
 		<span flex></span> 
 		<md-button ng-click="close()"> Cancel </md-button> 
 		<md-button ng-click="deleteInstance(dbToDelete.Name)" class="md-raised md-warn"> Yes </md-button> 
 	</div>
+
+	<md-content ng-if="true === deletingInstance">
+		<div layout="column" layout-align="space-between center"> 
+			<div layout="column" layout-align="center center"><i class="fa fa-spinner fa-pulse fa-4x" aria-hidden="true"></i></div>
+			<div layout="column" layout-align="center center">
+				<span class="md-subhead">Instance delete request sent to the server, awaiting response</span>
+			</div>
+		</div>
+	</md-content>
 </md-dialog>

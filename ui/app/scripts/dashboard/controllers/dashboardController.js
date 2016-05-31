@@ -5,31 +5,30 @@ angular.module('mrredisApp.dashboard')
 			
 			//Populating the data tables source.
 			//The database list is sent from the dashboard and ajax service as dbList
+			$scope.reloading = false;
+			$scope.dbList = dbList;
+
+			$scope.databases = {				
+				"count": $scope.dbList.data.length,
+				"data": $scope.dbList.data,
+				"noInstances" : $scope.dbList.noInstances,
+				"search" : ''
+			};
 			
-				$scope.dbList = dbList;
-				$scope.databases = {				
-					"count": 10,
-					"data": $scope.dbList.data,
-					"noInstances" : $scope.dbList.noInstances
-				};
 			
 			
 			
-			$scope.selected = [];
 			$scope.limitOptions = [5, 10, 15, {
 				label: 'All',
 				value: function () {					
-					return $scope.databases ? $scope.databases.data.count : 0;
+					return $scope.databases ? $scope.databases.count : 0;
 				}
 			}];
 
-			//Search box focus on show
-			$scope.isFocused = false;
-
 			//Reload the table
-			$scope.reload = function(){				
+			$scope.reload = function(){	
+				$scope.reloading = true;			
 				$state.reload();
-
 			};
 			
 
@@ -51,7 +50,7 @@ angular.module('mrredisApp.dashboard')
 			};
   
 			$scope.query = {
-				order: 'name',
+				order: 'Name',
 				limit: 10,
 				page: 1
 			};
@@ -59,6 +58,14 @@ angular.module('mrredisApp.dashboard')
 			$scope.toggleLimitOptions = function () {
 				$scope.limitOptions = $scope.limitOptions ? undefined : [5, 10, 15];
 			};
+			$scope.onPaginate = function(page, limit) {
+			    console.log('Scope Page: ' + $scope.query.page + ' Scope Limit: ' + $scope.query.limit);
+			    console.log('Page: ' + page + ' Limit: ' + limit);
+
+			    $scope.promise = $timeout(function () {
+
+			    }, 2000);
+			  };
 
 			$scope.logItem = function (item) {
 				console.log(item.name, 'was selected');
@@ -82,41 +89,28 @@ angular.module('mrredisApp.dashboard')
 					targetEvent: event,
 					templateUrl: 'scripts/dashboard/views/instanceCreateView.html',
 				}).then(function(response) {
-						
 						if(true === response.reload){
 							var toast = $mdToast.simple()
-				                  .textContent(response.data)
-				                  .action('Ok')
-				                  .hideDelay(5000)
-				                  .position('bottom left');
-							/*$mdToast.show(toast);
-							(function(){
-							  var promise = $timeout(function(){
-							    console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
-							    console.log('RELOADING THE STATE');
-							    $state.reload();
-							    $timeout.cancel(promise);
-							  }, 2000);
-							})();*/
-							$mdToast.show(toast).then(function(response){								
-								if(response === "ok" || undefined === response){
-									$state.reload();		
-								}
-							$state.reload();	
+			                	.textContent(response.data)
+			                	.action('Ok')
+			                	.hideDelay(5000)
+			                	.position('bottom left');
+							$mdToast.show(toast).then(function(response){
+								console.log(response);
 							});
+							$state.reload();
 						}
 					}, function(error) {
 						if(false === error.status){
 							$mdToast.show(
 					            $mdToast.simple()
-					              .textContent(error.msg)
-					              .action('Ok')
-					              .hideDelay(5000)
-					              .position('bottom left')
+								.textContent(error.msg)
+								.action('Ok')
+								.hideDelay(5000)
+								.position('bottom left')
 			            	);
 						}
-						
-					});
+				});
 			};
 
 			//Show batch Create new instances form in modal
@@ -128,19 +122,14 @@ angular.module('mrredisApp.dashboard')
 					targetEvent: event,
 					templateUrl: 'scripts/dashboard/views/batchCreateInstanceView.html',
 				}).then(function(response) {
-						if(true === response.reload){
+						if(true === response){
 							var toast = $mdToast.simple()
-				                  .textContent('Batch Create has been provisioned')
+				                  .textContent('Requested instances have been created')
 				                  .action('Ok')
 				                  .hideDelay(5000)
 				                  .position('bottom left');
 							$mdToast.show(toast);
-							(function(){
-							  var promise = $timeout(function(){
-							    $state.reload();
-							    $timeout.cancel(promise);
-							  }, 2000);
-							})();
+							$state.reload();
 						}
 					}, function(error) {
 						$mdToast.show(
@@ -184,12 +173,9 @@ angular.module('mrredisApp.dashboard')
 							.hideDelay(6000)
 							.position('bottom left');
 						$mdToast.show(toast).then(function(response){
-							if(response === "ok"){
-								$state.reload();		
-							}
-							$state.reload();		
+							console.log(response);
 						});
-
+						$state.reload();
 					}
 				}, function(error) {
 					if(error && error.status === -1){	
