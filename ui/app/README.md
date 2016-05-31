@@ -4,7 +4,7 @@
 The UI for accessing Mr. Redis server and managing your Redis instances based on 
 [Angular Material](https://github.com/angular/material).
 
-![promo-amd](/images/mrredis_250x250.png)
+![mrredis-logo](images/mrredis_250x250.png)
 
 
 
