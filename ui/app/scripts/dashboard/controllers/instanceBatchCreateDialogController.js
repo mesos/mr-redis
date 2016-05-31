@@ -5,11 +5,17 @@
         $scope.duplicateBatchName = false;
         $scope.showBatchProgress = false;
         $scope.totalNumberofInstances = 0;
+        $scope.originalCount = 0;
+        $scope.createInstanceDelta = 0;
         $scope.createInstancePromises = [];
-        $scope.timer = 0;
+        $scope.successfullyCreatedInstances = [];
+        $scope.unSuccessfullyCreatedInstances = [];
+        $scope.hours = 0;
+        $scope.minutes = 0;
+        $scope.seconds = 0;
         $scope.customFullscreen = $mdMedia('xs') || $mdMedia('sm');
         $scope.hide = function() {
-          $mdDialog.hide();
+          $mdDialog.hide(true);
         }
         $scope.close = function() {
            var error = {
@@ -29,46 +35,38 @@
           quantity: 0
         };
 
-      /*$scope.checkDBName = function (newInstanceName, callBack) {
-        dashboardServices.getDBList().then(function(data){
-            if( undefined !== _.findWhere(data, {Name: newInstanceName})){
-              $scope.duplicateName = true;
-            }else{
-              $scope.duplicateName = false;
-              if(callBack){
-                callBack();
-              }
-            }
-        });
-      };*/
-
       //batch create the instances.
 
       $scope.processBatchCreateInstanceForm = function () {
         $scope.showBatchProgress = true;
         
         dashboardServices.getDBList().then(function(data){
-          console.log('Existing instances: ');
-          console.log(data.data.length);
-          console.log('Requested instances: ');
-          console.log($scope.newBatchInstance.quantity);
+          $scope.originalCount = data.data.length;
           $scope.totalNumberofInstances = data.data.length + $scope.newBatchInstance.quantity;
           $scope.udpateProgress();
           $scope.startTimer();
-          
           for (var i = 0; i < $scope.newBatchInstance.quantity; i++){
+            //TOD: Change the date.Now() to something more unique
+            var name = $scope.newBatchInstance.name + '-' +i+ '-' + Date.now();
             var instanceData = {
-              name: $scope.newBatchInstance.name+'-'+i+'-'+Date.now(),
+              name: name,
               capacity: $scope.newBatchInstance.capacity,
               masters: 1,
-              slaves: $scope.newBatchInstance.slaves
+              slaves: 0
             };
             $scope.createInstancePromises.push(dashboardServices.createInstance(instanceData, true));
           }
-
+          
           $q.all($scope.createInstancePromises).then(function(response){
-            console.log('After batch create promise');
-            console.log(response);
+            for(var x = 0, len = response.length; x < len; x++){
+              if(201 === response[x].status){
+                $scope.successfullyCreatedInstances.push(response[x]);
+              }else{
+                //TODO: Check the failure status as well as API failure and add the condition
+                //Maybe the above might not be needed 
+                $scope.unSuccessfullyCreatedInstances.push(response[x]);
+              }
+            }
           });
 
         });
@@ -76,20 +74,17 @@
       };
 
       $scope.udpateProgress = function(){
-        
         var promise = $timeout(function(){
-        console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
-        console.log('RELOADING THE STATE');
         dashboardServices.getDBList().then(function(data){
-          console.log('The total number of instances: ' + $scope.totalNumberofInstances);
-          console.log('Created: ' + data.data.length);
-          console.log('Remaining: ');
-          console.log($scope.totalNumberofInstances - data.data.length);
+          console.log('Created instances:');
+          console.log(data.data.length);
+          $scope.createInstanceDelta = data.data.length - $scope.originalCount;
+          $scope.progressIndicator = Math.floor(((data.data.length - $scope.originalCount) / $scope.newBatchInstance.quantity) * 100);
           if($scope.totalNumberofInstances != data.data.length){
             $scope.udpateProgress();
           }else{
-            $scope.stopTimer = true;
-          }
+            $scope.stopTimer = true;            
+          }          
         })
         $timeout.cancel(promise);
         }, 1000);
@@ -97,7 +92,16 @@
 
       $scope.startTimer = function(){
         var promise1 = $timeout(function(){
-          $scope.timer = $scope.timer + 1; 
+          $scope.seconds = $scope.seconds + 1;
+          if($scope.seconds === 60){
+            $scope.minutes = $scope.minutes + 1;
+            $scope.seconds = 0;
+            if($scope.minutes === 60){
+              $scope.hours = $scope.hours + 1;
+              $scope.minutes = 0;
+              $scope.seconds = 0;
+            }
+          }
           if(!$scope.stopTimer){
             $scope.startTimer();
           }

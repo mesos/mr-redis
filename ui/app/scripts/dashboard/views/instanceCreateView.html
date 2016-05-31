@@ -1,49 +1,58 @@
-
-<md-dialog class="createInstanceView" aria-label="Create Instance Form" flex="40"> 
-	<md-toolbar>
-      <div class="md-toolbar-tools">
-        <h2>Create Instance</h2>
-        <span flex></span>
-        <md-button class="md-icon-button" ng-click="close()">
-          <ng-md-icon icon="close" aria-label="Close"></md-icon>
-        </md-button>
-      </div>
-    </md-toolbar>
-    <md-subheader class="md-primary md-subhead">Create your new Redis DB by entering the following fields</md-subheader>	 
-	<md-content class="md-padding"> 
-		<form name="createInstanceForm"> 
-			<div layout layout-gt-sm="column"> 
-				<md-input-container flex> 
-					<label>Enter DB Instance Name</label> 
-					<input name="instanceName" required="required" type="text" value="" ng-maxlength="100" ng-model="newInstance.name" ng-blur="checkDBName(newInstance.name)"> 					
-					<div ng-messages="createInstanceForm.instanceName.$error" ng-messages-multiple>
-				        <div ng-message="required">Instance Name is required.</div>
-				        <div ng-message="md-maxlength">The name has to be less than 100 characters.</div>
-				        <div ng-if="duplicateName">Instance Name already exists.</div> 
-				    </div>
-				</md-input-container> 
-				<md-input-container flex> 
-					<label>Enter Memory Capacity (MB)</label> 
-					<input name="instanceCapacity" required="required" type="number" ng-model="newInstance.capacity"> 
-					
-					<div ng-messages="createInstanceForm.instanceCapacity.$error" ng-if="createInstanceForm.instanceCapacity.$dirty" ng-messages-multiple>
-				        <div ng-message="required">Instance Capacity is required.</div>
-				     </div>
-				</md-input-container> 
-				<md-input-container flex> 
-					<label>Enter Number of Slaves (Max: 10)</label> 
-					<input name="instanceSlaves" required="required" type="number" max="10" ng-model="newInstance.slaves"> 
-					<div ng-messages="createInstanceForm.instanceSlaves.$error" ng-if="createInstanceForm.instanceSlaves.$dirty" ng-messages-multiple>
-						<div ng-message="required">Number of slaves is required. Enter 0 for no slaves.</div>				          
-					    <div ng-message="max">The number of slaves cannot be more than 10.</div>
-					</div>
-				</md-input-container>	
-			</div> 
-		</form> 
-	</md-content> 
-	<div class="md-dialog-actions" layout="row"> 
-		<span flex></span> 
-		<md-button ng-click="close()"> Cancel </md-button> 
-		<md-button id="createInstanceFormSubmitBtn" type="submit" class="md-raised md-primary" ng-disabled="createInstanceForm.$invalid || duplicateName" ng-click="processCreateInstanceForm()"> Create </md-button> 
-	</div>
+<md-dialog class="createInstanceView" aria-label="Create Instance Form" flex="40">
+	<md-content >
+		<md-toolbar>
+	      <div class="md-toolbar-tools">
+	        <h2>Create Instance</h2>
+	        <span flex></span>
+	        <md-button ng-if="false === creatingInstance" class="md-icon-button" ng-click="close()">
+	          <ng-md-icon icon="close" aria-label="Close"></ng-md-icon>
+	        </md-button>
+	      </div>
+	    </md-toolbar>
+	    <md-subheader ng-if="false === creatingInstance" class="md-primary md-subhead">Create your new Redis DB by entering the following fields</md-subheader>	 
+		<md-content ng-if="false === creatingInstance" class="md-padding"> 
+			<form name="createInstanceForm"> 
+				<div layout layout-gt-sm="column"> 
+					<md-input-container flex> 
+						<label>Enter DB Instance Name</label> 
+						<input name="instanceName" required="required" type="text" value="" ng-maxlength="100" ng-model="newInstance.name" ng-blur="checkDBName(newInstance.name)"> 					
+						<div ng-messages="createInstanceForm.instanceName.$error" ng-messages-multiple>
+					        <div ng-message="required">Instance Name is required.</div>
+					        <div ng-message="md-maxlength">The name has to be less than 100 characters.</div>
+					        <div ng-if="duplicateName">Instance Name already exists.</div> 
+					    </div>
+					</md-input-container> 
+					<md-input-container flex> 
+						<label>Enter Memory Capacity (MB)</label> 
+						<input name="instanceCapacity" required="required" type="number" ng-model="newInstance.capacity"> 
+						
+						<div ng-messages="createInstanceForm.instanceCapacity.$error" ng-if="createInstanceForm.instanceCapacity.$dirty" ng-messages-multiple>
+					        <div ng-message="required">Instance Capacity is required.</div>
+					     </div>
+					</md-input-container> 
+					<md-input-container flex> 
+						<label>Enter Number of Slaves (Max: 10)</label> 
+						<input name="instanceSlaves" required="required" type="number" max="10" ng-model="newInstance.slaves"> 
+						<div ng-messages="createInstanceForm.instanceSlaves.$error" ng-if="createInstanceForm.instanceSlaves.$dirty" ng-messages-multiple>
+							<div ng-message="required">Number of slaves is required. Enter 0 for no slaves.</div>				          
+						    <div ng-message="max">The number of slaves cannot be more than 10.</div>
+						</div>
+					</md-input-container>	
+				</div> 
+			</form> 
+		</md-content> 
+		<div ng-if="false === creatingInstance" class="md-dialog-actions" layout="row"> 
+			<span flex></span> 
+			<md-button ng-click="close()"> Cancel </md-button> 
+			<md-button id="createInstanceFormSubmitBtn" type="submit" class="md-raised md-primary" ng-disabled="createInstanceForm.$invalid || duplicateName" ng-click="processCreateInstanceForm()"> Create </md-button> 
+		</div>
+	</md-content>
+	<md-content ng-if="true === creatingInstance">
+		<div layout="column" layout-align="space-between center"> 
+			<div layout="column" layout-align="center center"><i class="fa fa-spinner fa-pulse fa-4x" aria-hidden="true"></i></div>
+			<div layout="column" layout-align="center center">
+				<span class="md-subhead">Instance create request sent to the server, awaiting response</span>
+			</div>
+		</div>
+	</md-content>
 </md-dialog>

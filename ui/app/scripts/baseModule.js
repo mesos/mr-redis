@@ -1,7 +1,7 @@
 'use strict';
 angular.module('mrredisApp.base', [])
 		.config(['$stateProvider', '$urlRouterProvider', function ($stateProvider, $urlRouterProvider) {			
-			$urlRouterProvider.otherwise('/error');
+			$urlRouterProvider.otherwise('/config');
 			$stateProvider
 					.state('base',{
 						url: '/redis',
@@ -10,6 +10,7 @@ angular.module('mrredisApp.base', [])
 					})																					
 					.state('error', {
 						url: '/error',
+						controller: 'baseController',
 						templateUrl: 'views/error.html'
 					});
 					

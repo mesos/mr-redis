@@ -29,7 +29,11 @@
     		<md-subheader class="md-primary">IP: <span class="strongText">{{dbShowDetails.Master.IP}}</span></md-subheader>
     	</div>
     	<div layout="column" flex>
-    		<md-subheader class="md-primary">Number of Slaves: <span class="strongText">{{dbShowDetails.Slaves.length}}</span></md-subheader>
+    		<md-subheader class="md-primary">Number of Slaves: 
+    			<span class="strongText" ng-if="dbShowDetails.Slaves.length > 0">{{dbShowDetails.Slaves.length}}</span>
+    			<span class="strongText" ng-if="dbShowDetails.Slaves === null">0</span>
+    		</md-subheader>
+    		
     	</div>    	
     </div>
     <div layout="row">
@@ -44,7 +48,7 @@
     	</div>     	
     </div>
 
-	<md-content class="md-padding">
+	<md-content class="md-padding" ng-if="dbShowDetails.Slaves !== null">
 		<md-table-container>
       		<table md-table md-progress="promise">
         		<thead md-head>

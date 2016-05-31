@@ -6,7 +6,7 @@
         <div class="md-toolbar-tools" layout-fill ng-if="false === databases.noInstances">
           <!-- <span>Databases</span> -->       
           <div flex></div>
-          <input type="text" name="searchBox" ng-model="filter.search" ng-hide="isHidden">
+          <input type="text" ng-model="databases.search" ng-hide="isHidden">
           <md-button class="md-icon-button" aria-label="Search Table" ng-click="toggleSearch()">
             <md-tooltip md-direction="top">
             Search
@@ -14,12 +14,15 @@
             <i class="fa fa-search fa-lg" aria-hidden="true"></i>
           </md-button>
 
-          <md-button class="md-icon-button" aria-label="Refresh Table" ng-click="reload()">
+          <md-button ng-if="false === reloading" class="md-icon-button" aria-label="Refresh Table" ng-click="reload()">
             <md-tooltip md-direction="top">
             Refresh
             </md-tooltip>              
             <i class="fa fa-refresh fa-lg" aria-hidden="true"></i>
-          </md-button>        
+          </md-button>
+          <md-button ng-if="true === reloading" class="md-icon-button" aria-label="Refresh">            
+            <i class="fa fa-spinner fa-spin fa-lg" aria-hidden="true"></i>
+          </md-button>       
           <md-button class="md-primary md-raised" aria-label="Create Instance" ng-click="showCreate($event)">
             <i class="fa fa-plus-circle fa-lg fa-fw margin-bottom"></i>Create Single Instance
           </md-button>
@@ -41,9 +44,9 @@
   <md-card ng-if="false === databases.noInstances">  
     <md-table-container>
       <table md-table class="mdl-shadow--2dp" md-row-select="options.rowSelection" multiple="{{options.multiSelect}}" ng-model="selected" md-progress="refreshPromise">
-        <thead class="md-primary md-hue-2" md-head md-order="query.order" md-on-reorder="logOrder">
+        <thead class="md-primary md-hue-2" md-head md-order="query.order" md-on-reorder="">
           <tr md-row>
-            <th md-column md-order-by="database.Name">
+            <th md-column md:order:by="database.Name">
               <span class="">Name</span>
               <ng-md-icon icon="info" style="line-height: 60px;" size="18">
                 <md-tooltip md-direction="top">
@@ -114,8 +117,8 @@
           </tr>
         </thead>        
         <tbody md-body>
-          <tr md-row ng-class-odd="'greyRow'" md-select="database" md-on-select="logItem" md-auto-select="options.autoSelect" ng-disabled="" ng-repeat="database in databases.data | filter: filter.search | orderBy: query.order | limitTo: query.limit : (query.page -1) * query.limit">
-            <td md-cell>{{$index}} {{database.Name}}</td>
+          <tr md-row ng-class-odd="'greyRow'" md-select="database" md-select-id="database.Name" md-on-select="logItem" md-auto-select="options.autoSelect" ng-disabled="" data-ng-repeat="database in databases.data | filter:databases.search | orderBy: query.order | limitTo: query.limit : (query.page -1) * query.limit">
+            <td md-cell>{{database.Name}}</td>
             <td md-cell>{{database.Type}}</td>                	                          
             <td md-cell>{{database.Master.IP}}</td>
             <td md-cell>{{database.Master.Port}}</td>
@@ -131,7 +134,7 @@
             <td md-cell ng-if="null !== database.Slaves && true !== database.notReady">{{database.Slaves.length}}</td>
             <td md-cell> 
             <div class="instanceActions">            
-              <md-button aria-label="View Details" class="md-icon-button" ng-click="displayInstanceDetails(database, $event)" ng-disabled="null === database.Slaves">
+              <md-button aria-label="View Details" class="md-icon-button" ng-click="displayInstanceDetails(database, $event)">
                 <ng-md-icon icon="open_in_new" style="line-height: 30px;" size="18">                
                   <md-tooltip md-direction="top" ng-if="null === database.Slaves">
                     This instance does not have any slaves.
@@ -151,13 +154,13 @@
                   </md-tooltip>                     
                 </ng-md-icon> 
               </md-button> -->
-              <md-button aria-label="Add Slaves" class="md-icon-button" ng-click="addSlaves(database, $event)" >
+              <!-- <md-button aria-label="Add Slaves" class="md-icon-button" ng-click="addSlaves(database, $event)" >
                 <ng-md-icon icon="my_library_add" style="line-height: 30px;" size="18">                                  
                   <md-tooltip md-direction="top">
                     Add Slaves
                   </md-tooltip>                     
                 </ng-md-icon> 
-              </md-button>
+              </md-button> -->
               <md-button aria-label="Delete Instance" class="md-icon-button" ng-click="showDeleteInstance(database, $event)">
                 <ng-md-icon icon="delete_forever" style="line-height: 30px;" size="18">
                   <md-tooltip md-direction="top">
@@ -171,10 +174,10 @@
         </tbody>
       </table>
     </md-table-container>
-  </md-card>
-  <md-table-pagination ng-if="false === databases.noInstances" md-limit="query.limit" md-limit-options="limitOptions" md-page="query.page" md-total="{{databases.count}}" md-page-select="options.pageSelect" md-boundary-links="options.boundaryLinks" md-on-paginate="logPagination">
+  <md-table-pagination ng-if="false === databases.noInstances" md-limit="query.limit" md-limit-options="limitOptions" md-page="query.page" md-total="{{databases.count}}" md-page-select="options.pageSelect" md-boundary-links="options.boundaryLinks" md-on-paginate="onPaginate" md-label="{page: 'Page:', rowsPerPage: 'Rows per Page:', of: 'of'}">
       <div layout="row"><span class="label label-success">0-85%</span> | <span class="label label-warning">85-95%</span> \ <span class="label label-danger">95-100%</span></div>
   </md-table-pagination>
+  </md-card> 
   <div ng-if="true === databases.noInstances" layout layout-align="center center" class="container-fluid">    
     
       <div class="jumbotron">
@@ -191,3 +194,4 @@
   </div>
   </md-content>	  
 </div>
+

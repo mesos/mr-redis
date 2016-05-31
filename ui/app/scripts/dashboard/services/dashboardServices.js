@@ -15,11 +15,12 @@ angular.module('mrredisApp.dashboard')
 					response.data = [];
 					defer.resolve(response);
 				}else{
-					response.noInstances = false;
+					response.noInstances = (response.data.length > 0) ? false : true;
 					response.data = getAllMetrics(response.data);
 					defer.resolve(response);
 				}
 			},function(error){
+
 				defer.reject(error);
 			});
 			return defer.promise;
@@ -58,7 +59,7 @@ angular.module('mrredisApp.dashboard')
 						Instance[i].Master.UptimeHours = master_uptime_hours[i];
 						//Do the same for Slaves - TODO: Make a single function and call it.
 						
-						if(Instance[i].Slaves && Instance[i].Slaves[0]){
+						if(Instance[i].Slaves && Instance[i].Slaves[0]) {
 							var slave_len = Instance[i].Slaves.length;
 							for (var j = 0; j < slave_len; j++) {
 								var slaves_util = getMemoryUtilization(Instance[i].Slaves[j].MemoryUsed,Instance[i].Slaves[j].MemoryCapacity)
@@ -80,8 +81,7 @@ angular.module('mrredisApp.dashboard')
 							}
 						}else{
 							Instance.notReady = true;
-						}
-					}else{
+						}					}else{
 						Instance.notReady = true;
 					}
 
