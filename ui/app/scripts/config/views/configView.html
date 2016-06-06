@@ -1,0 +1,36 @@
+<div layout layout-align="center center" class="container-fluid"> 
+  <div class="jumbotron">
+    <div layout="column">
+      <div id="logo" layout-align="center center">
+        <img src="../images/mrredis_250x250.png">        
+      </div>      
+    </div>
+    <h1>Welcome to Mr. Redis!</h1>
+    <p>Lets get you started.</p>
+    <p>Enter the end point to your redis server</p>
+    <form name="setEndPointForm">
+      <md-input-container flex> 
+        <label>Enter End Point (URL)</label> 
+        <input type="text" required="required" ng-model="endPoint" name="endPoint" ng-change="checkUrl()">
+        <div ng-messages="setEndPointForm.endPoint.$error" ng-if="setEndPointForm.endPoint.$dirty" ng-messages-multiple>
+          <div ng-message="required">End Point is required.</div>
+          <div ng-if="invalidUrl">Please enter valid URL.</div> 
+        </div>
+      </md-input-container>
+      <div ng-if="showEndPointLoading" layout="column"> 
+          <div layout="column" layout-align="center center"><i class="fa fa-spinner fa-pulse fa-4x" aria-hidden="true"></i></div>
+          <div layout="column" layout-align="center center"><span class="md-caption">Configuring end point. Please wait...</span></div>
+          
+      </div>
+      <div ng-if="endPointNotReachable">
+          <div class="alert alert-danger alert-dismissible" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <span class="strongText">Uh-Oh! looks like the end point is not accessible. Please check the URL or try again later.</span>
+          </div>
+      </div>
+    </form>
+    <md-button id="setEndPointFormSubmitBtn" type="submit" class="md-primary md-raised" aria-label="Set End Point" ng-disabled="setEndPointForm.$invalid || invalidUrl" ng-click="setEndPoint($event)">
+      <i class="fa fa-cog fa-lg fa-fw margin-bottom"></i>Set End Point
+    </md-button>
+  </div>
+</div>

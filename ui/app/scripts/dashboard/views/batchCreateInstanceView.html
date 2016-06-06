@@ -1,0 +1,91 @@
+
+<md-dialog class="batchCreateInstanceView" aria-label="Create Multiple Instance Form" flex="60"> 
+	<md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2 ng-if="!showBatchProgress">Create Multiple Instances</h2>
+        <h2 ng-if="showBatchProgress">Creating Multiple Instances</h2>
+        <span flex></span>
+        <md-button class="md-icon-button" ng-click="close()">
+          <ng-md-icon icon="close" aria-label="Close"></md-icon>
+        </md-button>
+      </div>
+    </md-toolbar>
+	<md-subheader class="md-primary md-subhead" ng-if="!showBatchProgress">Create your new Redis Instances by entering the following fields</md-subheader>
+	<md-subheader class="md-primary md-subhead" ng-if="showBatchProgress">		 
+		<!-- <div ng-if="showBatchProgress" layout="row" flex="75">
+			<div layout="column" layout-align="start center" flex="20">
+				Request Details:
+			</div>
+			<div layout="column" layout-align="center center" flex="50">
+				<span class="md-primary">Number of Instances Requested: <span class="strongText">{{newBatchInstance.quantity}}</span></span>				
+			</div>
+			<div layout="column" layout-align="center center" flex>
+				<span class="md-primary">Capacity: <span class="strongText">{{newBatchInstance.capacity}} MB</span></span>
+				
+			</div>
+			<div layout="column" flex>
+			<md-subheader class="md-primary">Number of Slaves: <span class="strongText">{{dbShowDetails.Slaves.length}}</span></md-subheader>
+			</div> 
+		</div> -->
+	</md-subheader>
+	<md-content class="md-padding" 	ng-if="!showBatchProgress"> 
+		<form name="batchCreateInstanceForm"> 
+			<div layout layout-sm layout-gt-sm="row"> 
+				<md-input-container flex="35"> 
+					<label>Enter DB Instance Name</label> 
+					<input name="batchInstanceName" required="required" type="text" value="" ng-maxlength="32" ng-model="newBatchInstance.name" md-autofocus> 					
+					<div ng-messages="batchCreateInstanceForm.batchInstanceName.$error" ng-messages-multiple>
+				        <div ng-message="required">Instance Name is required.</div>
+				        <div ng-message="md-maxlength">The name has to be less than 32 characters.</div>
+				        <div ng-if="duplicateBatchName">Instance Name already exists.</div> 
+				    </div>
+				</md-input-container> 
+				<md-input-container flex="35"> 
+					<label>Enter Memory Capacity (MB)</label> 
+					<input name="batchInstanceCapacity" required="required" type="number" ng-model="newBatchInstance.capacity"> 
+					
+					<div ng-messages="batchCreateInstanceForm.batchInstanceCapacity.$error" ng-if="batchCreateInstanceForm.batchInstanceCapacity.$dirty" ng-messages-multiple>
+				        <div ng-message="required">Instance Capacity is required.</div>
+				     </div>
+				</md-input-container>
+				<md-input-container flex> 
+				<label>Enter Number of Instances (Max: 100)</label> 
+				<input name="batchInstanceQuantity" required="required" type="number" max="120" ng-model="newBatchInstance.quantity"> 
+				<div ng-messages="batchCreateInstanceForm.batchInstanceQuantity.$error" ng-if="batchCreateInstanceForm.batchInstanceQuantity.$dirty" ng-messages-multiple>
+					<div ng-message="required">Number of Instances is required. Enter 0 for no slaves.</div>				          
+				    <div ng-message="max">The number of Instances cannot be more than 120.</div>
+				</div>
+			</md-input-container> 
+			</div>			
+		</form> 
+	</md-content> 
+	<div class="md-dialog-actions" layout="row" ng-if="!showBatchProgress"> 
+		<span flex></span> 
+		<md-button ng-click="close()"> Cancel </md-button> 
+		<md-button id="batchCreateInstanceFormSubmitBtn" type="submit" class="md-raised md-primary" ng-disabled="batchCreateInstanceForm.$invalid || duplicateBatchName" ng-click="processBatchCreateInstanceForm()"> Create </md-button> 
+	</div>
+	<md-content ng-if="showBatchProgress">				
+		<div layout="row">
+			<div layout="column" class="md-display-1 md-primary" layout-align="start center" flex="50">
+				<span class="md-primary md-display-2">Instances</span>
+				<span class="batchCreateProgressInstances md-display-3">{{createInstanceDelta}}/{{newBatchInstance.quantity}}</span> 
+			</div>
+			<div id="createBatchInstancesTimer" class="md-display-3 md-primary well" layout="column" layout-align="start center" flex="40" >
+				<md-progress-circular md-diameter="180" md-mode="determinate" value="{{progressIndicator}}">
+					<div class="displayMultipleCreateProgress" layout-align="center center">{{progressIndicator}} %</div>
+				</md-progress-circular>	
+				<div layout="row">
+					<span class="md-primary progressTimer" ng-if="hours < 10">0</span><span>{{hours}}:</span><span class="md-primary progressTimer " ng-if="minutes < 10">0</span><span>{{minutes}}:</span><span class="md-primary progressTimer" ng-if="seconds < 10">0</span><span>{{seconds}}</span>
+				</div>				
+							
+			</div>			
+			
+		</div>		
+
+	</md-content>
+	
+	<div class="md-dialog-actions" layout="row" ng-if="showBatchProgress"> 
+		<span flex></span> 
+		<md-button class="md-raised md-primary" ng-click="hide()"> Ok </md-button>		
+	</div>	
+</md-dialog>
