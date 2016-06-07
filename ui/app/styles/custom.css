@@ -1,0 +1,41 @@
+/*Custom Styles*/
+/*Table styles*/
+.greyRow {background-color: #efefef !important;}
+table.md-table thead.md-head > tr.md-row{height: 40px !important; background-color: #0097A7 !important;}
+.deleteInstanceView table.md-table thead.md-head > tr.md-row{height: 40px !important; background-color: #ef5350 !important;}
+table.md-table thead.md-head > tr.md-row > th > span {color: #ffffff !important;}
+/*Progress bar*/
+.dashboardView > .md-bar {background-color: #8BC34A !important;}
+/*Typography*/
+.strongText {font-weight: 600 !important;}
+
+/* Speed Dial for instance actions */
+
+/* Animated button group for confirmations*/
+.animate-hide {
+ -webkit-transition:all cubic-bezier(0.250, 0.460, 0.450, 0.940) 1s;
+    -moz-transition:all cubic-bezier(0.250, 0.460, 0.450, 0.940) 1s;
+    -o-transition:all cubic-bezier(0.250, 0.460, 0.450, 0.940) 1s;
+    transition:all cubic-bezier(0.250, 0.460, 0.450, 0.940) 1s;
+  line-height:20px;
+  opacity:1;    
+  background:white;
+  position: relative;
+  left: 0;
+}
+
+.animate-hide.ng-hide {
+  left: -10%;
+  opacity:0;
+  padding:0 10px;
+}
+/*Custom Label styles for utilization*/
+.dashboardView .label, .instanceDetailsView .label {font-size: 96% !important; } 
+
+.label-as-badge {
+    border-radius: 1em;
+}
+
+.md-table-pagination .label {color: #3f3f3f !important;}
+
+.batchCreateProgressInstances {font-size: 110px !important; padding-top: 65px !important; color: #006064 !important;}
