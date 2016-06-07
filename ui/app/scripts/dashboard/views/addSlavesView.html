@@ -1,0 +1,93 @@
+<md-dialog class="addSlavesView" aria-label="Single Instance Details View" flex="35"> 
+	<md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>Add Slaves</h2>
+        <span flex></span>
+        <md-button class="md-icon-button" ng-click="close()">
+          <ng-md-icon icon="close" aria-label="Close"></md-icon>
+        </md-button>
+      </div>
+    </md-toolbar>
+    <div layout="row">
+    	<div layout="column" flex="50">
+    		<md-subheader class="md-primary">Database: <span class="strongText">{{dbToAddSlaves.Name}}</span></md-subheader>
+    	</div>
+    	<div layout="column" flex>
+    		<md-subheader class="md-primary">Number of Slaves: <span class="strongText">{{dbToAddSlaves.Slaves.length}}</span></md-subheader>
+    	</div> 
+    </div>
+    <div layout="row">
+    	<div layout="column" flex="50">
+    		<md-subheader class="md-primary">Capacity: <span class="strongText">{{dbToAddSlaves.Capacity}} MB</span></md-subheader>
+    	</div>
+    	<div layout="column" flex>
+    		<md-subheader class="md-primary">Utilization: <span class="strongText">50 / {{dbToAddSlaves.Capacity}} MB | {{(50/dbToAddSlaves.Capacity)*100 | number:2}} %</span></md-subheader> <!-- ng-class="{ md-warn: {{((100/dbToAddSlaves.Capacity)*100) > 20}} == 'true' }" -->
+    	</div>     	
+    </div> 
+    
+	<md-content class="md-padding">
+		<md-table-container>
+      		<table md-table md-progress="promise">
+        		<thead md-head>
+          			<tr md-row>
+			          	<th md-column md-desc>
+			            	<span>IP Address</span>
+			            	<ng-md-icon icon="info" style="line-height: 60px;" size="18">
+			            	<md-tooltip md-direction="top">
+			      				IP address of the Slave
+			    			</md-tooltip> 
+			            	</ng-md-icon>
+			            </th>
+			            <th md-column>
+			            	<span>Port Number</span>
+			            	<ng-md-icon icon="info" style="line-height: 60px;" size="18">
+			            	<md-tooltip md-direction="top">
+			      				Endpoint Port Number on the Slave
+			    			</md-tooltip> 
+			            	</ng-md-icon>
+			            </th>
+			        </tr>
+			    </thead>
+			  	<tbody md-body>
+			  		<tr md-row md-select="dbSlaves" ng-repeat="dbSlave in dbToAddSlaves.Slaves">
+			  			<td md-cell>{{dbSlave.IP}}</td>
+            			<td md-cell>{{dbSlave.Port}}</td>
+			  		</tr>
+			  		
+			  	</tbody>
+			 </table>
+		</md-table-container>
+	</md-content>	
+	<md-content class="md-padding"> 
+		<div class="md-title">Add Slaves</div> 
+		<form name="addSlavesForm"> 
+			<div layout="row">
+				<div layout="column" flex="50"> 				
+					<md-input-container> 
+						<label>Enter Slave Memory Capacity (MB)</label> 
+						<input name="instanceNewSlaveCapacity" required="required" type="number" ng-model="instanceSlave.capacity"> 
+						
+						<div ng-messages="addSlavesForm.instanceNewSlaveCapacity.$error" ng-if="addSlavesForm.instanceNewSlaveCapacity.$dirty" ng-messages-multiple>
+					        <div ng-message="required">Instance Slave Capacity is required.</div>
+					     </div>
+					</md-input-container> 
+				</div>
+				<div layout="column" flex>
+					<md-input-container> 
+						<label>Enter Number of Slaves (Max: 10)</label> 
+						<input name="instanceNewSlaves" required="required" type="number" max="10" ng-model="newInstance.slaves"> 
+						<div ng-messages="addSlavesForm.instanceNewSlaves.$error" ng-if="addSlavesForm.instanceNewSlaves.$dirty" ng-messages-multiple>
+							<div ng-message="required">Number of slaves is required. Enter 0 for no slaves.</div>				          
+						    <div ng-message="max">The number of slaves cannot be more than 10.</div>
+						</div>
+					</md-input-container>	
+				</div> 
+			</div>
+		</form> 
+	</md-content> 
+	<div class="md-dialog-actions" layout="row"> 
+		<span flex></span> 
+		<md-button ng-click="close()"> Cancel </md-button> 
+		<md-button id="addSlavesFormSubmitBtn" type="submit" class="md-raised md-primary" ng-disabled="addSlavesForm.$invalid || duplicateName" ng-click="processAddSlavesForm()"> Add Slaves </md-button> 
+	</div>
+</md-dialog>

@@ -1,0 +1,193 @@
+[
+    {
+        "Name": "TestRedis25",
+        "Type": "MS",
+        "Status": "RUNNING",
+        "Capacity": 100,
+        "Master": {
+            "IP": "10.11.12.90",
+            "Port": "6389"
+        },
+        "Slaves": [
+            {
+                "IP": "10.11.12.20",
+                "Port": "6391"
+            },
+            {
+                "IP": "10.11.12.20",
+                "Port": "6392"
+            },
+            {
+                "IP": "10.11.12.20",
+                "Port": "6393"
+            },
+            {
+                "IP": "10.11.12.20",
+                "Port": "6395"
+            },
+            {
+                "IP": "10.11.12.20",
+                "Port": "6394"
+            }
+        ]
+    },
+    {
+        "Name": "r1",
+        "Type": "S",
+        "Status": "RUNNING",
+        "Capacity": 100,
+        "Master": {
+            "IP": "10.11.12.20",
+            "Port": "6380"
+        },
+        "Slaves": null
+    },
+    {
+        "Name": "redis6",
+        "Type": "MS",
+        "Status": "RUNNING",
+        "Capacity": 100,
+        "Master": {
+            "IP": "10.11.12.20",
+            "Port": "6390"
+        },
+        "Slaves": [
+            {
+                "IP": "10.11.12.20",
+                "Port": "6396"
+            },
+            {
+                "IP": "10.11.12.20",
+                "Port": "6397"
+            },
+            {
+                "IP": "10.11.12.20",
+                "Port": "6395"
+            },
+            {
+                "IP": "10.11.12.20",
+                "Port": "6398"
+            }
+        ]
+    },
+    {
+        "Name": "r2",
+        "Type": "MS",
+        "Status": "RUNNING",
+        "Capacity": 100,
+        "Master": {
+            "IP": "10.11.12.20",
+            "Port": "6381"
+        },
+        "Slaves": [
+            {
+                "IP": "10.11.12.20",
+                "Port": "6383"
+            },
+            {
+                "IP": "10.11.12.20",
+                "Port": "6382"
+            }
+        ]
+    },
+    {
+        "Name": "TestRedis41",
+        "Type": "MS",
+        "Status": "RUNNING",
+        "Capacity": 200,
+        "Master": {
+            "IP": "10.11.12.91",
+            "Port": "6394"
+        },
+        "Slaves": [
+            {
+                "IP": "10.11.12.91",
+                "Port": "6396"
+            },
+            {
+                "IP": "10.11.12.91",
+                "Port": "6395"
+            }
+        ]
+    },
+    {
+        "Name": "TestRedis43",
+        "Type": "MS",
+        "Status": "RUNNING",
+        "Capacity": 100,
+        "Master": {
+            "IP": "10.11.12.89",
+            "Port": "6400"
+        },
+        "Slaves": [
+            {
+                "IP": "10.11.12.89",
+                "Port": "6401"
+            },
+            {
+                "IP": "10.11.12.89",
+                "Port": "6402"
+            },
+            {
+                "IP": "10.11.12.89",
+                "Port": "6404"
+            },
+            {
+                "IP": "10.11.12.89",
+                "Port": "6403"
+            }
+        ]
+    },
+    {
+        "Name": "TestRedis49",
+        "Type": "MS",
+        "Status": "RUNNING",
+        "Capacity": 200,
+        "Master": {
+            "IP": "10.11.12.92",
+            "Port": "6403"
+        },
+        "Slaves": [
+            {
+                "IP": "10.11.12.92",
+                "Port": "6404"
+            }
+        ]
+    },
+    {
+        "Name": "TestRedis22",
+        "Type": "MS",
+        "Status": "RUNNING",
+        "Capacity": 200,
+        "Master": {
+            "IP": "10.11.12.89",
+            "Port": "6388"
+        },
+        "Slaves": [
+            {
+                "IP": "10.11.12.92",
+                "Port": "6385"
+            },
+            {
+                "IP": "10.11.12.92",
+                "Port": "6386"
+            }
+        ]
+    },
+    {
+        "Name": "r3",
+        "Type": "MS",
+        "Status": "RUNNING",
+        "Capacity": 100,
+        "Master": {
+            "IP": "10.11.12.20",
+            "Port": "6384"
+        },
+        "Slaves": [
+            {
+                "IP": "10.11.12.20",
+                "Port": "6385"
+            }
+        ]
+    }
+]
