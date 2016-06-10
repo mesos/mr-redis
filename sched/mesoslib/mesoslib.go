@@ -148,7 +148,7 @@ func GetFrameWorkID() (string, float64) {
 	}
 
 	delta_t := time.Now().Sub(t)
-	log.Printf("Delta of the previously registred framework is = %v", delta_t)
+	log.Printf("Delta of the previously registered framework is = %v", delta_t)
 
 	if (delta_t / time.Second) < FailoverTime {
 		return fwID, fTimout

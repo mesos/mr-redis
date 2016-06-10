@@ -10,7 +10,7 @@ import (
 //This is the main function that handles all the task updates
 func Maintainer() {
 
-	log.Printf("Scheduler Maintainer is startring")
+	log.Printf("Scheduler Maintainer is starting")
 
 	var ts *typ.TaskUpdate
 
@@ -19,7 +19,7 @@ func Maintainer() {
 		select {
 
 		case ts = <-typ.Mchan:
-			log.Printf("Recived a Task update from the channel %v", ts)
+			log.Printf("Received a Task update from the channel %v", ts)
 			break
 
 		}

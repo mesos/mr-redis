@@ -54,7 +54,7 @@ func NewRedMon(tskName string, IP string, Port int, data string) *RedMon {
 	//ToDo does this need error handling
 	R.L = log.New(out, "[Info]", log.Lshortfile)
 
-	R.L.Printf("Split data recived is %v\n", data)
+	R.L.Printf("Split data received is %v\n", data)
 
 	split_data := strings.Split(data, " ")
 	if len(split_data) < 1 || len(split_data) > 4 {

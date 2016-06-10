@@ -20,7 +20,7 @@ func Creator() {
 		*/
 
 		case tc := <-typ.Cchan:
-			log.Printf("Recived offer %v", tc)
+			log.Printf("Received offer %v", tc)
 			//Push back the offer in the offer list
 			inst := tc.I
 			cpu := 1
