@@ -32,7 +32,7 @@ func Creator() {
 
 					typ.OfferList.PushBack(typ.NewOffer(inst.Name+"::"+id.NewUIIDstr(), cpu, mem, true, ""))
 				}
-				log.Printf("Created %d master offers for Instnace %v", tc.C, inst.Name)
+				log.Printf("Created %d master offers for Instance %v", tc.C, inst.Name)
 
 			} else {
 
@@ -47,7 +47,7 @@ func Creator() {
 					}
 
 				}
-				log.Printf("Created %d slave offers for Instnace %v", tc.C, inst.Name)
+				log.Printf("Created %d slave offers for Instance %v", tc.C, inst.Name)
 			}
 
 			break

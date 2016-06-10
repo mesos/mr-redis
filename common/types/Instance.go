@@ -28,7 +28,7 @@ type Instance struct {
 
 // Creates a new instance variable
 // Fills up the structure and updates the central store
-// Returns an instnace pointer
+// Returns an instance pointer
 // Returns nil if the instance already exists
 
 func NewInstance(Name string, Type string, Masters int, Slaves int, Cap int) *Instance {
@@ -37,7 +37,7 @@ func NewInstance(Name string, Type string, Masters int, Slaves int, Cap int) *In
 	return p
 }
 
-//Load an instnace from the store using Instance Name from the store
+//Load an instance from the store using Instance Name from the store
 // if the instance is unavailable then return nil
 
 func LoadInstance(Name string) *Instance {

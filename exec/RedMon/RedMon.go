@@ -24,7 +24,7 @@ type RedMon struct {
 	IP      string    //IP address the redis instance should bind to
 	Port    int       //The port number of this redis instance to be started
 	Ofile   io.Writer //Stdout log file to be re-directed to this io.writer
-	Efile   io.Writer //stderr of the redis instnace should be re-directed to this file
+	Efile   io.Writer //stderr of the redis instance should be re-directed to this file
 	MS_Sync bool      //Make this as master after sync
 	monChan chan int
 	Cmd     *exec.Cmd

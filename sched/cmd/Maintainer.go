@@ -91,7 +91,7 @@ func Maintainer() {
 					Inst.SyncSlaves()
 					Inst.Procs[proc.ID] = proc
 				} else {
-					log.Printf("Unknown Slave %v  created for this instnace", ts.Name)
+					log.Printf("Unknown Slave %v  created for this instance", ts.Name)
 				}
 				break
 			}
@@ -129,7 +129,7 @@ func Maintainer() {
 				//If the task lost is a master then we must select a most updated slave as the next master
 				//Make rest of the slave to start connectin to this new master
 				//Send Request to creator to bring back one more slave
-				//For now lets just start a master for single instnace master
+				//For now lets just start a master for single instance master
 				if Inst.Type == typ.INST_TYPE_SINGLE {
 					if Inst.Masters > 0 {
 						Inst.Masters--
@@ -167,7 +167,7 @@ func Maintainer() {
 				//If the task lost is a master then we must select a most updated slave as the next master
 				//Make rest of the slave to start connectin to this new master
 				//Send Request to creator to bring back one more slave
-				//For now lets just start a master for single instnace master
+				//For now lets just start a master for single instance master
 				if Inst.Type == typ.INST_TYPE_SINGLE {
 					if Inst.Masters > 0 {
 						Inst.Masters--

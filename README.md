@@ -156,7 +156,7 @@ OPTIONS:
    --name, -n           Name of the Redis Instance
    --memory, -m "0"     Memory in MB
    --slaves, -s "0"     Number of Slaves
-   --wait, -w           Wait for the Instnace to be create (by default the command is async)
+   --wait, -w           Wait for the Instance to be created (by default the command is async)
    
 ```
 ## More Examples of Using the CLI
