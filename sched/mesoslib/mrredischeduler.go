@@ -27,13 +27,13 @@ func (S *MrRedisScheduler) Registered(driver sched.SchedulerDriver, frameworkId 
 
 	FwIDKey := typ.ETC_CONF_DIR + "/FrameworkID"
 	typ.Gdb.Set(FwIDKey, frameworkId.GetValue())
-	FwTstamp := typ.ETC_CONF_DIR + "/RegesteredAt"
+	FwTstamp := typ.ETC_CONF_DIR + "/RegisteredAt"
 	typ.Gdb.Set(FwTstamp, time.Now().String())
 }
 
 func (S *MrRedisScheduler) Reregistered(driver sched.SchedulerDriver, masterInfo *mesos.MasterInfo) {
 	log.Printf("MrRedis Re-registered")
-	FwTstamp := typ.ETC_CONF_DIR + "/RegesteredAt"
+	FwTstamp := typ.ETC_CONF_DIR + "/RegisteredAt"
 	typ.Gdb.Set(FwTstamp, time.Now().String())
 }
 func (S *MrRedisScheduler) Disconnected(sched.SchedulerDriver) {
