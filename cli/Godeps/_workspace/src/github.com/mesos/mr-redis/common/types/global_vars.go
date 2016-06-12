@@ -25,7 +25,7 @@ const (
 	ETC_CONF_DIR = ETC_BASE_DIR + "/Config"
 )
 
-//Global constancts for Instnace Status
+//Global constants for Instnace Status
 //CREATING/ACTIVE/DELETED/DISABLED
 const (
 	INST_STATUS_CREATING = "CREATING"
