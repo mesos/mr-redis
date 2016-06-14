@@ -250,6 +250,11 @@ Master = 10.11.12.21:6380
         Slave49 = 10.11.12.21:6382
 ```
 
+### Porxy in progerss
+We are writing a proxy that will be installed with every redis instances especially with Master-Slave setup.  The proxy should be a simple pass-through nothing more.  Should be capable of accepting new configuration changes without needing to restart it.
+
+<img src="./ProxyCompare.PNG" width="20%" height="20%"> 
+
 
 ### Contribution Guidlines
 Go already provides a nice documentation on coding conventions and guidelines; just try to adhere to that [Effective Go](https://golang.org/doc/effective_go.html) :-) 
