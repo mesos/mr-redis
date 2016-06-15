@@ -27,13 +27,13 @@ func (S *MrRedisScheduler) Registered(driver sched.SchedulerDriver, frameworkId 
 
 	FwIDKey := typ.ETC_CONF_DIR + "/FrameworkID"
 	typ.Gdb.Set(FwIDKey, frameworkId.GetValue())
-	FwTstamp := typ.ETC_CONF_DIR + "/RegesteredAt"
+	FwTstamp := typ.ETC_CONF_DIR + "/RegisteredAt"
 	typ.Gdb.Set(FwTstamp, time.Now().String())
 }
 
 func (S *MrRedisScheduler) Reregistered(driver sched.SchedulerDriver, masterInfo *mesos.MasterInfo) {
 	log.Printf("MrRedis Re-registered")
-	FwTstamp := typ.ETC_CONF_DIR + "/RegesteredAt"
+	FwTstamp := typ.ETC_CONF_DIR + "/RegisteredAt"
 	typ.Gdb.Set(FwTstamp, time.Now().String())
 }
 func (S *MrRedisScheduler) Disconnected(sched.SchedulerDriver) {
@@ -42,7 +42,7 @@ func (S *MrRedisScheduler) Disconnected(sched.SchedulerDriver) {
 
 func (S *MrRedisScheduler) ResourceOffers(driver sched.SchedulerDriver, offers []*mesos.Offer) {
 
-	//No work to do so reject all the offers we just recived
+	//No work to do so reject all the offers we just received
 	offer_count := typ.OfferList.Len()
 	if offer_count <= 0 {
 		//Reject the offers nothing to do now
@@ -77,7 +77,7 @@ func (S *MrRedisScheduler) ResourceOffers(driver sched.SchedulerDriver, offers [
 			mems += res.GetScalar().GetValue()
 		}
 
-		log.Printf("Recived Offer with CPU=%v MEM=%v OfferID=%v", cpus, mems, offer.Id.GetValue())
+		log.Printf("Received Offer with CPU=%v MEM=%v OfferID=%v", cpus, mems, offer.Id.GetValue())
 		var tasks []*mesos.TaskInfo
 
 		//Loop through the tasks
@@ -124,7 +124,7 @@ func (S *MrRedisScheduler) ResourceOffers(driver sched.SchedulerDriver, offers [
 		driver.LaunchTasks([]*mesos.OfferID{offer.Id}, tasks, &mesos.Filters{})
 		log.Printf("Launched %d tasks from this offer", len(tasks))
 	}
-	log.Printf("MrRedis Recives offer")
+	log.Printf("MrRedis Receives offer")
 }
 
 func (S *MrRedisScheduler) StatusUpdate(driver sched.SchedulerDriver, status *mesos.TaskStatus) {
@@ -133,7 +133,7 @@ func (S *MrRedisScheduler) StatusUpdate(driver sched.SchedulerDriver, status *me
 	ts.Name = status.GetTaskId().GetValue()
 	ts.State = status.GetState().String()
 	ts.Data = status.GetData()
-	log.Printf("MrRedis Task Update recived")
+	log.Printf("MrRedis Task Update received")
 	log.Printf("Status=%v", ts)
 
 	//Send it across to the channel to maintainer

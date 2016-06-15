@@ -24,7 +24,7 @@ type RedMon struct {
 	IP      string    //IP address the redis instance should bind to
 	Port    int       //The port number of this redis instance to be started
 	Ofile   io.Writer //Stdout log file to be re-directed to this io.writer
-	Efile   io.Writer //stderr of the redis instnace should be re-directed to this file
+	Efile   io.Writer //stderr of the redis instance should be re-directed to this file
 	MS_Sync bool      //Make this as master after sync
 	monChan chan int
 	Cmd     *exec.Cmd
@@ -54,7 +54,7 @@ func NewRedMon(tskName string, IP string, Port int, data string) *RedMon {
 	//ToDo does this need error handling
 	R.L = log.New(out, "[Info]", log.Lshortfile)
 
-	R.L.Printf("Split data recived is %v\n", data)
+	R.L.Printf("Split data received is %v\n", data)
 
 	split_data := strings.Split(data, " ")
 	if len(split_data) < 1 || len(split_data) > 4 {

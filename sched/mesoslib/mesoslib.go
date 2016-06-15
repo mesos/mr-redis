@@ -138,7 +138,7 @@ const TimeFormat = "2006-01-02 15:04:05.999999999 -0700 MST"
 func GetFrameWorkID() (string, float64) {
 
 	fTimout := float64(FailoverTime)
-	fwTStamp, terr := typ.Gdb.Get(typ.ETC_CONF_DIR + "/RegesteredAt")
+	fwTStamp, terr := typ.Gdb.Get(typ.ETC_CONF_DIR + "/RegisteredAt")
 	t, tperr := time.Parse(TimeFormat, fwTStamp)
 	fwID, err := typ.Gdb.Get(typ.ETC_CONF_DIR + "/FrameworkID")
 
@@ -148,7 +148,7 @@ func GetFrameWorkID() (string, float64) {
 	}
 
 	delta_t := time.Now().Sub(t)
-	log.Printf("Delta of the previously registred framework is = %v", delta_t)
+	log.Printf("Delta of the previously registered framework is = %v", delta_t)
 
 	if (delta_t / time.Second) < FailoverTime {
 		return fwID, fTimout

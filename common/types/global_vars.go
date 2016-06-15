@@ -25,7 +25,7 @@ const (
 	ETC_CONF_DIR = ETC_BASE_DIR + "/Config"
 )
 
-//Global constancts for Instnace Status
+//Global constants for Instance Status
 //CREATING/ACTIVE/DELETED/DISABLED
 const (
 	INST_STATUS_CREATING = "CREATING"
@@ -37,7 +37,7 @@ const (
 //Const for instance type
 const (
 	INST_TYPE_SINGLE       = "S"  //A Single instance redis-server
-	INST_TYPE_MASTER_SLAVE = "MS" //A redis instnace with master-slave
+	INST_TYPE_MASTER_SLAVE = "MS" //A redis instance with master-slave
 )
 
 //const for type of the redis-server

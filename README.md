@@ -156,7 +156,7 @@ OPTIONS:
    --name, -n           Name of the Redis Instance
    --memory, -m "0"     Memory in MB
    --slaves, -s "0"     Number of Slaves
-   --wait, -w           Wait for the Instnace to be create (by default the command is async)
+   --wait, -w           Wait for the Instance to be created (by default the command is async)
    
 ```
 ## More Examples of Using the CLI
@@ -249,6 +249,16 @@ Master = 10.11.12.21:6380
         Slave48 = 10.11.12.21:6381
         Slave49 = 10.11.12.21:6382
 ```
+
+### Porxy in progerss
+We are writing a proxy that will be installed with every redis instances especially with Master-Slave setup.  The proxy should be a simple pass-through.  Should be capable of accepting new configuration changes without needing to restart it.  Below is some preformance stats comparing different available proxies and ours.
+
+```
+$redis-benchmark -h <IP> -p <PORT>  -q -r 100000
+```
+
+
+<img src="./ProxyCompare.PNG" width="100%" height="100%"> 
 
 
 ### Contribution Guidlines

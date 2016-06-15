@@ -25,7 +25,7 @@ func (this *MainController) CreateInstance() {
 	var capacity, masters, slaves int
 
 	//Parse the input URL
-	name = this.Ctx.Input.Param(":INSTANCENAME")                  //Get the name of the instnace
+	name = this.Ctx.Input.Param(":INSTANCENAME")                  //Get the name of the instance
 	capacity, _ = strconv.Atoi(this.Ctx.Input.Param(":CAPACITY")) // Get the capacity of the instance in MB
 	masters, _ = strconv.Atoi(this.Ctx.Input.Param(":MASTERS"))   // Get the capacity of the instance in MB
 	slaves, _ = strconv.Atoi(this.Ctx.Input.Param(":SLAVES"))     // Get the capacity of the instance in MB
@@ -81,7 +81,7 @@ func (this *MainController) DeleteInstance() {
 	var name string
 
 	//Parse the input URL
-	name = this.Ctx.Input.Param(":INSTANCENAME") //Get the name of the instnace
+	name = this.Ctx.Input.Param(":INSTANCENAME") //Get the name of the instance
 
 	//Check the in-memory map if the instance already exists
 	tmp_inst := typ.MemDb.Get(name)
@@ -137,7 +137,7 @@ func (this *MainController) Status() {
 	var inst *typ.Instance
 
 	//Parse the input URL
-	name = this.Ctx.Input.Param(":INSTANCENAME") //Get the name of the instnace
+	name = this.Ctx.Input.Param(":INSTANCENAME") //Get the name of the instance
 
 	//Check in memory map and store if the instance is available
 	inst = typ.MemDb.Get(name)
@@ -190,9 +190,9 @@ func (this *MainController) UpdateMemory() {
 	var name string
 
 	//parse the input URL
-	name = this.Ctx.Input.Param(":INSTANCENAME") //Get the name of the instnace
+	name = this.Ctx.Input.Param(":INSTANCENAME") //Get the name of the instance
 
-	//Check the instnace in in-memory
+	//Check the instance in in-memory
 	if !typ.MemDb.IsValid(name) {
 		//The instance already exist return cannot create again return error
 		this.Ctx.ResponseWriter.WriteHeader(501)
@@ -202,7 +202,7 @@ func (this *MainController) UpdateMemory() {
 
 	//Check the instance in central storage
 
-	//sedn the instnace to Maintainer channel
+	//send the instance to Maintainer channel
 	this.Ctx.WriteString("Upgrading the instance")
 
 }
@@ -213,9 +213,9 @@ func (this *MainController) UpdateSlaves() {
 	var name string
 
 	//parse the input URL
-	name = this.Ctx.Input.Param(":INSTANCENAME") //Get the name of the instnace
+	name = this.Ctx.Input.Param(":INSTANCENAME") //Get the name of the instance
 
-	//Check the instnace in in-memory
+	//Check the instance in in-memory
 	if typ.MemDb.IsValid(name) {
 		//The instance already exist return cannot create again return error
 		this.Ctx.WriteString(fmt.Sprintf("Instance %s already exist, cannot be create", name))
@@ -224,7 +224,7 @@ func (this *MainController) UpdateSlaves() {
 
 	//Check the instance in central storage
 
-	//sedn the instnace to Maintainer channel
+	//send the instance to Maintainer channel
 	this.Ctx.WriteString("Upgrading the instance slaves")
 
 }

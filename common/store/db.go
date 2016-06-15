@@ -3,7 +3,7 @@ package store
 //Interface that every DB pkg must comply for MrRedis
 type DB interface {
 
-	//Perform the inital setup of the database/KV store by creating DB/Namespace etc that are important running MrRedis
+	//Perform the inital setup of the database/KV store by creating DB/Namespace etc that are important for running MrRedis
 	Setup(config string) error
 
 	//Check if the database is setup already or not for Redis Framework
@@ -12,7 +12,7 @@ type DB interface {
 	//Optionally used if the db provides any auth mechanism perform that will handle DB apis like Connect/Login/Authorize etc.,
 	Login() error
 
-	//Set the value for the Key , if the key does not exisist create one (Will be an Insert if we RDBMS is introduced)
+	//Set the value for the Key , if the key does not exist create one (Will be an Insert if we RDBMS is introduced)
 	Set(Key string, Value string) error
 
 	//Does this key exist in the db already
