@@ -294,30 +294,29 @@ func (R *RedMon) Monitor() bool {
 	//ToDo: is it needed
 
 	CheckMsgCh := time.After(time.Second)
-	UpdateStatsCh := time.After(2 * time.Second) 
-
+	UpdateStatsCh := time.After(2 * time.Second)
 
 	for {
 		if R.P.State == "Running" {
-		select {
+			select {
 
-		case <-R.monChan:
-			//ToDo:update state if needed
-			//signal to stop monitoring this
-			return false
+			case <-R.monChan:
+				//ToDo:update state if needed
+				//signal to stop monitoring this
+				return false
 
-		case <- CheckMsgCh:
-			//this is to check communication from scheduler; mesos messages are not reliable
-			R.CheckMsg()
-			CheckMsgCh = time.After(time.Second)
+			case <-CheckMsgCh:
+				//this is to check communication from scheduler; mesos messages are not reliable
+				R.CheckMsg()
+				CheckMsgCh = time.After(time.Second)
 
-		case <- UpdateStatsCh:
-			R.UpdateStats()
-			UpdateStatsCh = time.After(2 * time.Second)
-		}
+			case <-UpdateStatsCh:
+				R.UpdateStats()
+				UpdateStatsCh = time.After(2 * time.Second)
+			}
 		} else {
-		time.Sleep(time.Second)
-}
+			time.Sleep(time.Second)
+		}
 
 	}
 
