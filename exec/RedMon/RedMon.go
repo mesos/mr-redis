@@ -280,6 +280,18 @@ func (R *RedMon) UpdateStats() bool {
 		log.Printf("UpdateStats() Unable to convert %s to number", txt)
 	}
 
+	txt = R.GetRedisInfo("Replication", "slave_repl_offset")
+	redisStats.SlaveOffset, err = strconv.ParseInt(txt, 10, 64)
+	if err != nil {
+		log.Printf("UpdateStats() Unable to convert %s to number", txt)
+	}
+
+	txt = R.GetRedisInfo("Replication", "slave_priority")
+	redisStats.SlavePriority, err = strconv.Atoi(txt)
+	if err != nil {
+		log.Printf("UpdateStats() Unable to convert %s to number", txt)
+	}
+
 	errSync := R.P.SyncStats(redisStats)
 	if !errSync {
 		R.L.Printf("Error syncing stats to store")

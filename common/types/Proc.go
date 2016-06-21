@@ -41,10 +41,12 @@ type Proc struct {
 //ToDo the whole stats structure could be a json structure reflecting all the fields what redis info returns
 //currently one field has many new line saperated values;ToDO will this work if returned in API?
 type Stats struct {
-	Uptime    int64
-	Mem       int64
-	Clients   int
-	LastSyced int
+	Uptime        int64
+	Mem           int64
+	Clients       int
+	LastSyced     int
+	SlaveOffset   int64 //Offset of the slave
+	SlavePriority int
 }
 
 type ProcJson struct {

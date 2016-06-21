@@ -175,6 +175,11 @@ func Maintainer() {
 						Inst.SyncMasters()
 						typ.Cchan <- typ.CreateMaster(Inst)
 					}
+				} else {  //The Master has died in  a Master Slave Setup
+
+					//We need to Elect a new master among the slaves, below are the steps we need to perform
+					//1) Loop through the slaves and select the one with MAX slave_repl_offset 
+
 				}
 				break
 			case "S":
