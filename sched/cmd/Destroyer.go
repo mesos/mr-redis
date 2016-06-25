@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"log"
 
 	typ "github.com/mesos/mr-redis/common/types"
@@ -14,15 +15,23 @@ import (
 func Destoryer() bool {
 
 	for {
-		var proc *typ.Proc
 		select {
 
-		case proc = <-typ.Dchan:
-			proc.Msg = "SHUTDOWN"
-			proc.SyncMsg()
-			log.Printf("Destorying proc %v from Instance %v", proc.ID, proc.Instance)
+		case msg := <-typ.Dchan:
+			switch msg.MSG {
+			case typ.TASK_MSG_DESTROY:
+				msg.P.Msg = "SHUTDOWN"
+			case typ.TASK_MSG_MAKEMASTER:
+				msg.P.Msg = "MASTER"
+				msg.P.SyncSlaveOf()
+			case typ.TASK_MSG_SLAVEOF:
+				msg.P.Msg = fmt.Sprintf("SLAVEOF %s", msg.P.SlaveOf)
+				msg.P.SyncSlaveOf()
+			}
+			msg.P.SyncMsg()
+			log.Printf("Destorying proc %v from Instance %v", msg.P.ID, msg.P.Instance)
 			break
 		}
-
 	}
+
 }

@@ -14,7 +14,7 @@ func Initialize(dbtype string, config string) (bool, error) {
 	OfferList.Init()
 	Cchan = make(chan TaskCreate)
 	Mchan = make(chan *TaskUpdate) //Channel for Maintainer
-	Dchan = make(chan *Proc)       //Channel for Destroyer
+	Dchan = make(chan TaskMsg)     //Channel for Destroyer
 
 	//Initalize the Internal in-memory storage
 	MemDb = NewInMem()

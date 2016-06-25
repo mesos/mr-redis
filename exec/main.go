@@ -3,7 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"log"
 	"net"
+	"os"
 
 	exec "github.com/mesos/mesos-go/executor"
 	mesos "github.com/mesos/mesos-go/mesosproto"
@@ -14,6 +18,7 @@ import (
 
 var DbType = flag.String("DbType", "etcd", "Type of the database etcd/zookeeper etc.,")
 var DbEndPoint = flag.String("DbEndPoint", "", "Endpoint of the database")
+var MrRedisLogger *log.Logger
 
 type MrRedisExecutor struct {
 	tasksLaunched int
@@ -58,7 +63,7 @@ func (exec *MrRedisExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *me
 
 	var runStatus *mesos.TaskStatus
 	exec.tasksLaunched++
-	M := RedMon.NewRedMon(taskInfo.GetTaskId().GetValue(), exec.HostIP, exec.tasksLaunched+6379, string(taskInfo.Data))
+	M := RedMon.NewRedMon(taskInfo.GetTaskId().GetValue(), exec.HostIP, exec.tasksLaunched+6379, string(taskInfo.Data), MrRedisLogger)
 
 	fmt.Printf("The Redmon object = %v\n", *M)
 
@@ -92,8 +97,11 @@ func (exec *MrRedisExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *me
 		exit_state := mesos.TaskState_TASK_FINISHED.Enum()
 
 		exit_err := M.Cmd.Wait() //TODO: Collect the return value of the process and send appropriate TaskUpdate eg:TaskFinished only on clean shutdown others will get TaskFailed
-		if exit_err != nil {
+		if exit_err != nil || M.P.Msg != "SHUTDOWN" {
+			//If the redis-server proc finished either with a non-zero or its not suppose to die then mark it as Task filed
 			exit_state = mesos.TaskState_TASK_FAILED.Enum()
+			//Signal the monitoring thread to stop monitoring from now on
+			M.MonChan <- 1
 		}
 
 		// finish task
@@ -139,6 +147,13 @@ func main() {
 	fmt.Println("Starting MrRedis Executor")
 
 	typ.Initialize(*DbType, *DbEndPoint)
+
+	var out io.Writer = ioutil.Discard
+
+	out, _ = os.Create("/tmp/MrRedisExecutor.log")
+	//ToDo does this need error handling
+	MrRedisLogger = log.New(out, "[Info]", log.Lshortfile)
+
 	MrRedisExec := NewMrRedisExecutor()
 	MrRedisExec.HostIP = GetLocalIP()
 	MrRedisExec.monMap = make(map[string](*RedMon.RedMon))
