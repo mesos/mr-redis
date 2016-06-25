@@ -88,6 +88,7 @@ func (this *MainController) DeleteInstance() {
 	if tmp_inst == nil {
 		tmp_inst = typ.LoadInstance(name)
 	}
+
 	if tmp_inst != nil {
 		//get the instance data from central storage
 
@@ -98,24 +99,27 @@ func (this *MainController) DeleteInstance() {
 
 		}
 
-		//send info about all procs to be Destroyer
-		tmp_proc := tmp_inst.Procs[tmp_inst.Mname]
+		//send info about all procs to be Destroyer to kill the master
+		var tMsg typ.TaskMsg
+		tMsg.P = tmp_inst.Procs[tmp_inst.Mname]
+		tMsg.MSG = typ.TASK_MSG_DESTROY
 
-		log.Printf("Destorying master %v from Instance %v", tmp_proc.ID, tmp_inst.Name)
+		log.Printf("Destorying master %v from Instance %v", tMsg.P.ID, tmp_inst.Name)
 
-		typ.Dchan <- tmp_proc
+		//Send a message to the Destroyer
+		typ.Dchan <- tMsg
 
 		for _, n := range tmp_inst.Snames {
-			tmp_proc = tmp_inst.Procs[n]
-			if tmp_proc != nil {
-				log.Printf("Destorying slave %v from Instance %v", tmp_proc.ID, tmp_inst.Name)
+			tMsg.P = tmp_inst.Procs[n]
+			if tMsg.P != nil {
+				log.Printf("Destorying slave %v from Instance %v", tMsg.P.ID, tmp_inst.Name)
 			} else {
 				log.Printf("Destroying Proc of the slave = %v is nil ", n)
 			}
 
-			typ.Dchan <- tmp_proc
+			//Send a message to the destroyer to kill the slaves
+			typ.Dchan <- tMsg
 		}
-
 	} else {
 
 		//The instance already exist return cannot create again return error
