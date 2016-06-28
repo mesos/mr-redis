@@ -111,6 +111,17 @@ $./sched -DumpEmptyConfig
  }
 
 ```
+### Creating Instances
+This can be done in 3 ways.
+<img src="./CreateInstance.gif" width="100%" height="100%"> 
+
+### Creating Multiple Redis Instances:
+How much time does it take to create 70 single redis instances ?
+<img src="./MultiInstanceCreation.gif" width="100%" height="100%"> 
+
+### Master-Slave Promotion:
+Scheduler automatically promotes a slave when a master failes.
+<img src="./MasterSlavePromotion.gif" width="100%" height="100%"> 
 
 ## Using the CLI
 mr-redis has built-in cli for creating and destroying redis instances.
