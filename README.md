@@ -57,12 +57,49 @@ $chmod u+x *
 ```
 
 ### DC/OS
-MrRedis is integrated with DC/OS's universe, it should be pretty straight forward to install like anyother package.
+MrRedis is integrated with DC/OS's universe, it should be pretty straight forward to install it like anyother package.
 ```
 $dcos package install mr-redis
 ```
 #### NOTE for DC/OS Users:
 Unlike ETCD, Cassandra and other database frameworks installing mr-redis (scheduler) itself will not create any redis instance in your DC/OS environment, you have to further download and use the CLI (mrr) in order to create redis instances.  
+
+#### Reaching the framework
+The scheduler binds itself with the port 5656, so from a node within the cluster or from a node from which mrredis.mesos is resolvable try to create an instance with the below configuration. {InstanceName : "TestInstance"; MemoryCapacity : 100 MB; Number of Slaves : 2;}
+```
+$curl -X "POST" mrredis.mesos:5656/v1/CREATE/TestInstance/100/1/2
+Request Accepted, Instance will be created.
+```
+
+#### Status of created Instance
+Try the below curl command.  This gives a json response about this instance.
+```
+$curl mrredis.mesos:5656/v1/STATUS/TestInstance
+{"Name":"TestInstance","Type":"MS","Status":"RUNNING","Capacity":100,"Master":{"IP":"10.11.12.123","Port":"6381","MemoryCapacity":100,"MemoryUsed":1904432,"Uptime":48,"ClientsConnected":1,"LastSyncedToMaster":0},"Slaves":[{"IP":"10.11.12.125","Port":"6385","MemoryCapacity":100,"MemoryUsed":834904,"Uptime":44,"ClientsConnected":2,"LastSyncedToMaster":5},{"IP":"10.11.12.125","Port":"6384","MemoryCapacity":100,"MemoryUsed":834904,"Uptime":45,"ClientsConnected":2,"LastSyncedToMaster":6}]}
+```
+
+#### Connecting to an Instance
+From the above json response information related to Master are as follows.
+```
+	"Master": {
+		"IP": "10.11.12.123",
+		"Port": "6381",
+		"MemoryCapacity": 100,
+		"MemoryUsed": 1904432,
+		"Uptime": 48,
+		"ClientsConnected": 1,
+		"LastSyncedToMaster": 0
+	}
+```
+You could use any redis [client] (http://redis.io/clients) and connect to the master or use the redis-cli to test the instance.
+```
+$redis-cli -h 10.11.12.123 -p 6381
+10.11.12.123:6381> set foo bar
+OK
+10.11.12.123:6381> get foo
+"bar"
+10.11.12.123:6381> exit
+```
 
 ## Starting the Scheduler (not applicable to DC/OS users)
 MrRedis scheduler binary is usually refered as `sched`, the scheduler hosts a file-server which can distribute redis binary and custom Executor.  
@@ -120,7 +157,7 @@ How much time does it take to create 70 single redis instances ?
 <img src="./MultiInstanceCreation.gif" width="100%" height="100%"> 
 
 ### Master-Slave Promotion:
-Scheduler automatically promotes a slave when a master failes.
+Scheduler automatically promotes a slave when a master fails.
 <img src="./MasterSlavePromotion.gif" width="100%" height="100%"> 
 
 ## Using the CLI
