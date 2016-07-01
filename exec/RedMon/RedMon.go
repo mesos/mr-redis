@@ -307,16 +307,10 @@ func (R *RedMon) Monitor() bool {
 		if R.P.State == "Running" {
 			select {
 
-<<<<<<< HEAD
-			case <-R.monChan:
-				//ToDo:update state if needed
-				//signal to stop monitoring this
-=======
 			case <-R.MonChan:
 				//ToDo:update state if needed
 				//signal to stop monitoring this
 				R.L.Printf("Stopping RedMon for %s %s", R.P.IP, R.P.Port)
->>>>>>> c0030928f2894a32452cdbd34c194cc4917bd22c
 				return false
 
 			case <-CheckMsgCh:
