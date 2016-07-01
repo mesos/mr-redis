@@ -1,6 +1,5 @@
 {
-	"MasterIP":"leader.mesos",
-	"MasterPort":"5050",
+	"Master":"zk://master.mesos:2181/mesos",
 	"ExecutorPath":"/mrredis/bin/MrRedisExecutor",
 	"RedisPath":"/mrredis/bin/redis-server",
 	"DBType":"etcd",

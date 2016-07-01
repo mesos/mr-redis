@@ -35,28 +35,28 @@
 		},
 		{
 			"ImportPath": "github.com/mesos/mesos-go/executor",
-			"Comment": "v0.0.2-27-g657252e",
-			"Rev": "657252ec6fc27975cd86da9f708acd6f4bb1f9ac"
+			"Comment": "v0.0.2-65-g7064d87",
+			"Rev": "7064d8760d60f029f568b9295e6842612e89e347"
 		},
 		{
 			"ImportPath": "github.com/mesos/mesos-go/mesosproto",
-			"Comment": "v0.0.2-27-g657252e",
-			"Rev": "657252ec6fc27975cd86da9f708acd6f4bb1f9ac"
+			"Comment": "v0.0.2-65-g7064d87",
+			"Rev": "7064d8760d60f029f568b9295e6842612e89e347"
 		},
 		{
 			"ImportPath": "github.com/mesos/mesos-go/mesosutil",
-			"Comment": "v0.0.2-27-g657252e",
-			"Rev": "657252ec6fc27975cd86da9f708acd6f4bb1f9ac"
+			"Comment": "v0.0.2-65-g7064d87",
+			"Rev": "7064d8760d60f029f568b9295e6842612e89e347"
 		},
 		{
 			"ImportPath": "github.com/mesos/mesos-go/messenger",
-			"Comment": "v0.0.2-27-g657252e",
-			"Rev": "657252ec6fc27975cd86da9f708acd6f4bb1f9ac"
+			"Comment": "v0.0.2-65-g7064d87",
+			"Rev": "7064d8760d60f029f568b9295e6842612e89e347"
 		},
 		{
 			"ImportPath": "github.com/mesos/mesos-go/upid",
-			"Comment": "v0.0.2-27-g657252e",
-			"Rev": "657252ec6fc27975cd86da9f708acd6f4bb1f9ac"
+			"Comment": "v0.0.2-65-g7064d87",
+			"Rev": "7064d8760d60f029f568b9295e6842612e89e347"
 		},
 		{
 			"ImportPath": "github.com/mesos/mr-redis/common/store",
