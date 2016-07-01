@@ -67,7 +67,7 @@ func main() {
 				},
 				cli.BoolFlag{
 					Name:  "wait, w",
-					Usage: "Wait for the Instnace to be create (by default the command is async)",
+					Usage: "Wait for the Instance to be created (by default the command is async)",
 				},
 			},
 		},

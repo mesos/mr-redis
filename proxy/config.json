@@ -1,4 +1,8 @@
 {
+<<<<<<< HEAD
+=======
+	"HTTPPort": "7979",
+>>>>>>> c0030928f2894a32452cdbd34c194cc4917bd22c
 	"Entries": [{
 		"Name": "Hello",
 		"Pair": {

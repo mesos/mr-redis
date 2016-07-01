@@ -23,8 +23,7 @@ const (
 //Main execution point
 
 type MrRedisConfig struct {
-	MasterIP     string //MesosMaster's IP address
-	MasterPort   string //Mesos Masters Port number
+	Master       string //MesosMaster's endpoint zk://mesos.master/2181 or 10.11.12.13:5050
 	ExecutorPath string //Executor's Path from where to distribute
 	RedisPath    string //Path where redis-server executable is available
 	DBType       string //Type of the database etcd/zk/mysql/consul etcd.,
@@ -37,8 +36,7 @@ type MrRedisConfig struct {
 
 func NewMrRedisDefaultConfig() MrRedisConfig {
 	return MrRedisConfig{
-		MasterPort:   "5050",
-		MasterIP:     "127.0.0.1",
+		Master:       "127.0.0.1:5050",
 		ExecutorPath: "./MrRedisExecutor",
 		RedisPath:    "./redis-server",
 		DBType:       "etcd",
@@ -99,7 +97,7 @@ func main() {
 	}
 
 	//Start the Mesos library
-	go mesoslib.Run(Cfg.MasterIP, Cfg.MasterPort, Cfg.ArtifactIP, Cfg.ArtifactPort, Cfg.ExecutorPath, Cfg.RedisPath, Cfg.DBType, Cfg.DBEndPoint)
+	go mesoslib.Run(Cfg.Master, Cfg.ArtifactIP, Cfg.ArtifactPort, Cfg.ExecutorPath, Cfg.RedisPath, Cfg.DBType, Cfg.DBEndPoint)
 
 	//Start the creator
 	go cmd.Creator()

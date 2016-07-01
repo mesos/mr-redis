@@ -57,12 +57,49 @@ $chmod u+x *
 ```
 
 ### DC/OS
-MrRedis is integrated with DC/OS's universe, it should be pretty straight forward to install like anyother package.
+MrRedis is integrated with DC/OS's universe, it should be pretty straight forward to install it like anyother package.
 ```
 $dcos package install mr-redis
 ```
 #### NOTE for DC/OS Users:
-Unlike ETCD and other database frameworks installing mr-redis (scheduler) itself will not create any redis instance in your DC/OS environment, you have to further download and use the CLI (mrr) inorder to create redis instance. 
+Unlike ETCD, Cassandra and other database frameworks installing mr-redis (scheduler) itself will not create any redis instance in your DC/OS environment, you have to further download and use the CLI (mrr) in order to create redis instances.  
+
+#### Reaching the framework
+The scheduler binds itself with the port 5656, so from a node within the cluster or from a node from which mrredis.mesos is resolvable try to create an instance with the below configuration. {InstanceName : "TestInstance"; MemoryCapacity : 100 MB; Number of Slaves : 2;}
+```
+$curl -X "POST" mrredis.mesos:5656/v1/CREATE/TestInstance/100/1/2
+Request Accepted, Instance will be created.
+```
+
+#### Status of created Instance
+Try the below curl command.  This gives a json response about this instance.
+```
+$curl mrredis.mesos:5656/v1/STATUS/TestInstance
+{"Name":"TestInstance","Type":"MS","Status":"RUNNING","Capacity":100,"Master":{"IP":"10.11.12.123","Port":"6381","MemoryCapacity":100,"MemoryUsed":1904432,"Uptime":48,"ClientsConnected":1,"LastSyncedToMaster":0},"Slaves":[{"IP":"10.11.12.125","Port":"6385","MemoryCapacity":100,"MemoryUsed":834904,"Uptime":44,"ClientsConnected":2,"LastSyncedToMaster":5},{"IP":"10.11.12.125","Port":"6384","MemoryCapacity":100,"MemoryUsed":834904,"Uptime":45,"ClientsConnected":2,"LastSyncedToMaster":6}]}
+```
+
+#### Connecting to an Instance
+From the above json response information related to Master are as follows.
+```
+	"Master": {
+		"IP": "10.11.12.123",
+		"Port": "6381",
+		"MemoryCapacity": 100,
+		"MemoryUsed": 1904432,
+		"Uptime": 48,
+		"ClientsConnected": 1,
+		"LastSyncedToMaster": 0
+	}
+```
+You could use any redis [client] (http://redis.io/clients) and connect to the master or use the redis-cli to test the instance.
+```
+$redis-cli -h 10.11.12.123 -p 6381
+10.11.12.123:6381> set foo bar
+OK
+10.11.12.123:6381> get foo
+"bar"
+10.11.12.123:6381> exit
+```
 
 ## Starting the Scheduler (not applicable to DC/OS users)
 MrRedis scheduler binary is usually refered as `sched`, the scheduler hosts a file-server which can distribute redis binary and custom Executor.  
@@ -111,6 +148,17 @@ $./sched -DumpEmptyConfig
  }
 
 ```
+### Creating Instances
+This can be done in 3 ways.
+<img src="./CreateInstance.gif" width="100%" height="100%"> 
+
+### Creating Multiple Redis Instances:
+How much time does it take to create 70 single redis instances ?
+<img src="./MultiInstanceCreation.gif" width="100%" height="100%"> 
+
+### Master-Slave Promotion:
+Scheduler automatically promotes a slave when a master fails.
+<img src="./MasterSlavePromotion.gif" width="100%" height="100%"> 
 
 ## Using the CLI
 mr-redis has built-in cli for creating and destroying redis instances.
@@ -156,7 +204,7 @@ OPTIONS:
    --name, -n           Name of the Redis Instance
    --memory, -m "0"     Memory in MB
    --slaves, -s "0"     Number of Slaves
-   --wait, -w           Wait for the Instnace to be create (by default the command is async)
+   --wait, -w           Wait for the Instance to be created (by default the command is async)
    
 ```
 ## More Examples of Using the CLI
@@ -249,6 +297,16 @@ Master = 10.11.12.21:6380
         Slave48 = 10.11.12.21:6381
         Slave49 = 10.11.12.21:6382
 ```
+
+### Porxy in progerss
+We are writing a proxy that will be installed with every redis instances especially with Master-Slave setup.  The proxy should be a simple pass-through.  Should be capable of accepting new configuration changes without needing to restart it.  Below is some preformance stats comparing different available proxies and ours.
+
+```
+$redis-benchmark -h <IP> -p <PORT>  -q -r 100000
+```
+
+
+<img src="./ProxyCompare.PNG" width="100%" height="100%"> 
 
 
 ### Contribution Guidlines

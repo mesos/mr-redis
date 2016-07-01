@@ -41,10 +41,12 @@ type Proc struct {
 //ToDo the whole stats structure could be a json structure reflecting all the fields what redis info returns
 //currently one field has many new line saperated values;ToDO will this work if returned in API?
 type Stats struct {
-	Uptime    int64
-	Mem       int64
-	Clients   int
-	LastSyced int
+	Uptime        int64
+	Mem           int64
+	Clients       int
+	LastSyced     int
+	SlaveOffset   int64 //Offset of the slave
+	SlavePriority int
 }
 
 type ProcJson struct {
@@ -133,6 +135,7 @@ func (P *Proc) Load() bool {
 	P.SID, err = Gdb.Get(P.Nodename + "/SID")
 	P.Msg, err = Gdb.Get(P.Nodename + "/Msg")
 	P.Stats, err = Gdb.Get(P.Nodename + "/Stats")
+	P.SlaveOf, err = Gdb.Get(P.Nodename + "/SlaveOf")
 
 	if err != nil {
 		log.Printf("Error occured %v", err)
@@ -163,6 +166,7 @@ func (P *Proc) Sync() bool {
 	Gdb.Set(P.Nodename+"/Port", P.Port)
 	Gdb.Set(P.Nodename+"/State", P.State)
 	Gdb.Set(P.Nodename+"/Stats", P.Stats)
+	Gdb.Set(P.Nodename+"/SlaveOf", P.SlaveOf)
 	Gdb.Set(P.Nodename+"/Msg", P.Msg)
 	Gdb.Set(P.Nodename+"/EID", P.EID)
 	Gdb.Set(P.Nodename+"/SID", P.SID)
@@ -204,6 +208,15 @@ func (P *Proc) SyncMsg() bool {
 		return false
 	}
 	Gdb.Set(P.Nodename+"/Msg", P.Msg)
+
+	return true
+}
+
+func (P *Proc) SyncSlaveOf() bool {
+	if Gdb.IsSetup() != true {
+		return false
+	}
+	Gdb.Set(P.Nodename+"/SlaveOf", P.SlaveOf)
 
 	return true
 }

@@ -3,9 +3,7 @@ package RedMon
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
-	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -24,9 +22,9 @@ type RedMon struct {
 	IP      string    //IP address the redis instance should bind to
 	Port    int       //The port number of this redis instance to be started
 	Ofile   io.Writer //Stdout log file to be re-directed to this io.writer
-	Efile   io.Writer //stderr of the redis instnace should be re-directed to this file
+	Efile   io.Writer //stderr of the redis instance should be re-directed to this file
 	MS_Sync bool      //Make this as master after sync
-	monChan chan int
+	MonChan chan int
 	Cmd     *exec.Cmd
 	Client  *redisclient.Client //redis client library connection handler
 	L       *log.Logger         //to redirect log outputs to a file
@@ -39,22 +37,19 @@ type RedMon struct {
 //Capacity SlaveOf IP:Port        => This is a redis slave so start it as a slave, sync and then send TASK_RUNNING update then Monitor
 //Capacity Master-SlaveOf IP:Port => This is a New master of the instance with an upgraded memory value so
 //                          Start as slave, Sync data, make it as master, send TASK_RUNNING update and start to Monitor
-func NewRedMon(tskName string, IP string, Port int, data string) *RedMon {
+func NewRedMon(tskName string, IP string, Port int, data string, L *log.Logger) *RedMon {
 
 	var R RedMon
 	var P *typ.Proc
-	var out io.Writer = ioutil.Discard
 
-	R.monChan = make(chan int)
+	R.MonChan = make(chan int)
 	R.Port = Port
 	R.IP = IP
 
-	//initialise logger also
-	out, _ = os.Create("/tmp/MrRedisExecutor.log")
 	//ToDo does this need error handling
-	R.L = log.New(out, "[Info]", log.Lshortfile)
+	R.L = L
 
-	R.L.Printf("Split data recived is %v\n", data)
+	R.L.Printf("Split data received is %v\n", data)
 
 	split_data := strings.Split(data, " ")
 	if len(split_data) < 1 || len(split_data) > 4 {
@@ -105,9 +100,9 @@ func (R *RedMon) getConnectedClient() *redisclient.Client {
 func (R *RedMon) launchRedisServer(isSlave bool, IP string, port string) bool {
 
 	if isSlave {
-		R.Cmd = exec.Command("./redis-server", "--protected-mode", "no", "--port", fmt.Sprintf("%d", R.Port), "--SlaveOf", IP, port)
+		R.Cmd = exec.Command("./redis-server", "--port", fmt.Sprintf("%d", R.Port), "--SlaveOf", IP, port)
 	} else {
-		R.Cmd = exec.Command("./redis-server", "--protected-mode", "no", "--port", fmt.Sprintf("%d", R.Port))
+		R.Cmd = exec.Command("./redis-server", "--port", fmt.Sprintf("%d", R.Port))
 	}
 
 	err := R.Cmd.Start()
@@ -259,25 +254,37 @@ func (R *RedMon) UpdateStats() bool {
 	txt = R.GetRedisInfo("Memory", "used_memory")
 	redisStats.Mem, err = strconv.ParseInt(txt, 10, 64)
 	if err != nil {
-		log.Printf("UpdateStats() Unable to convert %s to number", txt)
+		R.L.Printf("UpdateStats(Mem) Unable to convert %s to number %v", txt, err)
 	}
 
 	txt = R.GetRedisInfo("Server", "uptime_in_seconds")
 	redisStats.Uptime, err = strconv.ParseInt(txt, 10, 64)
 	if err != nil {
-		log.Printf("UpdateStats() Unable to convert %s to number", txt)
+		R.L.Printf("UpdateStats(Uptime) Uptime Unable to convert %s to number %v", txt, err)
 	}
 
 	txt = R.GetRedisInfo("Clients", "connected_clients")
 	redisStats.Clients, err = strconv.Atoi(txt)
 	if err != nil {
-		log.Printf("UpdateStats() Unable to convert %s to number", txt)
+		R.L.Printf("UpdateStats(Clients) Unable to convert %s to number %v", txt, err)
 	}
 
 	txt = R.GetRedisInfo("Replication", "master_last_io_seconds_ago")
 	redisStats.LastSyced, err = strconv.Atoi(txt)
-	if err != nil {
-		log.Printf("UpdateStats() Unable to convert %s to number", txt)
+	if err != nil && txt != "" {
+		R.L.Printf("UpdateStats(master_last_io) Unable to convert %s to number %v", txt, err)
+	}
+
+	txt = R.GetRedisInfo("Replication", "slave_repl_offset")
+	redisStats.SlaveOffset, err = strconv.ParseInt(txt, 10, 64)
+	if err != nil && txt != "" {
+		R.L.Printf("UpdateStats(slave_repl_offset) Unable to convert %s to number %v", txt, err)
+	}
+
+	txt = R.GetRedisInfo("Replication", "slave_priority")
+	redisStats.SlavePriority, err = strconv.Atoi(txt)
+	if err != nil && txt != "" {
+		R.L.Printf("UpdateStats(slave_priority) Unable to convert %s to number %v", txt, err)
 	}
 
 	errSync := R.P.SyncStats(redisStats)
@@ -300,9 +307,16 @@ func (R *RedMon) Monitor() bool {
 		if R.P.State == "Running" {
 			select {
 
+<<<<<<< HEAD
 			case <-R.monChan:
 				//ToDo:update state if needed
 				//signal to stop monitoring this
+=======
+			case <-R.MonChan:
+				//ToDo:update state if needed
+				//signal to stop monitoring this
+				R.L.Printf("Stopping RedMon for %s %s", R.P.IP, R.P.Port)
+>>>>>>> c0030928f2894a32452cdbd34c194cc4917bd22c
 				return false
 
 			case <-CheckMsgCh:
@@ -367,20 +381,25 @@ func (R *RedMon) CheckMsg() {
 		return
 	}
 
-	switch R.P.Msg {
-	case "SHUTDOWN":
+	switch {
+	case R.P.Msg == "SHUTDOWN":
 		err = R.Stop()
 		if err {
 
 			R.L.Printf("failed to stop the REDIS server")
 		}
 		//in any case lets stop monitoring
-		R.monChan <- 1
-	case "MASTER":
+		R.MonChan <- 1
+		return
+	case R.P.Msg == "MASTER":
 		R.MakeMaster()
-	case "SLAVEOF":
+	case strings.Contains(R.P.Msg, "SLAVEOF"):
+		R.TargetNewMaster(R.P.Msg)
 		//If this is the message then this particular redis proc will become slave of a different master
 	}
+	//Once you have read the message delete the message.
+	R.P.Msg = ""
+	R.P.SyncMsg()
 
 }
 
@@ -437,6 +456,30 @@ func (R *RedMon) MakeMaster() bool {
 	if err != nil {
 		R.L.Printf("Error turning the slave to Master at IP:%s and port:%d", R.IP, R.Port)
 		return false
+	} else {
+		R.L.Printf("Slave of NO ONE worked")
+	}
+
+	return true
+}
+
+func (R *RedMon) TargetNewMaster(Msg string) bool {
+
+	SlaveofArry := strings.Split(Msg, " ") //Split it with space as while we are sending fromt the sheduler we send it of the format SLAVEOF<SPACE>IP<SPACE>PORT
+	if len(SlaveofArry) != 3 {             //This should have three elements otherwise its an error
+
+		R.L.Printf("Writing SLAVE of COMMAND %s", Msg)
+		return false
+
+	}
+
+	//send the slaveof IP (Arry[1]) and PORT (Array[1])
+	_, err := R.Client.SlaveOf(SlaveofArry[1], SlaveofArry[2]).Result()
+	if err != nil {
+		R.L.Printf("Error turning the slave to Master at IP:%s and port:%d", R.IP, R.Port)
+		return false
+	} else {
+		R.L.Printf("Slave of %s %s worked", SlaveofArry[1], SlaveofArry[2])
 	}
 
 	return true
