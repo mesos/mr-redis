@@ -4,14 +4,22 @@ import (
 	"fmt"
 	"github.com/codegangsta/cli"
 	"os"
+	"runtime"
 	"strings"
 )
 
 var MrRedisFW string //Frameworks IP and Port number
 
 func Init() {
+	var conf_file_path string
+	if runtime.GOOS == "windows" {
+		conf_file_path = ".MrRedis"
+	} else {
+		conf_file_path = "/tmp/.MrRedis"
+	}
+
 	//Check if we have a ~/.MrRedis config file in the system already,
-	f, err := os.Open("/tmp/.MrRedis")
+	f, err := os.Open(conf_file_path)
 	if err != nil {
 		fmt.Printf("Cli is not initalized err=%v\n", err)
 		fmt.Printf("$mrr init <http://MrRedisEndPoint>\n")

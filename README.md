@@ -52,8 +52,26 @@ $mkdir mr-redis
 $cd mr-redis
 $wget https://github.com/mesos/mr-redis/releases/download/v0.01-alpha/sched
 $wget https://github.com/mesos/mr-redis/releases/download/v0.01-alpha/MrRedisExecutor
-$wget https://github.com/mesos/mr-redis/releases/download/v0.01-alpha/mrr
+```
+Linux CLI
+```
+$wget https://github.com/mesos/mr-redis/releases/download/v0.01-alpha/mrr_linux_amd64
+```
+Windows CLI
+```
+$wget https://github.com/mesos/mr-redis/releases/download/v0.01-alpha/mrr_win_amd64.exe
+```
+Darwin (MAC) CLI
+```
+$wget https://github.com/mesos/mr-redis/releases/download/v0.01-alpha/mrr_darwin_amd64
+```
+Mark them as binaries 
+```
 $chmod u+x *
+```
+Create a link or alias for ease of use, for example in linux perform below to create a link 
+```
+$ln -s mrr_linux_amd64 mrr
 ```
 
 ### DC/OS
@@ -75,7 +93,17 @@ Request Accepted, Instance will be created.
 Try the below curl command.  This gives a json response about this instance.
 ```
 $curl mrredis.mesos:5656/v1/STATUS/TestInstance
-{"Name":"TestInstance","Type":"MS","Status":"RUNNING","Capacity":100,"Master":{"IP":"10.11.12.123","Port":"6381","MemoryCapacity":100,"MemoryUsed":1904432,"Uptime":48,"ClientsConnected":1,"LastSyncedToMaster":0},"Slaves":[{"IP":"10.11.12.125","Port":"6385","MemoryCapacity":100,"MemoryUsed":834904,"Uptime":44,"ClientsConnected":2,"LastSyncedToMaster":5},{"IP":"10.11.12.125","Port":"6384","MemoryCapacity":100,"MemoryUsed":834904,"Uptime":45,"ClientsConnected":2,"LastSyncedToMaster":6}]}
+{"Name":"TestInstance","Type":"MS","Status":"RUNNING","Capacity":200,"Master":{"IP":"10.11.12.123","Port":"6382","MemoryCapacity":200,"MemoryUsed":1904432,"Uptime":1623,"ClientsConnected":1,"LastSyncedToMaster":0},"Slaves":[{"IP":"10.11.12.121","Port":"6381","MemoryCapacity":200,"MemoryUsed":834904,"Uptime":1619,"ClientsConnected":2,"LastSyncedToMaster":9},{"IP":"10.11.12.121","Port":"6382","MemoryCapacity":200,"MemoryUsed":834904,"Uptime":1619,"ClientsConnected":2,"LastSyncedToMaster":9}]}
+```
+OR try the CLI
+```
+$mrr status -n TestInstance
+Status = RUNNING
+Type = MS
+Capacity = 200
+Master = 10.11.12.123:6382
+        Slave0 = 10.11.12.121:6381
+        Slave1 = 10.11.12.121:6382
 ```
 
 #### Connecting to an Instance
@@ -83,17 +111,17 @@ From the above json response information related to Master are as follows.
 ```
 	"Master": {
 		"IP": "10.11.12.123",
-		"Port": "6381",
-		"MemoryCapacity": 100,
+		"Port": "6382",
+		"MemoryCapacity": 200,
 		"MemoryUsed": 1904432,
-		"Uptime": 48,
+		"Uptime": 1623,
 		"ClientsConnected": 1,
 		"LastSyncedToMaster": 0
 	}
 ```
 You could use any redis [client] (http://redis.io/clients) and connect to the master or use the redis-cli to test the instance.
 ```
-$redis-cli -h 10.11.12.123 -p 6381
+$redis-cli -h 10.11.12.123 -p 6382
 10.11.12.123:6381> set foo bar
 OK
 10.11.12.123:6381> get foo

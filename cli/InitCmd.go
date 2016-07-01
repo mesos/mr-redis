@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"runtime"
 	"strings"
 
 	"github.com/codegangsta/cli"
@@ -17,7 +18,14 @@ func InitCmd(c *cli.Context) {
 		return
 	}
 
-	f, err := os.Create("/tmp/.MrRedis")
+	var conf_file_path string
+	if runtime.GOOS == "windows" {
+		conf_file_path = ".MrRedis"
+	} else {
+		conf_file_path = "/tmp/.MrRedis"
+	}
+
+	f, err := os.Create(conf_file_path)
 
 	if err != nil {
 		fmt.Printf("Error: Unable to create config file err=%v\n", err)
