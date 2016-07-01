@@ -27,6 +27,17 @@ type MrRedisExecutor struct {
 }
 
 func GetLocalIP() string {
+
+	if libprocessIP := os.Getenv("LIBPROCESS_IP"); libprocessIP != "" {
+		address := net.ParseIP(libprocessIP)
+		if address != nil {
+			//If its a valid IP address return the string
+			fmt.Printf("LibProess IP = %s", libprocessIP)
+			return libprocessIP
+		}
+
+	}
+
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
 		return ""
@@ -35,6 +46,7 @@ func GetLocalIP() string {
 		// check the address type and if it is not a loopback the display it
 		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
 			if ipnet.IP.To4() != nil {
+				fmt.Printf("InterfaceAddress = %s", ipnet.IP.String())
 				return ipnet.IP.String()
 			}
 		}
@@ -159,7 +171,8 @@ func main() {
 	MrRedisExec.monMap = make(map[string](*RedMon.RedMon))
 
 	dconfig := exec.DriverConfig{
-		Executor: MrRedisExec,
+		BindingAddress: net.ParseIP(MrRedisExec.HostIP),
+		Executor:       MrRedisExec,
 	}
 	driver, err := exec.NewMesosExecutorDriver(dconfig)
 

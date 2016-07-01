@@ -158,7 +158,7 @@ func GetFrameWorkID() (string, float64) {
 
 }
 
-func Run(MasterIP, MasterPort, ServerIP, ServerPort, executorPath, redisPath, DbType, DbEndPoint string) {
+func Run(MasterEndPoint, ServerIP, ServerPort, executorPath, redisPath, DbType, DbEndPoint string) {
 
 	//Split the configuration string
 
@@ -184,8 +184,8 @@ func Run(MasterIP, MasterPort, ServerIP, ServerPort, executorPath, redisPath, Db
 	sched_config := sched.DriverConfig{
 		Scheduler:      NewMrRedisScheduler(exec),
 		Framework:      fwinfo,
-		Master:         MasterIP + ":" + MasterPort,
-		Credential:     nil,
+		Master:         MasterEndPoint,
+		Credential:     (*mesos.Credential)(nil),
 		BindingAddress: parseIP(ServerIP),
 	}
 
