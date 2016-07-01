@@ -147,13 +147,12 @@ The configuration file should be of json format, below is an example
 ```
 $cat config.json
 {
-        "MasterIP":"10.11.12.13",
-        "MasterPort":"5050",
+        "Master":"zk://master.mesos:2181/mesos",
         "ExecutorPath":"/home/ubuntu/MrRedis/exec/MrRedisExecutor",
         "RedisPath":"/home/ubuntu/MrRedis/redisbin/redis-server",
         "DBType":"etcd",
         "DBEndPoint": "http://11.12.13.14:2379",
-        "ArtifactIP": "12.13.14.15"
+        "ArtifactIP": "12.13.14.15"     //scheduler Machine's IP address which is reachable by all the slaves to download the executor
 }
 ```
 
@@ -163,8 +162,7 @@ if you want to get an empty config for you to start working on you could do this
 ```
 $./sched -DumpEmptyConfig
 {
-   "MasterIP": "127.0.0.1",
-   "MasterPort": "5050",
+   "Master": "127.0.0.1:5050",
    "ExecutorPath": "./MrRedisExecutor",
    "RedisPath": "./redis-server",
    "DBType": "etcd",
