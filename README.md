@@ -62,7 +62,7 @@ MrRedis is integrated with DC/OS's universe, it should be pretty straight forwar
 $dcos package install mr-redis
 ```
 #### NOTE for DC/OS Users:
-Unlike ETCD and other database frameworks installing mr-redis (scheduler) itself will not create any redis instance in your DC/OS environment, you have to further download and use the CLI (mrr) inorder to create redis instance. 
+Unlike ETCD, Cassandra and other database frameworks installing mr-redis (scheduler) itself will not create any redis instance in your DC/OS environment, you have to further download and use the CLI (mrr) in order to create redis instances.  
 
 ## Starting the Scheduler (not applicable to DC/OS users)
 MrRedis scheduler binary is usually refered as `sched`, the scheduler hosts a file-server which can distribute redis binary and custom Executor.  
@@ -111,6 +111,17 @@ $./sched -DumpEmptyConfig
  }
 
 ```
+### Creating Instances
+This can be done in 3 ways.
+<img src="./CreateInstance.gif" width="100%" height="100%"> 
+
+### Creating Multiple Redis Instances:
+How much time does it take to create 70 single redis instances ?
+<img src="./MultiInstanceCreation.gif" width="100%" height="100%"> 
+
+### Master-Slave Promotion:
+Scheduler automatically promotes a slave when a master failes.
+<img src="./MasterSlavePromotion.gif" width="100%" height="100%"> 
 
 ## Using the CLI
 mr-redis has built-in cli for creating and destroying redis instances.
