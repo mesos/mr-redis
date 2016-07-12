@@ -1,3 +1,4 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/mesos/mr-redis)](https://goreportcard.com/report/github.com/mesos/mr-redis)
 # mr-redis  
 
 Mesos runs Redis.
