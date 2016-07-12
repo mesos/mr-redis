@@ -72,7 +72,7 @@ func Maintainer() {
 					//Now this means that we have master task when we already have all our masters running
 					//This could mean that a new master is available with a scaled capacity
 					//OldMaster := Inst.Mname
-					//ToDo Send old master id to the Destoryer
+					//ToDo Send old master id to the Destroyer
 
 					//Mark all the old slave to be deleted send the slave id to the destroyer
 					Inst.Slaves = 0
@@ -143,7 +143,7 @@ func Maintainer() {
 					//We need to Elect a new master among the slaves, below are the steps we need to perform
 					//1) Loop through the slaves and select the one with MAX slave_repl_offset
 					PromotedSlave := PromoteASlave(Inst)
-					log.Printf("The promoted Slave is %s %s", PromotedSlave.IP, PromotedSlave.Port, PromotedSlave.ID)
+					log.Printf("The promoted Slave is %s %s %s", PromotedSlave.IP, PromotedSlave.Port, PromotedSlave.ID)
 					//2) Make it as master
 					MakeMaster(Inst, PromotedSlave)
 					log.Printf("New Master is %s", Inst.Mname)
@@ -254,7 +254,7 @@ func MakeMaster(I *typ.Instance, PromotedSlave *typ.Proc) {
 
 }
 
-//This function will make all the availabel slaves point to the newly promoted master and send request to the Creator to create an additional slave
+//This function will make all the availablel slaves point to the newly promoted master and send request to the Creator to create an additional slave
 
 func SlaveOf(I *typ.Instance, P *typ.Proc) {
 

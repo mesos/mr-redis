@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/net/context"
 	cli "github.com/coreos/etcd/client"
+	"golang.org/x/net/context"
 )
 
 //global Constants releated to ETCD

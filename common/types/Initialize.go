@@ -28,7 +28,6 @@ func Initialize(dbtype string, config string) (bool, error) {
 			log.Fatalf("Failed to setup etcd database error:%v", err)
 		}
 		return Gdb.IsSetup(), nil
-		break
 	}
 
 	return true, nil

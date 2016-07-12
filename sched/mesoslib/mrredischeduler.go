@@ -58,7 +58,7 @@ func (S *MrRedisScheduler) ResourceOffers(driver sched.SchedulerDriver, offers [
 	//We have some task and should consume the offers sent by the masters
 	//Pick one task and check if any of the offer is suitable
 
-	//Loop throught he offers
+	//Loop thought he offers
 	for _, offer := range offers {
 
 		cpuResources := util.FilterResources(offer.Resources, func(res *mesos.Resource) bool {
@@ -158,5 +158,5 @@ func (S *MrRedisScheduler) ExecutorLost(_ sched.SchedulerDriver, eid *mesos.Exec
 }
 
 func (S *MrRedisScheduler) Error(_ sched.SchedulerDriver, err string) {
-	log.Printf("Scheduler received error:", err)
+	log.Printf("Scheduler received error:%v", err)
 }

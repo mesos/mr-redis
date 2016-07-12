@@ -83,7 +83,6 @@ func HandleConnection(E Entry) error {
 
 		}(CurrentE, conn)
 	}
-	return nil
 }
 
 func HandleHTTPUpdate(w http.ResponseWriter, r *http.Request) {
@@ -93,7 +92,7 @@ func HandleHTTPUpdate(w http.ResponseWriter, r *http.Request) {
 		content, err := ioutil.ReadAll(r.Body)
 		r.Body.Close()
 		if err != nil {
-			fmt.Fprint(w, "Error understanding the Body %v", err)
+			fmt.Fprintf(w, "Error understanding the Body %v", err)
 			log.Printf("Error understanding the Body %v", err)
 			return
 		}
@@ -166,7 +165,7 @@ func main() {
 	http.HandleFunc("/Get/", HandleHTTPGet)
 	log.Fatal(http.ListenAndServe(":"+Cfg.HTTPPort, nil))
 
-	//Wait indefinately
+	//Wait indefinitely
 	waitCh := make(chan bool)
 	<-waitCh
 

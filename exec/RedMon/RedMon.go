@@ -135,7 +135,6 @@ func (R *RedMon) Start() bool {
 		}
 	}
 
-	return false
 }
 
 func (R *RedMon) StartMaster() bool {
@@ -333,7 +332,7 @@ func (R *RedMon) Monitor() bool {
 func (R *RedMon) Stop() bool {
 
 	//send SHUTDOWN command for a gracefull exit of the redis-server
-	//the server exited gracefully will reflect at the task status FINISHED
+	//the server exited graceful will reflect at the task status FINISHED
 	_, err := R.Client.Shutdown().Result()
 	if err != nil {
 		R.L.Printf("problem shutting down the server at IP:%s and port:%d with error %v", R.IP, R.Port, err)

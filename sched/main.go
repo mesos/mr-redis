@@ -30,7 +30,7 @@ type MrRedisConfig struct {
 	DBEndPoint   string //Endpoint of the database
 	LogFile      string //Name of the logfile
 	ArtifactIP   string //The IP to which we should bind to for distributing the executor among the interfaces
-	ArtifactPort string //The port to which we shoudl bind to for distributing the executor
+	ArtifactPort string //The port to which we should bind to for distributing the executor
 	HTTPPort     string //Defaults to 8080 if otherwise specify explicitly
 }
 

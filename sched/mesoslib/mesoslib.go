@@ -77,8 +77,8 @@ func prepareExecutorInfo(IP, Port, executorPath, redisPath, DbType, DbEndPoint s
 	}
 }
 
-// Mesos library will recive a string comman seperated with values that it needs to run with
-// this function should parse those comma seperated values and supply it to mesos-library
+// Mesos library will recive a string comman separated with values that it needs to run with
+// this function should parse those comma separated values and supply it to mesos-library
 // format config = "MasterIP","currentServerIP","MasterPort","currentServerPort"
 // MasterIP/Port = Mesos Master ip or port
 // Curre3ntServerIP = the ip address of the server at which framework/scheduler will run
@@ -134,7 +134,7 @@ func parseIP(address string) net.IP {
 const FailoverTime = 60 //Frameowkr and its task will be terminated if the framework is not started in 60 secons
 const TimeFormat = "2006-01-02 15:04:05.999999999 -0700 MST"
 
-//If the frameowkr was regiestered before the Failover tiemout value then regiester as a new framework
+//If the framework was regiestered before the Failover timeout value then regiester as a new framework
 func GetFrameWorkID() (string, float64) {
 
 	fTimout := float64(FailoverTime)

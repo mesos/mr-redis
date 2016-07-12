@@ -153,7 +153,7 @@ func (P *Proc) Sync() bool {
 		return false
 	}
 
-	//Attempt to create the directory/section for storing the PROC relevent information in the instance
+	//Attempt to create the directory/section for storing the PROC relevant information in the instance
 	//P.Nodename = etcd.ETC_INST_DIR + "/" + P.Instance + "/PROC/" + P.ID
 	Gdb.CreateSection(P.Nodename)
 
