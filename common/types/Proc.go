@@ -12,7 +12,7 @@ import (
 	"github.com/mesos/mr-redis/common/store/etcd"
 )
 
-//A standalone redis KV store is usually started in any slave (Linux) like below
+//Proc A standalone redis KV store is usually started in any slave (Linux) like below
 //$./redis-server -p <PORT> ..... {OPTIONS}
 //This stand alone redis-server will be an actual unix process bound to a particular port witha PID
 //A redis Master Slave setup will have two such "redis-server" processes running in either the same machine or two different machines
@@ -38,7 +38,7 @@ type Proc struct {
 	//cli    redis.Cli
 }
 
-//ToDo the whole stats structure could be a json structure reflecting all the fields what redis info returns
+//Stats the whole stats structure could be a json structure reflecting all the fields what redis info returns
 //currently one field has many new line saperated values;ToDO will this work if returned in API?
 type Stats struct {
 	Uptime        int64
@@ -49,6 +49,7 @@ type Stats struct {
 	SlavePriority int
 }
 
+//ProcJson Fields to be packed in a json when replied to a HTTP REST query.
 type ProcJson struct {
 	IP                 string
 	Port               string
@@ -59,6 +60,7 @@ type ProcJson struct {
 	LastSyncedToMaster int
 }
 
+//NewProc Constructor for a PROC struct, this does not sync anything to the DB
 func NewProc(TskName string, Capacity int, Type string, SlaveOf string) *Proc {
 
 	var tmpProc Proc
@@ -81,7 +83,7 @@ func NewProc(TskName string, Capacity int, Type string, SlaveOf string) *Proc {
 	return &tmpProc
 }
 
-//Load a Proc information from the store to structure and return
+//LoadProc Load a Proc information from the store and populate a structure
 func LoadProc(TskName string) *Proc {
 
 	var P Proc
@@ -103,7 +105,7 @@ func LoadProc(TskName string) *Proc {
 	return &P
 }
 
-//Load the latest from ETC store
+//Load the latest from KV store
 func (P *Proc) Load() bool {
 
 	var err error
@@ -146,7 +148,7 @@ func (P *Proc) Load() bool {
 
 }
 
-//Sync everything thats in-memory to the the central store
+//Sync everything thats in-memory to the KV store, should be used only whne you have more attributes to be synced/written to the DB at the same time, Disk intensive operation
 func (P *Proc) Sync() bool {
 
 	if Gdb.IsSetup() != true {
@@ -175,25 +177,27 @@ func (P *Proc) Sync() bool {
 	return true
 }
 
+//SyncStats Updates only the statistic related information to the disk, used by RedMon every second
 func (P *Proc) SyncStats(s Stats) bool {
 	if Gdb.IsSetup() != true {
 		return false
 	}
 
-	s_bytes, err := json.Marshal(s)
+	sBytes, err := json.Marshal(s)
 
 	if err != nil {
 		log.Printf("SyncStats() unbale to marshal error %v", err)
 		return false
 	}
 
-	P.Stats = string(s_bytes)
+	P.Stats = string(sBytes)
 
 	Gdb.Set(P.Nodename+"/Stats", P.Stats)
 
 	return true
 }
 
+//SyncType should be used to only update the TYPE attribute of a PROC
 func (P *Proc) SyncType() bool {
 	if Gdb.IsSetup() != true {
 		return false
@@ -203,6 +207,7 @@ func (P *Proc) SyncType() bool {
 	return true
 }
 
+//SyncMsg Should be used only to update a MSG with respect to a PROC
 func (P *Proc) SyncMsg() bool {
 	if Gdb.IsSetup() != true {
 		return false
@@ -212,6 +217,7 @@ func (P *Proc) SyncMsg() bool {
 	return true
 }
 
+//SyncSlaveOf should be used to make a slave (proc) point to a new master
 func (P *Proc) SyncSlaveOf() bool {
 	if Gdb.IsSetup() != true {
 		return false
@@ -221,6 +227,7 @@ func (P *Proc) SyncSlaveOf() bool {
 	return true
 }
 
+//LoadStats get the latest STATS info from the store, usually called by the scheduler to make a decision
 func (P *Proc) LoadStats() *Stats {
 	var err error
 	var s Stats
@@ -243,6 +250,7 @@ func (P *Proc) LoadStats() *Stats {
 	return &s
 }
 
+//LoadType Update what is the current type of a PROC, usually called by the scheduler
 func (P *Proc) LoadType() bool {
 	var err error
 	if Gdb.IsSetup() != true {
@@ -256,6 +264,7 @@ func (P *Proc) LoadType() bool {
 	return true
 }
 
+//LoadMsg Get the latest MSG from the scheduler, usually called by the executor(RedMon)
 func (P *Proc) LoadMsg() bool {
 	var err error
 	if Gdb.IsSetup() != true {
@@ -271,22 +280,23 @@ func (P *Proc) LoadMsg() bool {
 	return true
 }
 
+//ToJson Convert a PROC to json but only selected fileds
 func (P *Proc) ToJson() *ProcJson {
 
-	var p_json ProcJson
-	p_json.IP = P.IP
-	p_json.Port = P.Port
-	p_json.MemoryCapacity = P.MemCap
+	var pJson ProcJson
+	pJson.IP = P.IP
+	pJson.Port = P.Port
+	pJson.MemoryCapacity = P.MemCap
 	stats := P.LoadStats()
 	if stats == nil {
 		return nil
 	}
-	p_json.MemoryUsed = stats.Mem
-	p_json.ClientsConnected = stats.Clients
-	p_json.Uptime = stats.Uptime
-	p_json.LastSyncedToMaster = stats.LastSyced
+	pJson.MemoryUsed = stats.Mem
+	pJson.ClientsConnected = stats.Clients
+	pJson.Uptime = stats.Uptime
+	pJson.LastSyncedToMaster = stats.LastSyced
 
-	return &p_json
+	return &pJson
 
 	/*
 		ret_bytes, err := json.Marshal(p_json)
@@ -299,21 +309,14 @@ func (P *Proc) ToJson() *ProcJson {
 	*/
 }
 
+//ToJsonStats The stats are always store in JSON format in the DB/Store against a single key
 func (P *Proc) ToJsonStats(stats Stats) string {
 
-	//ToDo there are new lines in each value, to update to complete and nested json
-	/*
-		ret_str = ret_str + "MEM:" + stats.Mem + ","
-		ret_str = ret_str + "CPU:" + stats.Cpu + ","
-		ret_str = ret_str + "OTHERS:" + stats.Others + ","
-		ret_str = ret_str + "}"
-	*/
-
-	ret_bytes, err := json.Marshal(stats)
+	retBytes, err := json.Marshal(stats)
 
 	if err != nil {
 		return "{Invalid Stats}"
 	}
 
-	return string(ret_bytes)
+	return string(retBytes)
 }

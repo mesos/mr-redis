@@ -8,6 +8,8 @@ import (
 	"github.com/codegangsta/cli"
 )
 
+//CreateCmd sub-command implementation, for now it takes name, memory and number of slaves
+//If wait is bool flag is enabled then we will keep polling scheduler/framework until we get a "Created OK" from it.
 func CreateCmd(c *cli.Context) {
 
 	name := c.String("name")

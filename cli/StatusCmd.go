@@ -10,22 +10,19 @@ import (
 	typ "github.com/mesos/mr-redis/common/types"
 )
 
+//IsRunning used by Create comamnd to determine if a given instance is now in RUNNING state
 func IsRunning(name string) bool {
 
-	ret := StatusOf(name)
+	ret := statusOf(name)
 
-	if ret == nil {
-		return false
-	} else {
-		if ret.Status == typ.INST_STATUS_RUNNING {
-			return true
-		}
+	if ret != nil && ret.Status == typ.INST_STATUS_RUNNING {
+		return true
 	}
 
 	return false
 }
 
-func StatusOf(name string) *typ.Instance_Json {
+func statusOf(name string) *typ.Instance_Json {
 	var ret typ.Instance_Json
 
 	url := fmt.Sprintf("%s/v1/STATUS/%s", MrRedisFW, name)
@@ -53,9 +50,10 @@ func StatusOf(name string) *typ.Instance_Json {
 	}
 
 	return nil
-
 }
 
+//StatusCmd Implementation of STATUS subcomamnd
+//Simply fires the HTTP GET to the scheduler/framework
 func StatusCmd(c *cli.Context) {
 
 	name := c.String("name")
@@ -66,7 +64,7 @@ func StatusCmd(c *cli.Context) {
 		return
 	}
 
-	inst := StatusOf(name)
+	inst := statusOf(name)
 
 	if inst == nil {
 		fmt.Printf("Status not available\n")

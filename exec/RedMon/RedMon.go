@@ -13,7 +13,7 @@ import (
 	redisclient "gopkg.in/redis.v3"
 )
 
-//This structure is used to implement a monitor thread/goroutine for a running Proc(redisProc)
+//RedMon This structure is used to implement a monitor thread/goroutine for a running Proc(redisProc)
 //This structure should be extended only if more functionality is required on the Monitoring functionality
 //A Redis Proc's objec is created within this and monitored hence forth
 type RedMon struct {
@@ -31,7 +31,7 @@ type RedMon struct {
 	//cgroup *CgroupManager		//Cgroup manager/cgroup connection pointer
 }
 
-//Create a new monitor based on the Data sent along with the TaskInfo
+//NewRedMon Create a new monitor based on the Data sent along with the TaskInfo
 //The data could have the following details
 //Capacity Master                 => Just start this PROC send update as TASK_RUNNING and monitor henceforth
 //Capacity SlaveOf IP:Port        => This is a redis slave so start it as a slave, sync and then send TASK_RUNNING update then Monitor
@@ -51,25 +51,25 @@ func NewRedMon(tskName string, IP string, Port int, data string, L *log.Logger) 
 
 	R.L.Printf("Split data received is %v\n", data)
 
-	split_data := strings.Split(data, " ")
-	if len(split_data) < 1 || len(split_data) > 4 {
+	splitData := strings.Split(data, " ")
+	if len(splitData) < 1 || len(splitData) > 4 {
 		//Print an error this is not suppose to happen
-		R.L.Printf("RedMon Splitdata error %v\n", split_data)
+		R.L.Printf("RedMon Splitdata error %v\n", splitData)
 		return nil
 	}
 
-	Cap, _ := strconv.Atoi(split_data[0])
+	Cap, _ := strconv.Atoi(splitData[0])
 
-	switch split_data[1] {
+	switch splitData[1] {
 	case "Master":
 		P = typ.NewProc(tskName, Cap, "M", "")
 		R.L.Printf("created proc for new MASTER\n")
 		break
 	case "SlaveOf":
-		P = typ.NewProc(tskName, Cap, "S", split_data[2])
+		P = typ.NewProc(tskName, Cap, "S", splitData[2])
 		break
 	case "Master-SlaveOf":
-		P = typ.NewProc(tskName, Cap, "MS", split_data[2])
+		P = typ.NewProc(tskName, Cap, "MS", splitData[2])
 		R.MS_Sync = true
 		break
 	}
@@ -125,18 +125,17 @@ func (R *RedMon) Start() bool {
 
 	if R.P.SlaveOf == "" {
 		return R.StartMaster()
-	} else {
-
-		if !R.MS_Sync {
-			return R.StartSlave()
-		} else {
-			//Posibly a scale request so start it as a slave, sync then make as master
-			return R.StartSlaveAndMakeMaster()
-		}
 	}
+
+	if !R.MS_Sync {
+		return R.StartSlave()
+	}
+	//Posibly a scale request so start it as a slave, sync then make as master
+	return R.StartSlaveAndMakeMaster()
 
 }
 
+//StartMaster Start the Proc as a master
 func (R *RedMon) StartMaster() bool {
 
 	var ret = false
@@ -156,6 +155,7 @@ func (R *RedMon) StartMaster() bool {
 	return true
 }
 
+//StartSlave start the proc as a slave, should be called to point to a valid master
 func (R *RedMon) StartSlave() bool {
 	var ret = false
 	//Command Line
@@ -186,6 +186,7 @@ func (R *RedMon) StartSlave() bool {
 	return true
 }
 
+//StartSlaveAndMakeMaster Start is as a slave and make it as a master, should be done for replication or adding a new slave
 func (R *RedMon) StartSlaveAndMakeMaster() bool {
 	var ret = false
 	//Command Line
@@ -224,16 +225,17 @@ func fetchSubSection(value string, SubSection string) string {
 
 	for _, key := range arr {
 		if strings.Contains(key, SubSection) {
-			sub_arr := strings.Split(key, ":")
-			if len(sub_arr) != 2 {
+			subArr := strings.Split(key, ":")
+			if len(subArr) != 2 {
 				return ""
 			}
-			return sub_arr[1]
+			return subArr[1]
 		}
 	}
 	return ""
 }
 
+//GetRedisInfo Connect to the Redis Proc and collect info we need
 func (R *RedMon) GetRedisInfo(Section string, Subsection string) string {
 
 	value, err := R.Client.Info(Section).Result()
@@ -244,6 +246,7 @@ func (R *RedMon) GetRedisInfo(Section string, Subsection string) string {
 	return fetchSubSection(value, Subsection)
 }
 
+//UpdateStats Update the stats structure and flush it to the Store/DB
 func (R *RedMon) UpdateStats() bool {
 
 	var redisStats typ.Stats
@@ -294,6 +297,7 @@ func (R *RedMon) UpdateStats() bool {
 	return true
 }
 
+//Monitor Primary monitor thread started for every PROC
 func (R *RedMon) Monitor() bool {
 
 	//wait for a second for the server to start
@@ -329,6 +333,7 @@ func (R *RedMon) Monitor() bool {
 
 }
 
+//Stop we have been told to stop the Redis
 func (R *RedMon) Stop() bool {
 
 	//send SHUTDOWN command for a gracefull exit of the redis-server
@@ -351,6 +356,7 @@ func (R *RedMon) Stop() bool {
 
 }
 
+//Die Kill the Redis Proc
 func (R *RedMon) Die() bool {
 	//err := nil
 	err := R.Cmd.Process.Kill()
@@ -363,6 +369,7 @@ func (R *RedMon) Die() bool {
 	return true
 }
 
+//CheckMsg constantly keep checking if there is a new message for this Proc
 func (R *RedMon) CheckMsg() {
 	//check message from scheduler
 	//currently we do it to see if scheduler asks us to quit
@@ -396,7 +403,7 @@ func (R *RedMon) CheckMsg() {
 
 }
 
-//Should be called by the Monitors on Slave Procs, this gives the boolien anser if the sync is complegted or not
+//IsSyncComplete Should be called by the Monitors on Slave Procs, this gives the boolien anser if the sync is complegted or not
 func (R *RedMon) IsSyncComplete() bool {
 
 	//time.Sleep(1 * time.Second)
@@ -426,9 +433,8 @@ func (R *RedMon) IsSyncComplete() bool {
 			if !strings.Contains(r[1], "0") {
 				R.L.Printf("Sync not complete yet in slave IP:%s, port:%d", R.IP, R.Port)
 				return false
-			} else {
-				return true
 			}
+			return true
 		case "master_sync_last_io_seconds_ago":
 			//If the sync is completed then return true
 			return true
@@ -442,6 +448,7 @@ func (R *RedMon) IsSyncComplete() bool {
 	return false
 }
 
+//MakeMaster Make a Proc as a master (ie: supply the command "slaveof no on" to the Proc
 func (R *RedMon) MakeMaster() bool {
 
 	//send the slaveof no one command to server
@@ -449,13 +456,13 @@ func (R *RedMon) MakeMaster() bool {
 	if err != nil {
 		R.L.Printf("Error turning the slave to Master at IP:%s and port:%d", R.IP, R.Port)
 		return false
-	} else {
-		R.L.Printf("Slave of NO ONE worked")
 	}
 
+	R.L.Printf("Slave of NO ONE worked")
 	return true
 }
 
+//TargetNewMaster Make this Proc now target a new master, should be done when a new slave is promoted
 func (R *RedMon) TargetNewMaster(Msg string) bool {
 
 	SlaveofArry := strings.Split(Msg, " ") //Split it with space as while we are sending fromt the sheduler we send it of the format SLAVEOF<SPACE>IP<SPACE>PORT
@@ -471,9 +478,8 @@ func (R *RedMon) TargetNewMaster(Msg string) bool {
 	if err != nil {
 		R.L.Printf("Error turning the slave to Master at IP:%s and port:%d", R.IP, R.Port)
 		return false
-	} else {
-		R.L.Printf("Slave of %s %s worked", SlaveofArry[1], SlaveofArry[2])
 	}
 
+	R.L.Printf("Slave of %s %s worked", SlaveofArry[1], SlaveofArry[2])
 	return true
 }

@@ -8,7 +8,7 @@ import (
 	typ "github.com/mesos/mr-redis/common/types"
 )
 
-//This is the main function that handles all the task updates
+//Maintainer This is the main function that handles all the task updates
 func Maintainer() {
 
 	log.Printf("Scheduler Maintainer is starting")
@@ -203,17 +203,18 @@ func Maintainer() {
 	log.Printf("Scheduler Maintainer is stopped")
 }
 
+//CreateSlaves Call this to create N slaves it automatically updates the store/DB
 func CreateSlaves(Inst *typ.Instance, ProcID string) bool {
 	if Inst.Slaves > 0 {
 		Inst.Slaves--
 		//Remove this lsave from the list of slaves
-		var tmp_Snames []string
+		var tmpSnames []string
 		for _, pid := range Inst.Snames {
 			if pid != ProcID {
-				tmp_Snames = append(tmp_Snames, pid)
+				tmpSnames = append(tmpSnames, pid)
 			}
 		}
-		Inst.Snames = tmp_Snames
+		Inst.Snames = tmpSnames
 		Inst.SyncSlaves()
 		typ.Cchan <- typ.CreateSlaves(Inst, 1)
 	}
@@ -221,6 +222,7 @@ func CreateSlaves(Inst *typ.Instance, ProcID string) bool {
 	return true
 }
 
+//PromoteASlave This will load all the procs whose type is SLAVE and elect a Slave as a new master, should be called when a master Proc Failed / Crashed
 func PromoteASlave(I *typ.Instance) *typ.Proc {
 
 	var promotedSlaveName string
@@ -241,6 +243,7 @@ func PromoteASlave(I *typ.Instance) *typ.Proc {
 	return I.Procs[promotedSlaveName]
 }
 
+//MakeMaster Now that we have choosen a slave as a master make that as a master properly by communicating to Destroyer
 func MakeMaster(I *typ.Instance, PromotedSlave *typ.Proc) {
 
 	var ProcMsg typ.TaskMsg
@@ -254,15 +257,14 @@ func MakeMaster(I *typ.Instance, PromotedSlave *typ.Proc) {
 
 }
 
-//This function will make all the availablel slaves point to the newly promoted master and send request to the Creator to create an additional slave
-
+//SlaveOf This function will make all the availablel slaves point to the newly promoted master and send request to the Creator to create an additional slave
 func SlaveOf(I *typ.Instance, P *typ.Proc) {
 
-	var tmp_Snames []string
+	var tmpSnames []string
 	for _, n := range I.Snames {
 		var tMsg typ.TaskMsg
 		if n != P.ID {
-			tmp_Snames = append(tmp_Snames, n)
+			tmpSnames = append(tmpSnames, n)
 			tMsg.MSG = typ.TASK_MSG_SLAVEOF
 			tMsg.P = I.Procs[n]
 			tMsg.P.SlaveOf = fmt.Sprintf("%s %s", P.IP, P.Port)
@@ -271,7 +273,7 @@ func SlaveOf(I *typ.Instance, P *typ.Proc) {
 	}
 
 	I.Slaves--
-	I.Snames = tmp_Snames
+	I.Snames = tmpSnames
 	I.SyncSlaves()
 	typ.Cchan <- typ.CreateSlaves(I, 1)
 

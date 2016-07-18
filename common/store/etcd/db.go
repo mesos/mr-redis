@@ -1,8 +1,6 @@
 package etcd
 
 import (
-	_ "fmt"
-	_ "log"
 	"strings"
 	"time"
 
@@ -25,10 +23,12 @@ type etcdDB struct {
 	isSetup bool            //Has this been setup
 }
 
+//New Function to create an etcDB object
 func New() *etcdDB {
 	return &etcdDB{isSetup: false}
 }
 
+//Login This implements connecting to the ETCD instance
 func (db *etcdDB) Login() error {
 
 	var err error
@@ -48,7 +48,6 @@ func (db *etcdDB) Login() error {
 // MrRedis will look for the following location in the central store
 // /MrRedis/Instances/...... -> Will have the entries of all the instances
 // /MrRedis/Config/....		-> Will have the entries of all the config information
-
 func (db *etcdDB) Setup(config string) error {
 	var err error
 	db.Cfg = cli.Config{
@@ -96,13 +95,10 @@ func (db *etcdDB) Set(Key string, Value string) error {
 func (db *etcdDB) Get(Key string) (string, error) {
 
 	resp, err := db.Kapi.Get(db.Ctx, Key, nil)
-
 	if err != nil {
 		return "", err
-	} else {
-		return resp.Node.Value, nil
 	}
-
+	return resp.Node.Value, nil
 }
 
 func (db *etcdDB) IsDir(Key string) (error, bool) {
@@ -110,9 +106,8 @@ func (db *etcdDB) IsDir(Key string) (error, bool) {
 
 	if err != nil {
 		return err, false
-	} else {
-		return nil, resp.Node.Dir
 	}
+	return nil, resp.Node.Dir
 }
 
 func (db *etcdDB) IsKey(Key string) (bool, error) {
@@ -121,12 +116,10 @@ func (db *etcdDB) IsKey(Key string) (bool, error) {
 	if err != nil {
 		if strings.Contains(err.Error(), "Key not found") != true {
 			return false, err
-		} else {
-			return false, nil
 		}
-	} else {
-		return true, nil
+		return false, nil
 	}
+	return true, nil
 }
 
 func (db *etcdDB) Update(Key string, Value string, Lock bool) error {
@@ -139,15 +132,13 @@ func (db *etcdDB) Del(Key string) error {
 	_, err := db.Kapi.Delete(db.Ctx, Key, nil)
 
 	if err != nil {
-		return nil
+		return err
 	}
-
 	return nil
 
 }
 
 //CreateSection will create a directory in etcd store
-
 func (db *etcdDB) CreateSection(Key string) error {
 
 	_, err := db.Kapi.Set(db.Ctx, Key, "", &cli.SetOptions{Dir: true, PrevExist: cli.PrevNoExist})
@@ -159,14 +150,14 @@ func (db *etcdDB) CreateSection(Key string) error {
 	return nil
 }
 
-// Delete section will delete a directory optionally delete
-
+//DeleteSection section will delete a directory optionally delete
 func (db *etcdDB) DeleteSection(Key string) error {
 
 	_, err := db.Kapi.Delete(db.Ctx, Key, &cli.DeleteOptions{Dir: true})
 	return err
 }
 
+//ListSection will list a directory
 func (db *etcdDB) ListSection(Key string, Recursive bool) ([]string, error) {
 
 	resp, err := db.Kapi.Get(db.Ctx, Key, &cli.GetOptions{Sort: true})

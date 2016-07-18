@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	Gdb   store.DB //Golabal variables related to db connection/instace
+	Gdb   store.DB //Gdb Golabal variables related to db connection/instace
 	MemDb *InMem   //In memory store
 
 	OfferList *list.List       //list for having offer

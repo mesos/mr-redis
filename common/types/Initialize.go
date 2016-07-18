@@ -7,6 +7,7 @@ import (
 	"github.com/mesos/mr-redis/common/store/etcd"
 )
 
+//Initialize Initialize all the data strucutres in common package, should be called by the main program only and should be called only once per program
 func Initialize(dbtype string, config string) (bool, error) {
 
 	//Initalize all the communication channels

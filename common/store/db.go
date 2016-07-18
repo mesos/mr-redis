@@ -1,6 +1,6 @@
 package store
 
-//Interface that every DB pkg must comply for MrRedis
+//DB Interface that every DB pkg must comply for MrRedis
 type DB interface {
 
 	//Perform the initial setup of the database/KV store by creating DB/Namespace etc that are important for running MrRedis

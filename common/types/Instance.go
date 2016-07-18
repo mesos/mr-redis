@@ -10,8 +10,7 @@ import (
 	"github.com/mesos/mr-redis/common/store/etcd"
 )
 
-//A structure that will be able to store a tree of data
-
+//A Instance structure that will be able to store a tree of data, Everything related to a redis intance
 type Instance struct {
 	Name       string           //Name of the instance
 	Type       string           //Type of the instance "Single Instance = S; Master-Slave  = MS; Cluster = C"
@@ -26,29 +25,27 @@ type Instance struct {
 	Procs      map[string]*Proc //An array of redis procs to be filled later
 }
 
-// Creates a new instance variable
+// NewInstance Creates a new instance variable
 // Fills up the structure and updates the central store
 // Returns an instance pointer
 // Returns nil if the instance already exists
-
 func NewInstance(Name string, Type string, Masters int, Slaves int, Cap int) *Instance {
 
 	p := &Instance{Name: Name, Type: Type, ExpMasters: Masters, ExpSlaves: Slaves, Capacity: Cap}
 	return p
 }
 
-//Load an instance from the store using Instance Name from the store
+// LoadInstance Load an instance from the store using Instance Name from the store
 // if the instance is unavailable then return nil
-
 func LoadInstance(Name string) *Instance {
 
 	if Gdb.IsSetup() != true {
 		return nil
 	}
 
-	node_name := etcd.ETC_INST_DIR + "/" + Name
+	nodeName := etcd.ETC_INST_DIR + "/" + Name
 
-	if ok, _ := Gdb.IsKey(node_name); !ok {
+	if ok, _ := Gdb.IsKey(nodeName); !ok {
 		return nil
 	}
 
@@ -60,36 +57,35 @@ func LoadInstance(Name string) *Instance {
 
 }
 
-// Loads up the datastructure for the given Service Name to the struture
+// Load Loads up the datastructure for the given Service Name to the struture
 // If the Instance cannot be loaded the it returns an error
-
 func (I *Instance) Load() bool {
 
 	var err error
-	var tmp_str string
+	var tmpStr string
 	var SnamesKey []string
 
 	if Gdb.IsSetup() != true {
 		return false
 	}
 
-	node_name := etcd.ETC_INST_DIR + "/" + I.Name + "/"
-	I.Type, err = Gdb.Get(node_name + "Type")
-	tmp_str, err = Gdb.Get(node_name + "Capacity")
-	I.Capacity, err = strconv.Atoi(tmp_str)
-	tmp_str, err = Gdb.Get(node_name + "Masters")
-	I.Masters, err = strconv.Atoi(tmp_str)
-	tmp_str, err = Gdb.Get(node_name + "Slaves")
-	I.Slaves, err = strconv.Atoi(tmp_str)
-	tmp_str, err = Gdb.Get(node_name + "ExpMasters")
-	I.ExpMasters, err = strconv.Atoi(tmp_str)
-	tmp_str, err = Gdb.Get(node_name + "ExpSlaves")
-	I.ExpSlaves, err = strconv.Atoi(tmp_str)
-	I.Status, err = Gdb.Get(node_name + "Status")
-	I.Mname, err = Gdb.Get(node_name + "Mname")
+	nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
+	I.Type, err = Gdb.Get(nodeName + "Type")
+	tmpStr, err = Gdb.Get(nodeName + "Capacity")
+	I.Capacity, err = strconv.Atoi(tmpStr)
+	tmpStr, err = Gdb.Get(nodeName + "Masters")
+	I.Masters, err = strconv.Atoi(tmpStr)
+	tmpStr, err = Gdb.Get(nodeName + "Slaves")
+	I.Slaves, err = strconv.Atoi(tmpStr)
+	tmpStr, err = Gdb.Get(nodeName + "ExpMasters")
+	I.ExpMasters, err = strconv.Atoi(tmpStr)
+	tmpStr, err = Gdb.Get(nodeName + "ExpSlaves")
+	I.ExpSlaves, err = strconv.Atoi(tmpStr)
+	I.Status, err = Gdb.Get(nodeName + "Status")
+	I.Mname, err = Gdb.Get(nodeName + "Mname")
 
-	node_name_slaves := node_name + "Snames/"
-	SnamesKey, err = Gdb.ListSection(node_name_slaves, false)
+	nodeNameSlaves := nodeName + "Snames/"
+	SnamesKey, err = Gdb.ListSection(nodeNameSlaves, false)
 	if err != nil {
 		log.Printf("The error value is %v", err)
 	}
@@ -104,35 +100,34 @@ func (I *Instance) Load() bool {
 	return true
 }
 
-//Writes the entier content of an instance into store
-
+//Sync Writes the entier content of an instance into store, an instance could have many keys to be updated this is a write intensive function should be used carefully, do not call this if you are planning to update only a single attribute of an instance
 func (I *Instance) Sync() bool {
 
 	if Gdb.IsSetup() != true {
 		return false
 	}
 
-	node_name := etcd.ETC_INST_DIR + "/" + I.Name + "/"
+	nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
 
-	Gdb.Set(node_name+"Type", I.Type)
-	Gdb.Set(node_name+"Masters", fmt.Sprintf("%d", I.Masters))
-	Gdb.Set(node_name+"Slaves", fmt.Sprintf("%d", I.Slaves))
-	Gdb.Set(node_name+"Capacity", fmt.Sprintf("%d", I.Capacity))
-	Gdb.Set(node_name+"ExpMasters", fmt.Sprintf("%d", I.ExpMasters))
-	Gdb.Set(node_name+"ExpSlaves", fmt.Sprintf("%d", I.ExpSlaves))
-	Gdb.Set(node_name+"Status", I.Status)
-	Gdb.Set(node_name+"Mname", I.Mname)
+	Gdb.Set(nodeName+"Type", I.Type)
+	Gdb.Set(nodeName+"Masters", fmt.Sprintf("%d", I.Masters))
+	Gdb.Set(nodeName+"Slaves", fmt.Sprintf("%d", I.Slaves))
+	Gdb.Set(nodeName+"Capacity", fmt.Sprintf("%d", I.Capacity))
+	Gdb.Set(nodeName+"ExpMasters", fmt.Sprintf("%d", I.ExpMasters))
+	Gdb.Set(nodeName+"ExpSlaves", fmt.Sprintf("%d", I.ExpSlaves))
+	Gdb.Set(nodeName+"Status", I.Status)
+	Gdb.Set(nodeName+"Mname", I.Mname)
 
 	//Create Section for Slaves and Procs
-	node_name_slaves := node_name + "Snames/"
+	nodeNameSlaves := nodeName + "Snames/"
 
-	Gdb.CreateSection(node_name_slaves)
+	Gdb.CreateSection(nodeNameSlaves)
 	for _, sname := range I.Snames {
-		Gdb.Set(node_name_slaves+sname, sname)
+		Gdb.Set(nodeNameSlaves+sname, sname)
 	}
 
-	node_name_procs := node_name + "Procs/"
-	Gdb.CreateSection(node_name_procs)
+	nodeNameProcs := nodeName + "Procs/"
+	Gdb.CreateSection(nodeNameProcs)
 
 	//for _, p := range I.Procs {
 	//p.Sync()
@@ -140,57 +135,63 @@ func (I *Instance) Sync() bool {
 	return true
 }
 
+//SyncType Write only the TYPE attribute to the DB/store
 func (I *Instance) SyncType(string) bool {
 
 	if Gdb.IsSetup() != true {
 		return false
 	}
 
-	node_name := etcd.ETC_INST_DIR + "/" + I.Name + "/"
-	Gdb.Set(node_name+"Type", I.Type)
+	nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
+	Gdb.Set(nodeName+"Type", I.Type)
 	return true
 }
 
+//SyncStatus Flushes only the status attribute to the DB
 func (I *Instance) SyncStatus() bool {
 
 	if Gdb.IsSetup() != true {
 		return false
 	}
 
-	node_name := etcd.ETC_INST_DIR + "/" + I.Name + "/"
-	Gdb.Set(node_name+"Status", I.Status)
+	nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
+	Gdb.Set(nodeName+"Status", I.Status)
 	return true
 }
+
+//SyncSlaves Flushes only the Slaves attribute to the DB, used when a Slave died or promoted as a master
 func (I *Instance) SyncSlaves() bool {
 
 	if Gdb.IsSetup() != true {
 		return false
 	}
 
-	node_name := etcd.ETC_INST_DIR + "/" + I.Name + "/"
-	Gdb.Set(node_name+"Slaves", fmt.Sprintf("%d", I.Slaves))
+	nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
+	Gdb.Set(nodeName+"Slaves", fmt.Sprintf("%d", I.Slaves))
 	//Create Section for Slaves and Procs
-	node_name_slaves := node_name + "Snames/"
+	nodeNameSlaves := nodeName + "Snames/"
 
-	Gdb.CreateSection(node_name_slaves)
+	Gdb.CreateSection(nodeNameSlaves)
 	for _, sname := range I.Snames {
-		Gdb.Set(node_name_slaves+sname, sname)
+		Gdb.Set(nodeNameSlaves+sname, sname)
 	}
 	return true
 }
 
+//SyncMasters Flushes only the master attribute to the DB, used when a new redis master is choose.
 func (I *Instance) SyncMasters() bool {
 
 	if Gdb.IsSetup() != true {
 		return false
 	}
 
-	node_name := etcd.ETC_INST_DIR + "/" + I.Name + "/"
-	Gdb.Set(node_name+"Masters", fmt.Sprintf("%d", I.Masters))
-	Gdb.Set(node_name+"Mname", I.Mname)
+	nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
+	Gdb.Set(nodeName+"Masters", fmt.Sprintf("%d", I.Masters))
+	Gdb.Set(nodeName+"Mname", I.Mname)
 	return true
 }
 
+//LoadProcs Should be called when all the PROCs need to be loaded to the lateest value, PS High DISK intensive function, should be used carefully
 func (I *Instance) LoadProcs() bool {
 
 	if I.Procs == nil {
@@ -208,6 +209,7 @@ func (I *Instance) LoadProcs() bool {
 
 }
 
+//Instance_Json  Filtered elementes of an Instnace that will be sent as an HTTP response
 type Instance_Json struct {
 	Name     string
 	Type     string
@@ -225,6 +227,7 @@ type Proc_Json struct {
 }
 */
 
+//ToJson_Obj Filtered elementes of an Instnace that will be sent as an HTTP response
 func (I *Instance) ToJson_Obj() Instance_Json {
 
 	var res Instance_Json
@@ -246,6 +249,7 @@ func (I *Instance) ToJson_Obj() Instance_Json {
 	return res
 }
 
+//ToJson Marshall the Instane to a JSON
 func (I *Instance) ToJson() string {
 
 	var res Instance_Json

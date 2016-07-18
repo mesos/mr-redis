@@ -9,6 +9,7 @@ import (
 	typ "github.com/mesos/mr-redis/common/types"
 )
 
+//Creator Goroutine responsible for creating a redis instance/Proc waits on channel Cchan for any work to be done
 func Creator() {
 
 	for {

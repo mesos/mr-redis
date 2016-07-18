@@ -10,6 +10,8 @@ import (
 	"github.com/codegangsta/cli"
 )
 
+//InitCmd the CLI by storing the scheduler/framework's endpoint in a file locally
+//it by default chooses /tmp/.MrRedis in unix and %CD%\.MrRedis in windows
 func InitCmd(c *cli.Context) {
 	//
 	EP := c.Args().First()
@@ -18,14 +20,14 @@ func InitCmd(c *cli.Context) {
 		return
 	}
 
-	var conf_file_path string
+	var confFilePath string
 	if runtime.GOOS == "windows" {
-		conf_file_path = ".MrRedis"
+		confFilePath = ".MrRedis"
 	} else {
-		conf_file_path = "/tmp/.MrRedis"
+		confFilePath = "/tmp/.MrRedis"
 	}
 
-	f, err := os.Create(conf_file_path)
+	f, err := os.Create(confFilePath)
 
 	if err != nil {
 		fmt.Printf("Error: Unable to create config file err=%v\n", err)

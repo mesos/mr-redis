@@ -4,6 +4,7 @@ import (
 	"github.com/nu7hatch/gouuid"
 )
 
+//NewUUID This creates a new UUID for the tasks
 func NewUUID() (*uuid.UUID, error) {
 
 	rUUID, err := uuid.NewV4()
@@ -16,6 +17,7 @@ func NewUUID() (*uuid.UUID, error) {
 
 }
 
+//NewUIIDstr Simply convert the uid to a string
 func NewUIIDstr() string {
 	id, err := NewUUID()
 	if err != nil {

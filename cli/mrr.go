@@ -8,14 +8,16 @@ import (
 	"strings"
 )
 
-var MrRedisFW string //Frameworks IP and Port number
+//MrRedisFW IP and Port number
+var MrRedisFW string
 
+//Init simply loads the scheduler's endpoint from the .MrRedis before performing any subcommand
 func Init() {
-	var conf_file_path string
+	var confFilePath string
 	if runtime.GOOS == "windows" {
-		conf_file_path = ".MrRedis"
+		confFilePath = ".MrRedis"
 	} else {
-		conf_file_path = "/tmp/.MrRedis"
+		confFilePath = "/tmp/.MrRedis"
 	}
 
 	//Check if we have a ~/.MrRedis config file in the system already,

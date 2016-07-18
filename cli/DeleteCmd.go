@@ -22,6 +22,8 @@ func httpDelete(url string) (*http.Response, error) {
 	return resp, err
 }
 
+//DeleteCmd sub command implementation for DELETE instance
+//Simply fires the DELTE REST api to the scheduler
 func DeleteCmd(c *cli.Context) {
 
 	name := c.String("name")

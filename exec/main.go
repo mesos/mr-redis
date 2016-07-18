@@ -16,16 +16,23 @@ import (
 	"github.com/mesos/mr-redis/exec/RedMon"
 )
 
+//DbType Flag for dbtype like etcd/zookeeper
 var DbType = flag.String("DbType", "etcd", "Type of the database etcd/zookeeper etc.,")
+
+//DbEndPoint The actuall endpoint of the database.
 var DbEndPoint = flag.String("DbEndPoint", "", "Endpoint of the database")
+
+//MrRedisLogger A global Logger pointer for the executor all the RedMon will write to the same logger
 var MrRedisLogger *log.Logger
 
+//MrRedisExecutor Basic strucutre for the executor
 type MrRedisExecutor struct {
 	tasksLaunched int
 	HostIP        string
 	monMap        map[string](*RedMon.RedMon)
 }
 
+//GetLocalIP A function to look up the exposed local IP such that the executor can bind to
 func GetLocalIP() string {
 
 	if libprocessIP := os.Getenv("LIBPROCESS_IP"); libprocessIP != "" {
@@ -54,22 +61,27 @@ func GetLocalIP() string {
 	return ""
 }
 
+//NewMrRedisExecutor Constructor for the executor structure
 func NewMrRedisExecutor() *MrRedisExecutor {
 	return &MrRedisExecutor{tasksLaunched: 0}
 }
 
+//Registered Call back for registered driver
 func (exec *MrRedisExecutor) Registered(driver exec.ExecutorDriver, execInfo *mesos.ExecutorInfo, fwinfo *mesos.FrameworkInfo, slaveInfo *mesos.SlaveInfo) {
 	fmt.Println("Registered Executor on slave ") //, slaveInfo.GetHostname())
 }
 
+//Reregistered call back for the re-registered driver
 func (exec *MrRedisExecutor) Reregistered(driver exec.ExecutorDriver, slaveInfo *mesos.SlaveInfo) {
 	fmt.Println("Re-registered Executor on slave ") //, slaveInfo.GetHostname())
 }
 
+//Disconnected Call back for disconnected
 func (exec *MrRedisExecutor) Disconnected(exec.ExecutorDriver) {
 	fmt.Println("Executor disconnected.")
 }
 
+//LaunchTask Call back implementation when a Launch task request comes from Slave/Agent
 func (exec *MrRedisExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *mesos.TaskInfo) {
 	fmt.Println("Launching task", taskInfo.GetName(), "with command", taskInfo.Command.GetValue())
 
@@ -106,12 +118,12 @@ func (exec *MrRedisExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *me
 			M.Monitor()
 		}()
 
-		exit_state := mesos.TaskState_TASK_FINISHED.Enum()
+		exitState := mesos.TaskState_TASK_FINISHED.Enum()
 
-		exit_err := M.Cmd.Wait() //TODO: Collect the return value of the process and send appropriate TaskUpdate eg:TaskFinished only on clean shutdown others will get TaskFailed
-		if exit_err != nil || M.P.Msg != "SHUTDOWN" {
+		exitErr := M.Cmd.Wait() //TODO: Collect the return value of the process and send appropriate TaskUpdate eg:TaskFinished only on clean shutdown others will get TaskFailed
+		if exitErr != nil || M.P.Msg != "SHUTDOWN" {
 			//If the redis-server proc finished either with a non-zero or its not suppose to die then mark it as Task filed
-			exit_state = mesos.TaskState_TASK_FAILED.Enum()
+			exitState = mesos.TaskState_TASK_FAILED.Enum()
 			//Signal the monitoring thread to stop monitoring from now on
 			M.MonChan <- 1
 		}
@@ -120,7 +132,7 @@ func (exec *MrRedisExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *me
 		fmt.Println("Finishing task", taskInfo.GetName())
 		finStatus := &mesos.TaskStatus{
 			TaskId: taskInfo.GetTaskId(),
-			State:  exit_state,
+			State:  exitState,
 		}
 		_, err = driver.SendStatusUpdate(finStatus)
 		if err != nil {
@@ -130,6 +142,7 @@ func (exec *MrRedisExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *me
 	}()
 }
 
+//KillTask When a running task needs to be killed should come from the Agent/Slave its a call back implementation
 func (exec *MrRedisExecutor) KillTask(driver exec.ExecutorDriver, taskID *mesos.TaskID) {
 	tid := taskID.GetValue()
 	//tbd: is there any error check needed
@@ -138,14 +151,17 @@ func (exec *MrRedisExecutor) KillTask(driver exec.ExecutorDriver, taskID *mesos.
 	fmt.Println("Killed task with task id:", tid)
 }
 
+//FrameworkMessage Any message sent from the scheduelr , not sued for this project
 func (exec *MrRedisExecutor) FrameworkMessage(driver exec.ExecutorDriver, msg string) {
 	fmt.Println("Got framework message: ", msg)
 }
 
+//Shutdown Not implemented yet
 func (exec *MrRedisExecutor) Shutdown(exec.ExecutorDriver) {
 	fmt.Println("Shutting down the executor")
 }
 
+//Error not implemented yet
 func (exec *MrRedisExecutor) Error(driver exec.ExecutorDriver, err string) {
 	fmt.Println("Got error message:", err)
 }
@@ -160,7 +176,8 @@ func main() {
 
 	typ.Initialize(*DbType, *DbEndPoint)
 
-	var out io.Writer = ioutil.Discard
+	var out io.Writer
+	out = ioutil.Discard
 
 	out, _ = os.Create("/tmp/MrRedisExecutor.log")
 	//ToDo does this need error handling

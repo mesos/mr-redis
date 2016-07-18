@@ -17,6 +17,7 @@ const (
 //source = http://stackoverflow.com/questions/22892120/how-to-generate-a-random-string-of-a-fixed-length-in-golang
 var src = rand.NewSource(time.Now().UnixNano())
 
+//GenerateRandString these functions are deprecated infavour of UUID related packages integrated with teh scheduler
 func GenerateRandString(n int) string {
 	b := make([]byte, n)
 	// A src.Int63() generates 63 random bits, enough for letterIdxMax characters!

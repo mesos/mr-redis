@@ -53,15 +53,15 @@ func prepareExecutorInfo(IP, Port, executorPath, redisPath, DbType, DbEndPoint s
 
 	go func(IP, Port string) {
 
-		host_ip := os.Getenv("HOST")
+		hostIP := os.Getenv("HOST")
 
-		if host_ip == "" {
-			host_ip = IP
+		if hostIP == "" {
+			hostIP = IP
 		}
 
-		log.Printf("host_ip = %s going to listen and serve", host_ip)
+		log.Printf("hostIP = %s going to listen and serve", hostIP)
 
-		err := http.ListenAndServe(fmt.Sprintf("%s:%s", host_ip, Port), nil)
+		err := http.ListenAndServe(fmt.Sprintf("%s:%s", hostIP, Port), nil)
 		log.Printf("Serving executor artifacts... error = %v", err)
 	}(IP, Port)
 
@@ -116,12 +116,12 @@ func parseConfig(config string) (string, string, string, string) {
 }
 
 func parseIP(address string) net.IP {
-	host_ip := os.Getenv("HOST")
+	hostIP := os.Getenv("HOST")
 
-	if host_ip == "" {
-		host_ip = address
+	if hostIP == "" {
+		hostIP = address
 	}
-	addr, err := net.LookupIP(host_ip)
+	addr, err := net.LookupIP(hostIP)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -131,10 +131,13 @@ func parseIP(address string) net.IP {
 	return addr[0]
 }
 
-const FailoverTime = 60 //Frameowkr and its task will be terminated if the framework is not started in 60 secons
+//FailoverTime Frameowkr and its task will be terminated if the framework is not started in 60 secons
+const FailoverTime = 60
+
+//TimeFormat we need to parse the Timestamp
 const TimeFormat = "2006-01-02 15:04:05.999999999 -0700 MST"
 
-//If the framework was regiestered before the Failover timeout value then regiester as a new framework
+//GetFrameWorkID If the framework was regiestered before the Failover timeout value then regiester as a new framework
 func GetFrameWorkID() (string, float64) {
 
 	fTimout := float64(FailoverTime)
@@ -147,10 +150,10 @@ func GetFrameWorkID() (string, float64) {
 		return "", fTimout
 	}
 
-	delta_t := time.Now().Sub(t)
-	log.Printf("Delta of the previously registered framework is = %v", delta_t)
+	deltaT := time.Now().Sub(t)
+	log.Printf("Delta of the previously registered framework is = %v", deltaT)
 
-	if (delta_t / time.Second) < FailoverTime {
+	if (deltaT / time.Second) < FailoverTime {
 		return fwID, fTimout
 	}
 
@@ -158,6 +161,7 @@ func GetFrameWorkID() (string, float64) {
 
 }
 
+//Run primary function that starts the Mesos Scheduler
 func Run(MasterEndPoint, ServerIP, ServerPort, executorPath, redisPath, DbType, DbEndPoint string) {
 
 	//Split the configuration string
@@ -181,7 +185,7 @@ func Run(MasterEndPoint, ServerIP, ServerPort, executorPath, redisPath, DbType, 
 	//TODO
 
 	//create the scheduler dirver object
-	sched_config := sched.DriverConfig{
+	schedConfig := sched.DriverConfig{
 		Scheduler:      NewMrRedisScheduler(exec),
 		Framework:      fwinfo,
 		Master:         MasterEndPoint,
@@ -189,13 +193,13 @@ func Run(MasterEndPoint, ServerIP, ServerPort, executorPath, redisPath, DbType, 
 		BindingAddress: parseIP(ServerIP),
 	}
 
-	driver, err := sched.NewMesosSchedulerDriver(sched_config)
+	driver, err := sched.NewMesosSchedulerDriver(schedConfig)
 
 	if err != nil {
 		log.Fatalf("Framework is not created error %v", err)
 	}
 
-	log.Printf("The Framework ID is %v and %v", fwinfo.Id, sched_config.Framework.Id)
+	log.Printf("The Framework ID is %v and %v", fwinfo.Id, schedConfig.Framework.Id)
 
 	status, err := driver.Run()
 

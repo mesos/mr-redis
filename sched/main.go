@@ -15,13 +15,12 @@ import (
 )
 
 //Declare all the Constants to be used in this file
-
 const (
+	//HTTP_SERVER_PORT Rest server of the scheduler by default
 	HTTP_SERVER_PORT = "8080"
 )
 
-//Main execution point
-
+//MrRedisConfig struct of the json config file that is used while starting the scheduler
 type MrRedisConfig struct {
 	Master       string //MesosMaster's endpoint zk://mesos.master/2181 or 10.11.12.13:5050
 	ExecutorPath string //Executor's Path from where to distribute
@@ -34,6 +33,7 @@ type MrRedisConfig struct {
 	HTTPPort     string //Defaults to 8080 if otherwise specify explicitly
 }
 
+//NewMrRedisDefaultConfig Default Constructor to create a config file
 func NewMrRedisDefaultConfig() MrRedisConfig {
 	return MrRedisConfig{
 		Master:       "127.0.0.1:5050",
@@ -50,28 +50,28 @@ func NewMrRedisDefaultConfig() MrRedisConfig {
 
 func main() {
 
-	cfg_file_name := flag.String("config", "./config.json", "Supply the location of MrRedis configuration file")
+	cfgFileName := flag.String("config", "./config.json", "Supply the location of MrRedis configuration file")
 	dumpConfig := flag.Bool("DumpEmptyConfig", false, "Dump Empty Config file")
 	flag.Parse()
 
 	Cfg := NewMrRedisDefaultConfig()
 
 	if *dumpConfig == true {
-		config_bytes, err := json.MarshalIndent(Cfg, " ", "  ")
+		configBytes, err := json.MarshalIndent(Cfg, " ", "  ")
 		if err != nil {
 			log.Printf("Error marshalling the dummy config file. Exiting %v", err)
 			return
 		}
-		fmt.Printf("%s\n", string(config_bytes))
+		fmt.Printf("%s\n", string(configBytes))
 		return
 	}
 
-	cfg_file, err := ioutil.ReadFile(*cfg_file_name)
+	cfgFile, err := ioutil.ReadFile(*cfgFileName)
 
 	if err != nil {
 		log.Printf("Error Reading the configration file. Resorting to default values")
 	}
-	err = json.Unmarshal(cfg_file, &Cfg)
+	err = json.Unmarshal(cfgFile, &Cfg)
 	if err != nil {
 		log.Fatalf("Error parsing the config file %v", err)
 	}
@@ -84,14 +84,14 @@ func main() {
 
 	//Facility to overwrite the etcd endpoint for scheduler if its running in the same docker container and expose a different one for executors
 
-	db_endpoint := os.Getenv("ETCD_LOCAL_ENDPOINT")
+	dbEndpoint := os.Getenv("ETCD_LOCAL_ENDPOINT")
 
-	if db_endpoint == "" {
-		db_endpoint = Cfg.DBEndPoint
+	if dbEndpoint == "" {
+		dbEndpoint = Cfg.DBEndPoint
 	}
 
 	//Initalize the common entities like store, store configuration etc.
-	isInit, err := types.Initialize(Cfg.DBType, db_endpoint)
+	isInit, err := types.Initialize(Cfg.DBType, dbEndpoint)
 	if err != nil || isInit != true {
 		log.Fatalf("Failed to intialize Error:%v return %v", err, isInit)
 	}
