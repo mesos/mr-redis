@@ -47,6 +47,7 @@ $cd ../exec/
 $godep go build -o MrRedisExecutor .
 $cd ../cli/
 $godep go build -o mrr .
+$sudo cp mrr /usr/local/bin
 ```
 ### From RELEASE (Alpha V1)
 ```
