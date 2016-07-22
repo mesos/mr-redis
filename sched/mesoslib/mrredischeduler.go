@@ -46,7 +46,7 @@ func (S *MrRedisScheduler) Disconnected(sched.SchedulerDriver) {
 	log.Printf("MrRedis Disconnected")
 }
 
-//ResourceOffers The moment we recive some offers we loop throught he OfferList (container/list)
+//ResourceOffers The moment we recive some offers we loop through the OfferList (container/list)
 //see if we have any task that will fit this offers being sent
 func (S *MrRedisScheduler) ResourceOffers(driver sched.SchedulerDriver, offers []*mesos.Offer) {
 

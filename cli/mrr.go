@@ -21,7 +21,7 @@ func Init() {
 	}
 
 	//Check if we have a ~/.MrRedis config file in the system already,
-	f, err := os.Open(conf_file_path)
+	f, err := os.Open(confFilePath)
 	if err != nil {
 		fmt.Printf("Cli is not initalized err=%v\n", err)
 		fmt.Printf("$mrr init <http://MrRedisEndPoint>\n")

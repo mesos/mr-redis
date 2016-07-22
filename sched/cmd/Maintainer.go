@@ -243,7 +243,7 @@ func PromoteASlave(I *typ.Instance) *typ.Proc {
 	return I.Procs[promotedSlaveName]
 }
 
-//MakeMaster Now that we have choosen a slave as a master make that as a master properly by communicating to Destroyer
+//MakeMaster Now that we have chosen a slave as a master make that as a master properly by communicating to Destroyer
 func MakeMaster(I *typ.Instance, PromotedSlave *typ.Proc) {
 
 	var ProcMsg typ.TaskMsg

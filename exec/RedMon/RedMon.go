@@ -336,7 +336,7 @@ func (R *RedMon) Monitor() bool {
 //Stop we have been told to stop the Redis
 func (R *RedMon) Stop() bool {
 
-	//send SHUTDOWN command for a gracefull exit of the redis-server
+	//send SHUTDOWN command for a graceful exit of the redis-server
 	//the server exited graceful will reflect at the task status FINISHED
 	_, err := R.Client.Shutdown().Result()
 	if err != nil {

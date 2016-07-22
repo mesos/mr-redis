@@ -148,7 +148,7 @@ func (P *Proc) Load() bool {
 
 }
 
-//Sync everything thats in-memory to the KV store, should be used only whne you have more attributes to be synced/written to the DB at the same time, Disk intensive operation
+//Sync everything thats in-memory to the KV store, should be used only when you have more attributes to be synced/written to the DB at the same time, Disk intensive operation
 func (P *Proc) Sync() bool {
 
 	if Gdb.IsSetup() != true {
