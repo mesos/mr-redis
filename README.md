@@ -15,7 +15,8 @@ This framework supports the following features
  * A centralized persistance layer currently enabled by etcd
 
 ## Why mr-redis?
-At [Huawei] (http://www.huawei.com/en/) we foresee creating, running and maintaining huge number of redis instances on our datacenters.  We intially evaluated few cluster managers for this job, but due to the specific requirements of 'redis' itslef those solutions did not satisfy most of our needs.  We quickly did a POC by writing a framework exclusively for Redis on Apache Mesos. Based on the outcome we decided to initate this project and work with the opensource community to build a robust custom framework for Redis which will be usefull for Huawei as well as rest of the world.
+
+At [Huawei] (http://www.huawei.com/en/) we foresee creating, running and maintaining huge number of redis instances on our datacenters.  We intially evaluated few cluster managers for this job, but due to the specific requirements of 'redis' itself those solutions did not satisfy most of our needs.  We quickly did a POC by writing a framework exclusively for Redis on Apache Mesos. Based on the outcome we decided to initate this project and work with the opensource community to build a robust custom framework for Redis which will be useful for Huawei as well as for the rest of the world.
 
 ##Project Status is Alpha.
  We have built a basic working functionality and would like to build a strong functional framework for Redis along with the community.  In the meanwhile please feel free to try this out and give us feedback by creating PR and Issues. 
