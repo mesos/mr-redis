@@ -32,6 +32,7 @@ type Instance struct {
 func NewInstance(Name string, Type string, Masters int, Slaves int, Cap int) *Instance {
 
 	p := &Instance{Name: Name, Type: Type, ExpMasters: Masters, ExpSlaves: Slaves, Capacity: Cap}
+	p.Procs = make(map[string]*Proc)
 	return p
 }
 

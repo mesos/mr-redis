@@ -14,12 +14,6 @@ func Creator() {
 
 	for {
 		select {
-		/*
-			case <-time.After(1 * time.Second):
-				log.Printf("Creator Heart Beat")
-				break
-		*/
-
 		case tc := <-typ.Cchan:
 			log.Printf("Received offer %v", tc)
 			//Push back the offer in the offer list
@@ -28,11 +22,12 @@ func Creator() {
 			mem := inst.Capacity
 
 			if tc.M {
-
-				for i := 0; i < tc.C; i++ {
-
-					typ.OfferList.PushBack(typ.NewOffer(inst.Name+"::"+id.NewUIIDstr(), cpu, mem, true, ""))
+		
+				//If this is a Master instance then the count (tc.C) should always be 1
+				if tc.C != 1{
+					inst.ExpMasters = 1
 				}
+				typ.OfferList.PushBack(typ.NewOffer(inst.Name+"::"+id.NewUIIDstr(), cpu, mem, true, ""))
 				log.Printf("Created %d master offers for Instance %v", tc.C, inst.Name)
 
 			} else {
