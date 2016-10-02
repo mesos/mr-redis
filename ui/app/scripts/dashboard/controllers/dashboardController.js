@@ -141,6 +141,39 @@ angular.module('mrredisApp.dashboard')
 			            );
 					});
 			};
+			
+			//Show UI settings
+			$scope.showSettings = function (event) {
+				$mdDialog.show({
+					clickOutsideToClose: false,  
+					controller: 'settingsDialogController',    
+					focusOnOpen: false,
+					targetEvent: event,
+					templateUrl: 'scripts/dashboard/views/settingsView.html',
+				}).then(function(response) {
+					if(true === response.reload) {
+						var toast = $mdToast.simple()
+							.textContent(response.data)
+							.action('Ok')
+							.hideDelay(5000)
+							.position('bottom left');
+						$mdToast.show(toast).then(function(response){
+							console.log(response);
+						});
+						$state.reload();
+					}
+				}, function(error) {
+						if(false === error.status) {
+						$mdToast.show(
+							$mdToast.simple()
+								.textContent(error.msg)
+								.action('Ok')
+								.hideDelay(5000)
+								.position('bottom left')
+						);
+					}
+				});
+			};
 
 			//Display Single Database Instance details 
 			$scope.displayInstanceDetails = function (database, event) {			          
