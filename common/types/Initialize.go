@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/mesos/mr-redis/common/store/etcd"
+	"github.com/mesos/mr-redis/common/store/zookeeper"
 )
 
 //Initialize Initialize all the data strucutres in common package, should be called by the main program only and should be called only once per program
@@ -27,6 +28,13 @@ func Initialize(dbtype string, config string) (bool, error) {
 		err := Gdb.Setup(config)
 		if err != nil {
 			log.Fatalf("Failed to setup etcd database error:%v", err)
+		}
+		return Gdb.IsSetup(), nil
+	case "zookeeper":
+		Gdb = zookeeper.New()
+		err := Gdb.Setup(config)
+		if err != nil {
+			log.Fatalf("Failed to setup zookeeper database error:%v", err)
 		}
 		return Gdb.IsSetup(), nil
 	}
