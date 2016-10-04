@@ -1,0 +1,34 @@
+<md-dialog class="settingsView" aria-label="Settings Form" flex="40">
+	<md-content >
+		<md-toolbar>
+			<div class="md-toolbar-tools">
+				<h2>Settings</h2>
+				<span flex></span>
+				<md-button ng-if="false === changingSettings" class="md-icon-button" ng-click="close()">
+					<ng-md-icon icon="close" aria-label="Close"></ng-md-icon>
+				</md-button>
+			</div>
+		</md-toolbar>
+		<md-subheader ng-if="false === changingSettings" class="md-primary md-subhead">Configure UI settings</md-subheader>
+		<md-content ng-if="false === changingSettings" class="md-padding">
+			<form name="settingsForm">
+				<div layout layout-gt-sm="column">
+					<md-input-container flex>
+						<label>Mr Redis Endpoint</label>
+						<input name="endpoint" required="required" type="text" value="" ng-maxlength="100" ng-model="settings.endpoint" ng-blur="checkEndpointURI(settings.endpoint)">
+						<div ng-messages="settingsForm.endpoint.$error" ng-messages-multiple>
+							<div ng-message="required">End Point is required.</div>
+							<div ng-if="invalidUrl">Please enter valid URL.</div>
+							<div ng-if="invalidServer">Error accessing endpoint.</div>
+						</div>
+					</md-input-container>
+				</div>
+			</form>
+		</md-content>
+		<div ng-if="false === changingSettings" class="md-dialog-actions" layout="row">
+			<span flex></span>
+			<md-button ng-click="close()"> Cancel </md-button>
+			<md-button id="settingsFormSubmitBtn" type="submit" class="md-raised md-primary" ng-disabled="settingsForm.$invalid || duplicateName" ng-click="processSettingsForm()"> Save </md-button>
+		</div>
+	</md-content>
+</md-dialog>

@@ -18,12 +18,14 @@ angular.module('mrredisApp.config')
 			$scope.setEndPoint = function(){
 				$scope.endPointNotReachable = false;
 				$scope.showEndPointLoading = true;
-				var endPointTest = $scope.endPoint;				
-				var lastChar = endPointTest.substr(-1);
-				if(lastChar === '/'){
-					endPointTest = endPointTest.substr(0, endPointTest.length-1);				
-					$scope.endPoint = endPointTest;
+				var endpoint = $scope.endPoint;
+				// Remove trailing slashes
+				endpoint = endpoint.replace(/\/+$/, "");
+				
+				if (!endpoint.endsWith('/v1')) {
+				    endpoint += '/v1';
 				}
+				$scope.endPoint = endpoint;
 				$scope.checkUrl();
 				if(!$scope.invalidUrl){
 					window.localStorage.setItem('endPoint', $scope.endPoint);
@@ -32,13 +34,10 @@ angular.module('mrredisApp.config')
 					dbList.then(function(response){
 						$state.go('base.dashboard');
 					},function(error){
-						if(error.status === -1){
-							$scope.endPointNotReachable = true;
-							$scope.showEndPointLoading = false;			
-							console.log('Uh-Oh! looks like the end point is not accessible.');
-							
-
-						}
+						$scope.endPointNotReachable = true;
+						$scope.showEndPointLoading = false;
+						console.log('Uh-Oh! looks like the end point is not accessible:');
+						console.log(error);
 					});
 						
 				}
