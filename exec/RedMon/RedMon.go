@@ -27,6 +27,7 @@ type RedMon struct {
 	MonChan chan int
 	//Cmd     *exec.Cmd
 	Container *docker.Dcontainer  //A handle for the Container package
+	Image     string              //Name of the Image that should be pulled
 	Client    *redisclient.Client //redis client library connection handler
 	L         *log.Logger         //to redirect log outputs to a file
 	//cgroup *CgroupManager		//Cgroup manager/cgroup connection pointer
@@ -38,7 +39,7 @@ type RedMon struct {
 //Capacity SlaveOf IP:Port        => This is a redis slave so start it as a slave, sync and then send TASK_RUNNING update then Monitor
 //Capacity Master-SlaveOf IP:Port => This is a New master of the instance with an upgraded memory value so
 //                          Start as slave, Sync data, make it as master, send TASK_RUNNING update and start to Monitor
-func NewRedMon(tskName string, IP string, Port int, data string, L *log.Logger) *RedMon {
+func NewRedMon(tskName string, IP string, Port int, data string, L *log.Logger, Image string) *RedMon {
 
 	var R RedMon
 	var P *typ.Proc
@@ -79,6 +80,7 @@ func NewRedMon(tskName string, IP string, Port int, data string, L *log.Logger) 
 	//ToDo Stdout file to be tskname.stdout
 	//ToDo stderere file to be tskname.stderr
 	R.Container = &docker.Dcontainer{}
+	R.Image = Image
 
 	return &R
 }
@@ -103,9 +105,9 @@ func (R *RedMon) launchRedisServer(isSlave bool, IP string, port string) bool {
 
 	var err error
 	if isSlave {
-		err = R.Container.Run(R.P.ID, "redis:3.0-alpine", []string{"redis-server", fmt.Sprintf("--port %d", R.Port), fmt.Sprintf("--Slaveof %s %s", IP, port)}, int64(R.P.MemCap), R.P.ID+".log")
+		err = R.Container.Run(R.P.ID, R.Image, []string{"redis-server", fmt.Sprintf("--port %d", R.Port), fmt.Sprintf("--Slaveof %s %s", IP, port)}, int64(R.P.MemCap), R.P.ID+".log")
 	} else {
-		err = R.Container.Run(R.P.ID, "redis:3.0-alpine", []string{"redis-server", fmt.Sprintf("--port %d", R.Port)}, int64(R.P.MemCap), R.P.ID+".log")
+		err = R.Container.Run(R.P.ID, R.Image, []string{"redis-server", fmt.Sprintf("--port %d", R.Port)}, int64(R.P.MemCap), R.P.ID+".log")
 	}
 
 	if err != nil {
