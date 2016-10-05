@@ -38,6 +38,7 @@ func (d *Dcontainer) Run(name, image string, cmd []string, mem int64, logFileNam
 	defaultHeaders := map[string]string{"User-Agent": "engine-api-cli-1.0"}
 	cli, err := client.NewClient("unix:///var/run/docker.sock", "v1.22", nil, defaultHeaders)
 	if err != nil {
+		d.Close(false)
 		return err
 	}
 
@@ -45,6 +46,7 @@ func (d *Dcontainer) Run(name, image string, cmd []string, mem int64, logFileNam
 	resp, err := cli.ImagePull(d.Ctx, image, types.ImagePullOptions{All: false})
 	if err != nil {
 		fmt.Printf("Error PUlling %v\n", err)
+		d.Close(false)
 		return err
 	}
 	var eoferr error
@@ -59,6 +61,7 @@ func (d *Dcontainer) Run(name, image string, cmd []string, mem int64, logFileNam
 	}
 	line_str := string(prev_line)
 	if !strings.Contains(line_str, "Image is up to date for") && !strings.Contains(line_str, "Downloaded newer image for") {
+		d.Close(false)
 		return fmt.Errorf("%s pull failed\n", image)
 	}
 
@@ -75,6 +78,7 @@ func (d *Dcontainer) Run(name, image string, cmd []string, mem int64, logFileNam
 	r, err := cli.ContainerCreate(d.Ctx, &cconfig, &hconfig, nil, name)
 	if err != nil {
 		fmt.Printf("Error creating a container %v\n", err)
+		d.Close(false)
 		return err
 	}
 
@@ -82,6 +86,7 @@ func (d *Dcontainer) Run(name, image string, cmd []string, mem int64, logFileNam
 	d.HijackedRes, err = cli.ContainerAttach(d.Ctx, r.ID, types.ContainerAttachOptions{Stdout: true, Stderr: true, Stream: true})
 	if err != nil {
 		fmt.Printf("Unable to attach the container\n")
+		d.Close(true)
 		return err
 	}
 
@@ -89,6 +94,7 @@ func (d *Dcontainer) Run(name, image string, cmd []string, mem int64, logFileNam
 	err = cli.ContainerStart(d.Ctx, r.ID, types.ContainerStartOptions{})
 	if err != nil {
 		fmt.Printf("Unable to start a docker container\n")
+		d.Close(true)
 		return err
 	}
 
@@ -98,10 +104,12 @@ func (d *Dcontainer) Run(name, image string, cmd []string, mem int64, logFileNam
 }
 
 func (d *Dcontainer) Wait() int {
+	if d.ID == "" {
+		return -1
+	}
 	//Start READING the stream untl EOF
 	go func() {
-		defer d.HijackedRes.Close()
-		defer d.LogFd.Close()
+		defer d.Close(true)
 		fdw := bufio.NewWriter(d.LogFd)
 		_, err := io.Copy(fdw, d.HijackedRes.Reader)
 		if err != nil {
@@ -110,4 +118,18 @@ func (d *Dcontainer) Wait() int {
 	}()
 	retVal, _ := d.Cli.ContainerWait(d.Ctx, d.ID)
 	return retVal
+}
+
+func (d *Dcontainer) Close(HijackRes bool) {
+	if HijackRes {
+		d.HijackedRes.Close()
+	}
+	d.LogFd.Close()
+}
+
+func (d *Dcontainer) Kill() error {
+	if d.ID == "" {
+		return fmt.Errorf("Invalid Container")
+	}
+	return d.Cli.ContainerKill(d.Ctx, d.ID, "KILL")
 }

@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"os/exec"
 	"strconv"
 	"strings"
 	"time"
 
 	typ "github.com/mesos/mr-redis/common/types"
+	"github.com/mesos/mr-redis/exec/docker"
 	redisclient "gopkg.in/redis.v3"
 )
 
@@ -25,9 +25,10 @@ type RedMon struct {
 	Efile   io.Writer //stderr of the redis instance should be re-directed to this file
 	MS_Sync bool      //Make this as master after sync
 	MonChan chan int
-	Cmd     *exec.Cmd
-	Client  *redisclient.Client //redis client library connection handler
-	L       *log.Logger         //to redirect log outputs to a file
+	//Cmd     *exec.Cmd
+	Container *docker.Dcontainer  //A handle for the Container package
+	Client    *redisclient.Client //redis client library connection handler
+	L         *log.Logger         //to redirect log outputs to a file
 	//cgroup *CgroupManager		//Cgroup manager/cgroup connection pointer
 }
 
@@ -77,6 +78,7 @@ func NewRedMon(tskName string, IP string, Port int, data string, L *log.Logger) 
 	//ToDo each instance should be started with its own dir and specified config file
 	//ToDo Stdout file to be tskname.stdout
 	//ToDo stderere file to be tskname.stderr
+	R.Container = &docker.Dcontainer{}
 
 	return &R
 }
@@ -99,13 +101,12 @@ func (R *RedMon) getConnectedClient() *redisclient.Client {
 
 func (R *RedMon) launchRedisServer(isSlave bool, IP string, port string) bool {
 
+	var err error
 	if isSlave {
-		R.Cmd = exec.Command("./redis-server", "--port", fmt.Sprintf("%d", R.Port), "--SlaveOf", IP, port)
+		err = R.Container.Run(R.P.ID, "redis:3.0-alpine", []string{"redis-server", fmt.Sprintf("--port %d", R.Port), fmt.Sprintf("--Slaveof %s %s", IP, port)}, int64(R.P.MemCap), R.P.ID+".log")
 	} else {
-		R.Cmd = exec.Command("./redis-server", "--port", fmt.Sprintf("%d", R.Port))
+		err = R.Container.Run(R.P.ID, "redis:3.0-alpine", []string{"redis-server", fmt.Sprintf("--port %d", R.Port)}, int64(R.P.MemCap), R.P.ID+".log")
 	}
-
-	err := R.Cmd.Start()
 
 	if err != nil {
 		//Print some error
@@ -145,8 +146,8 @@ func (R *RedMon) StartMaster() bool {
 		return ret
 	}
 
-	R.Pid = R.Cmd.Process.Pid
-	R.P.Pid = R.Cmd.Process.Pid
+	R.Pid = 0
+	R.P.Pid = 0
 	R.P.Port = fmt.Sprintf("%d", R.Port)
 	R.P.IP = R.IP
 	R.P.State = "Running"
@@ -175,8 +176,8 @@ func (R *RedMon) StartSlave() bool {
 	for !R.IsSyncComplete() {
 		time.Sleep(time.Second)
 	}
-	R.Pid = R.Cmd.Process.Pid
-	R.P.Pid = R.Cmd.Process.Pid
+	R.Pid = 0
+	R.P.Pid = 0
 	R.P.Port = fmt.Sprintf("%d", R.Port)
 	R.P.IP = R.IP
 	R.P.State = "Running"
@@ -201,7 +202,7 @@ func (R *RedMon) StartSlaveAndMakeMaster() bool {
 		return ret
 	}
 
-	R.Pid = R.Cmd.Process.Pid
+	R.Pid = 0
 
 	//Monitor the redis PROC to check if the sync is complete
 	for !R.IsSyncComplete() {
@@ -210,8 +211,8 @@ func (R *RedMon) StartSlaveAndMakeMaster() bool {
 	//Make this Proc as master
 	R.MakeMaster()
 
-	R.Pid = R.Cmd.Process.Pid
-	R.P.Pid = R.Cmd.Process.Pid
+	R.Pid = 0
+	R.P.Pid = 0
 	R.P.Port = fmt.Sprintf("%d", R.Port)
 	R.P.IP = R.IP
 	R.P.State = "Running"
@@ -359,7 +360,7 @@ func (R *RedMon) Stop() bool {
 //Die Kill the Redis Proc
 func (R *RedMon) Die() bool {
 	//err := nil
-	err := R.Cmd.Process.Kill()
+	err := R.Container.Kill()
 	if err != nil {
 		R.L.Printf("Unable to kill the process %v", err)
 		return false

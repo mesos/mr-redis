@@ -120,8 +120,8 @@ func (exec *MrRedisExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *me
 
 		exitState := mesos.TaskState_TASK_FINISHED.Enum()
 
-		exitErr := M.Cmd.Wait() //TODO: Collect the return value of the process and send appropriate TaskUpdate eg:TaskFinished only on clean shutdown others will get TaskFailed
-		if exitErr != nil || M.P.Msg != "SHUTDOWN" {
+		exitErr := M.Container.Wait() //TODO: Collect the return value of the process and send appropriate TaskUpdate eg:TaskFinished only on clean shutdown others will get TaskFailed
+		if exitErr != 0 || M.P.Msg != "SHUTDOWN" {
 			//If the redis-server proc finished either with a non-zero or its not suppose to die then mark it as Task filed
 			exitState = mesos.TaskState_TASK_FAILED.Enum()
 			//Signal the monitoring thread to stop monitoring from now on
