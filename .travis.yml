@@ -1,0 +1,16 @@
+language: go
+
+go:
+  - 1.6
+  - 1.7
+ 
+install:
+  - go get github.com/tools/godep
+  
+script:
+  - cd sched/
+  - godep go build -v .
+  - cd ../exec/
+  - godep go build -v -o MrRedisExecutor
+  - cd ../cli/
+  - godep go build -v -o mrr
