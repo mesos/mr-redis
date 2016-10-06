@@ -22,29 +22,33 @@ const (
 
 //MrRedisConfig struct of the json config file that is used while starting the scheduler
 type MrRedisConfig struct {
-	Master       string //MesosMaster's endpoint zk://mesos.master/2181 or 10.11.12.13:5050
-	ExecutorPath string //Executor's Path from where to distribute
-	RedisPath    string //Path where redis-server executable is available
-	DBType       string //Type of the database etcd/zk/mysql/consul etcd.,
-	DBEndPoint   string //Endpoint of the database
-	LogFile      string //Name of the logfile
-	ArtifactIP   string //The IP to which we should bind to for distributing the executor among the interfaces
-	ArtifactPort string //The port to which we should bind to for distributing the executor
-	HTTPPort     string //Defaults to 8080 if otherwise specify explicitly
+	UserName      string //Supply a username
+	FrameworkName string //Supply a frameworkname
+	Master        string //MesosMaster's endpoint zk://mesos.master/2181 or 10.11.12.13:5050
+	ExecutorPath  string //Executor's Path from where to distribute
+	RedisImage    string //Redis Image should be downloaded
+	DBType        string //Type of the database etcd/zk/mysql/consul etcd.,
+	DBEndPoint    string //Endpoint of the database
+	LogFile       string //Name of the logfile
+	ArtifactIP    string //The IP to which we should bind to for distributing the executor among the interfaces
+	ArtifactPort  string //The port to which we should bind to for distributing the executor
+	HTTPPort      string //Defaults to 8080 if otherwise specify explicitly
 }
 
 //NewMrRedisDefaultConfig Default Constructor to create a config file
 func NewMrRedisDefaultConfig() MrRedisConfig {
 	return MrRedisConfig{
-		Master:       "127.0.0.1:5050",
-		ExecutorPath: "./MrRedisExecutor",
-		RedisPath:    "./redis-server",
-		DBType:       "etcd",
-		DBEndPoint:   "127.0.0.1:2379",
-		LogFile:      "stderr",
-		ArtifactIP:   "127.0.0.1",
-		ArtifactPort: "5454",
-		HTTPPort:     "5656",
+		UserName:      "ubuntu",
+		FrameworkName: "MrRedis",
+		Master:        "127.0.0.1:5050",
+		ExecutorPath:  "./MrRedisExecutor",
+		RedisImage:    "redis:3.0-alpine",
+		DBType:        "etcd",
+		DBEndPoint:    "127.0.0.1:2379",
+		LogFile:       "stderr",
+		ArtifactIP:    "127.0.0.1",
+		ArtifactPort:  "5454",
+		HTTPPort:      "5656",
 	}
 }
 
@@ -97,7 +101,7 @@ func main() {
 	}
 
 	//Start the Mesos library
-	go mesoslib.Run(Cfg.Master, Cfg.ArtifactIP, Cfg.ArtifactPort, Cfg.ExecutorPath, Cfg.RedisPath, Cfg.DBType, Cfg.DBEndPoint)
+	go mesoslib.Run(Cfg.Master, Cfg.ArtifactIP, Cfg.ArtifactPort, Cfg.ExecutorPath, Cfg.RedisImage, Cfg.DBType, Cfg.DBEndPoint, Cfg.FrameworkName, Cfg.UserName)
 
 	//Start the creator
 	go cmd.Creator()

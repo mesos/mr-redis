@@ -40,14 +40,12 @@ func serveExecutorArtifact(path string, IP, Port string) (*string, string) {
 	return &hostURI, base
 }
 
-func prepareExecutorInfo(IP, Port, executorPath, redisPath, DbType, DbEndPoint string) *mesos.ExecutorInfo {
+func prepareExecutorInfo(IP, Port, executorPath, redisImage, DbType, DbEndPoint string) *mesos.ExecutorInfo {
 	executorUris := []*mesos.CommandInfo_URI{}
 	uri, executorCmd := serveExecutorArtifact(executorPath, IP, Port)
 	executorUris = append(executorUris, &mesos.CommandInfo_URI{Value: uri, Executable: proto.Bool(true)})
-	uri, _ = serveExecutorArtifact(redisPath, IP, Port)
-	executorUris = append(executorUris, &mesos.CommandInfo_URI{Value: uri, Executable: proto.Bool(true)})
 
-	executorCommand := fmt.Sprintf("./%s -logtostderr=true -DbType=%s -DbEndPoint=%s", executorCmd, DbType, DbEndPoint)
+	executorCommand := fmt.Sprintf("./%s -logtostderr=true -DbType=%s -DbEndPoint=%s -Image=%s", executorCmd, DbType, DbEndPoint, redisImage)
 
 	/* If possible override the artifact hosting IP to below env variable */
 
@@ -68,7 +66,7 @@ func prepareExecutorInfo(IP, Port, executorPath, redisPath, DbType, DbEndPoint s
 	// Create mesos scheduler driver.
 	return &mesos.ExecutorInfo{
 		ExecutorId: util.NewExecutorID("default"),
-		Name:       proto.String("MrRedis Executor"),
+		Name:       proto.String("MrRedisExecutor"),
 		Source:     proto.String("MrRedis"),
 		Command: &mesos.CommandInfo{
 			Value: proto.String(executorCommand),
@@ -112,7 +110,6 @@ func parseConfig(config string) (string, string, string, string) {
 	}
 
 	return mIP, mP, sIP, sP
-
 }
 
 func parseIP(address string) net.IP {
@@ -162,21 +159,21 @@ func GetFrameWorkID() (string, float64) {
 }
 
 //Run primary function that starts the Mesos Scheduler
-func Run(MasterEndPoint, ServerIP, ServerPort, executorPath, redisPath, DbType, DbEndPoint string) {
+func Run(MasterEndPoint, ServerIP, ServerPort, executorPath, redisImage, DbType, DbEndPoint, FrameworkName, UserName string) {
 
 	//Split the configuration string
 
 	//MasterIP, MasterPort, ServerIP, ServerPort = parseConfig(config)
 
 	//Get executor information
-	exec := prepareExecutorInfo(ServerIP, ServerPort, executorPath, redisPath, DbType, DbEndPoint)
+	exec := prepareExecutorInfo(ServerIP, ServerPort, executorPath, redisImage, DbType, DbEndPoint)
 
 	fwID, fTimout := GetFrameWorkID()
 
 	// the framework
 	fwinfo := &mesos.FrameworkInfo{
-		User:            proto.String(""), // Mesos-go will fill in user.
-		Name:            proto.String("MrRedis"),
+		User:            proto.String(UserName), // Mesos-go will fill in user.
+		Name:            proto.String(FrameworkName),
 		Id:              &mesos.FrameworkID{Value: &fwID},
 		FailoverTimeout: &fTimout,
 	}

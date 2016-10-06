@@ -22,6 +22,8 @@ var DbType = flag.String("DbType", "etcd", "Type of the database etcd/zookeeper 
 //DbEndPoint The actuall endpoint of the database.
 var DbEndPoint = flag.String("DbEndPoint", "", "Endpoint of the database")
 
+var Image = flag.String("Image", "redis:3.0-alpine", "Image of the Redis Proc to be downloaded")
+
 //MrRedisLogger A global Logger pointer for the executor all the RedMon will write to the same logger
 var MrRedisLogger *log.Logger
 
@@ -87,7 +89,7 @@ func (exec *MrRedisExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *me
 
 	var runStatus *mesos.TaskStatus
 	exec.tasksLaunched++
-	M := RedMon.NewRedMon(taskInfo.GetTaskId().GetValue(), exec.HostIP, exec.tasksLaunched+6379, string(taskInfo.Data), MrRedisLogger)
+	M := RedMon.NewRedMon(taskInfo.GetTaskId().GetValue(), exec.HostIP, exec.tasksLaunched+6379, string(taskInfo.Data), MrRedisLogger, *Image)
 
 	fmt.Printf("The Redmon object = %v\n", *M)
 
@@ -120,8 +122,8 @@ func (exec *MrRedisExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *me
 
 		exitState := mesos.TaskState_TASK_FINISHED.Enum()
 
-		exitErr := M.Cmd.Wait() //TODO: Collect the return value of the process and send appropriate TaskUpdate eg:TaskFinished only on clean shutdown others will get TaskFailed
-		if exitErr != nil || M.P.Msg != "SHUTDOWN" {
+		exitErr := M.Container.Wait() //TODO: Collect the return value of the process and send appropriate TaskUpdate eg:TaskFinished only on clean shutdown others will get TaskFailed
+		if exitErr != 0 || M.P.Msg != "SHUTDOWN" {
 			//If the redis-server proc finished either with a non-zero or its not suppose to die then mark it as Task filed
 			exitState = mesos.TaskState_TASK_FAILED.Enum()
 			//Signal the monitoring thread to stop monitoring from now on
@@ -159,6 +161,7 @@ func (exec *MrRedisExecutor) FrameworkMessage(driver exec.ExecutorDriver, msg st
 //Shutdown Not implemented yet
 func (exec *MrRedisExecutor) Shutdown(exec.ExecutorDriver) {
 	fmt.Println("Shutting down the executor")
+	fmt.Printf("Killing all the containers")
 }
 
 //Error not implemented yet
@@ -207,5 +210,9 @@ func main() {
 	if err != nil {
 		fmt.Println("driver failed:", err)
 	}
-	fmt.Println("executor terminating")
+	fmt.Println("Executor Finished, Delete all the containers")
+	for _, M := range MrRedisExec.monMap {
+		M.Die()
+	}
+	fmt.Println("executor terminated")
 }
