@@ -1,5 +1,6 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/mesos/mr-redis)](https://goreportcard.com/report/github.com/mesos/mr-redis)
 [![GoDoc](https://godoc.org/github.com/mesos/mr-redis?status.svg)](https://godoc.org/github.com/mesos/mr-redis)
+[![Build Status](https://travis-ci.org/mesos/mr-redis.svg?branch=master)](https://travis-ci.org/mesos/mr-redis)
 # mr-redis  
 
 Mesos runs Redis.
@@ -34,7 +35,7 @@ For Mr-Redis to work you will need below softwares already available in your Dat
 * [Apache Mesos](http://mesos.apache.org/gettingstarted/) :- The Resource Manager of your DC to which mr-redis scheduler will connect to.
 * [Golang Dev Environment] (https://golang.org/doc/install) :- If you are planning to build mr-redis from source you will need to setup standard golang development environment. 
 * [etcd](https://github.com/coreos/etcd#getting-started) :- mr-redis uses etcd to store its state information so a running instance of etcd is required in your datacenter
-* [redis-server](https://github.com/antirez/redis#building-redis) :- mr-redis scheduler is capable of distributing redis-server (redis binary). Scheduler needs a valid location of redis-server binary that can be distributed to the slave.
+* [redis-server](https://hub.docker.com/r/library/redis) :- mr-redis scheduler is capable of pulling the redis docker image and executing it. (new) You no longer need to supply a Redis binary
 
 Installing the scheduler/framework can be done in three ways
 
