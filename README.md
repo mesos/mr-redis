@@ -150,32 +150,37 @@ The configuration file should be of json format, below is an example
 ```
 $cat config.json
 {
-        "Master":"zk://master.mesos:2181/mesos",
-        "ExecutorPath":"/home/ubuntu/MrRedis/exec/MrRedisExecutor",
-        "RedisPath":"/home/ubuntu/MrRedis/redisbin/redis-server",
-        "DBType":"etcd",
-        "DBEndPoint": "http://11.12.13.14:2379",
-        "ArtifactIP": "12.13.14.15"     //scheduler Machine's IP address which is reachable by all the slaves to download the executor
-}
-```
-
-Please substitute appropriate values with respect to your enviroment  for MasterIP/Port, ExecutorPath, DBEndPoint and IP adddres of this scheduler's VM that is accessible from the slaves for artifactIP
-
-if you want to get an empty config for you to start working on you could do this and the scheduler will print you a dummy structure for you to start working on.
-```
-$./sched -DumpEmptyConfig
-{
+   "UserName": "ubuntu",
+   "FrameworkName": "MrRedis",
    "Master": "127.0.0.1:5050",
    "ExecutorPath": "./MrRedisExecutor",
-   "RedisPath": "./redis-server",
+   "RedisImage": "redis:3.0-alpine",
    "DBType": "etcd",
    "DBEndPoint": "127.0.0.1:2379",
    "LogFile": "stderr",
    "ArtifactIP": "127.0.0.1",
    "ArtifactPort": "5454",
    "HTTPPort": "5656"
- }
+}
+```
+Please substitute appropriate values with respect to your enviroment  for MasterIP/Port, ExecutorPath, DBEndPoint and IP adddres of this scheduler's VM that is accessible from the slaves for artifactIP
 
+if you want to get an empty config for you to start working on you could do this and the scheduler will print you a dummy structure for you to start working on.
+```
+$./sched -DumpEmptyConfig
+{
+   "UserName": "ubuntu",
+   "FrameworkName": "MrRedis",
+   "Master": "127.0.0.1:5050",
+   "ExecutorPath": "./MrRedisExecutor",
+   "RedisImage": "redis:3.0-alpine",
+   "DBType": "etcd",
+   "DBEndPoint": "127.0.0.1:2379",
+   "LogFile": "stderr",
+   "ArtifactIP": "127.0.0.1",
+   "ArtifactPort": "5454",
+   "HTTPPort": "5656"
+}
 ```
 ### Creating Instances
 This can be done in 3 ways.
