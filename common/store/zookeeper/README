@@ -1,0 +1,3 @@
+#changes in config file-->
+use zookeeper instead of etcd
+use dbendpoint as 127.0.0.1:2181 as ip:port
