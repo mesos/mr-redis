@@ -109,6 +109,7 @@ func (I *Instance) Sync() bool {
 
 	nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
 
+	Gdb.CreateSection(nodeName)
 	Gdb.Set(nodeName+"Type", I.Type)
 	Gdb.Set(nodeName+"Masters", fmt.Sprintf("%d", I.Masters))
 	Gdb.Set(nodeName+"Slaves", fmt.Sprintf("%d", I.Slaves))

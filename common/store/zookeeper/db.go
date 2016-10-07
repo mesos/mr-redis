@@ -1,11 +1,11 @@
 package zookeeper
 
 import (
-	"encoding/json"
 	"fmt"
-	zk "github.com/samuel/go-zookeeper/zk"
 	"strings"
 	"time"
+
+	"github.com/samuel/go-zookeeper/zk"
 )
 
 const (
@@ -19,8 +19,8 @@ var (
 )
 
 type zkDB struct {
-	Con *zk.Conn
-	cfg     string
+	Con     *zk.Conn
+	Cfg     string
 	isSetup bool
 }
 
@@ -30,18 +30,10 @@ func New() *zkDB {
 
 func (db *zkDB) Login() error {
 	var err error
-	db.Con, _, err = zk.Connect([]string{db.cfg}, time.Second) //*10)
+	db.Con, _, err = zk.Connect([]string{db.Cfg}, time.Second*60)
 	if err != nil {
 		panic(err)
 	}
-	/*		children, stat, ch, err := db.Con.ChildrenW("/")
-			if err != nil {
-				panic(err)
-			}
-			fmt.Printf("%+v %+v\n", children, stat)
-			e := <-ch
-			fmt.Printf("%+v\n", e)
-	*/
 	return nil
 }
 
@@ -50,28 +42,25 @@ func (db *zkDB) IsSetup() bool {
 }
 
 func (db *zkDB) Set(Key string, Value string) error {
-	globalstatus := make(map[string]string)
-	globalstatus[Key] = Value
-	if statusbytes, err := json.Marshal(globalstatus); err == nil {
-		if _, err := db.Con.Set(Key, statusbytes, -1); err != nil {
-			db.Con.Create(Key, statusbytes, 0, DEF_ACL)
+	fmt.Printf("ZOO K=%s V=%s\n", Key, Value)
+	if _, err := db.Con.Set(Key, []byte(Value), -1); err != nil {
+		_, err := db.Con.Create(Key, []byte(Value), 0, DEF_ACL)
+		if err != nil {
+			fmt.Printf("Create error %v\n", err)
+			return err
 		}
 	}
 	return nil
 }
 
 func (db *zkDB) Get(Key string) (string, error) {
-	globalstatus := make(map[string]string)
-	if globalbytes, _, err := db.Con.Get(Key); err != nil {
-		json.Unmarshal(globalbytes, &globalstatus)
-	}
-	return globalstatus[Key], nil
+	result, _, err := db.Con.Get(Key)
+	return string(result), err
 }
 
 func (db *zkDB) IsDir(Key string) (error, bool) {
-	globalstatus := make(map[string]string)
-	if globalbytes, _, err := db.Con.Get(Key); err != nil {
-		json.Unmarshal(globalbytes, &globalstatus)
+	result, _, err := db.Con.Children(Key)
+	if err != nil || len(result) == 0 {
 		return err, false
 	}
 	return nil, true
@@ -79,17 +68,11 @@ func (db *zkDB) IsDir(Key string) (error, bool) {
 
 func (db *zkDB) IsKey(Key string) (bool, error) {
 
-	globalstatus := make(map[string]string)
-	if globalbytes, _, err := db.Con.Get(Key); err != nil {
-		json.Unmarshal(globalbytes, &globalstatus)
+	result, _, err := db.Con.Exists(Key)
+	if err != nil {
+		return result, err
 	}
-	for k := range globalstatus {
-		if Key == k {
-			fmt.Printf("Matched")
-			return true, nil
-		}
-	}
-	return false, nil
+	return result, nil
 }
 
 func (db *zkDB) Update(Key string, Value string, Lock bool) error {
@@ -102,11 +85,13 @@ func (db *zkDB) Del(Key string) error {
 
 //CreateSection will create a directory in zookeeper store
 func (db *zkDB) CreateSection(Key string) error {
-	globalstatus := make(map[string]string)
-	globalstatus[Key] = ""
-	if statusbytes, err := json.Marshal(globalstatus); err == nil {
-		if _, err := db.Con.Set(Key, statusbytes, -1); err != nil {
-			db.Con.Create(Key, statusbytes, 0, DEF_ACL)
+	fmt.Printf("ZOO CREATE SECTION K=%s \n", Key)
+	Key = strings.TrimSuffix(Key, "/")
+	if _, err := db.Con.Set(Key, []byte{'.'}, -1); err != nil {
+		_, err = db.Con.Create(Key, []byte{'.'}, 0, DEF_ACL)
+		if err != nil {
+			fmt.Printf("Create Error %v\n", err)
+			return err
 		}
 	}
 	return nil
@@ -116,9 +101,9 @@ func (db *zkDB) Setup(config string) error {
 	var err error
 	i := strings.Index(config, "//")
 	if i > -1 {
-		db.cfg = config[i+2:]
+		db.Cfg = config[i+2:]
 	} else {
-		db.cfg = config
+		db.Cfg = config
 	}
 
 	err = db.Login()
@@ -130,7 +115,6 @@ func (db *zkDB) Setup(config string) error {
 	if err != nil && strings.Contains(err.Error(), "Key already exists") != true {
 		return err
 	}
-
 	err = db.CreateSection(ETC_INST_DIR)
 	if err != nil && strings.Contains(err.Error(), "Key already exists") != true {
 		return err
@@ -158,15 +142,6 @@ func (db *zkDB) DeleteSection(Key string) error {
 //ListSection will list a directory
 func (db *zkDB) ListSection(Key string, Recursive bool) ([]string, error) {
 
-	globalstatus := make(map[string]string)
-	if globalbytes, _, err := db.Con.Get(Key); err != nil {
-		json.Unmarshal(globalbytes, &globalstatus)
-	}
-	retStr := make([]string, len(globalstatus))
-	i := 0
-	for k := range globalstatus {
-		retStr[i] = k
-		i++
-	}
-	return retStr, nil
+	result, _, err := db.Con.Children(Key)
+	return result, err
 }
