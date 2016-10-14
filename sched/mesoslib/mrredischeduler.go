@@ -28,6 +28,8 @@ func NewMrRedisScheduler(exec *mesos.ExecutorInfo) *MrRedisScheduler {
 func (S *MrRedisScheduler) Registered(driver sched.SchedulerDriver, frameworkID *mesos.FrameworkID, masterInfo *mesos.MasterInfo) {
 	log.Printf("MrRedis Registered %v", frameworkID)
 
+	typ.IsRegistered = true
+	log.Printf("MrRedis Registered Flag set")
 	FwIDKey := typ.ETC_CONF_DIR + "/FrameworkID"
 	typ.Gdb.Set(FwIDKey, frameworkID.GetValue())
 	FwTstamp := typ.ETC_CONF_DIR + "/RegisteredAt"
@@ -52,14 +54,17 @@ func (S *MrRedisScheduler) ResourceOffers(driver sched.SchedulerDriver, offers [
 
 	//No work to do so reject all the offers we just received
 	offerCount := typ.OfferList.Len()
-	if offerCount <= 0 {
-		//Reject the offers nothing to do now
+	if offerCount <= 0 || typ.IsRegistered == false {
+		//Reject the offers nothing to do now or even the Framework registration isnt completed
 		ids := make([]*mesos.OfferID, len(offers))
 		for i, offer := range offers {
 			ids[i] = offer.Id
 		}
 		driver.LaunchTasks(ids, []*mesos.TaskInfo{}, &mesos.Filters{})
 		//log.Printf("No task to peform reject all the offer")
+		if typ.IsRegistered == false {
+			log.Printf("Framework Not registered yet")
+		}
 		return
 	}
 
