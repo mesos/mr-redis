@@ -31,6 +31,7 @@ var MrRedisLogger *log.Logger
 type MrRedisExecutor struct {
 	tasksLaunched int
 	HostIP        string
+	ExecutorID    string
 	monMap        map[string](*RedMon.RedMon)
 }
 
@@ -70,6 +71,7 @@ func NewMrRedisExecutor() *MrRedisExecutor {
 
 //Registered Call back for registered driver
 func (exec *MrRedisExecutor) Registered(driver exec.ExecutorDriver, execInfo *mesos.ExecutorInfo, fwinfo *mesos.FrameworkInfo, slaveInfo *mesos.SlaveInfo) {
+	exec.ExecutorID = execInfo.ExecutorID.GetValue()
 	fmt.Println("Registered Executor on slave ") //, slaveInfo.GetHostname())
 }
 
