@@ -3,6 +3,7 @@ package types
 import (
 	"container/list"
 
+	"github.com/mesos/mr-redis/common/agentstate"
 	"github.com/mesos/mr-redis/common/store"
 )
 
@@ -11,10 +12,11 @@ var (
 	MemDb        *InMem   //In memory store
 	IsRegistered bool     //Default flag
 
-	OfferList *list.List       //list for having offer
-	Cchan     chan TaskCreate  //Channel for Creator
-	Mchan     chan *TaskUpdate //Channel for Maintainer
-	Dchan     chan TaskMsg     //Channel for Destroyer
+	OfferList *list.List        //list for having offer
+	Cchan     chan TaskCreate   //Channel for Creator
+	Mchan     chan *TaskUpdate  //Channel for Maintainer
+	Dchan     chan TaskMsg      //Channel for Destroyer
+	Agents    *agentstate.State //A Global View of aggents and the Instnaces book keeping
 )
 
 //Global db connection pointer, this will be initialized once abe be used everywhere

@@ -103,6 +103,7 @@ func Maintainer() {
 			break
 		case "TASK_FINISHED":
 			log.Printf("Task %s is Finished", ts.Name)
+			typ.Agents.Del(ts.SlaveId, Inst.Name)
 			switch proc.Type {
 			case "M":
 				if Inst.Masters > 0 {
@@ -125,6 +126,7 @@ func Maintainer() {
 			break
 		case "TASK_FAILED":
 			log.Printf("Task %s is Failed", ts.Name)
+			typ.Agents.Del(ts.SlaveId, Inst.Name)
 			switch proc.Type {
 			case "M":
 				//If the task lost is a master then we must select a most updated slave as the next master
@@ -164,6 +166,7 @@ func Maintainer() {
 			break
 		case "TASK_LOST":
 			log.Printf("Task %s is Lost", ts.Name)
+			typ.Agents.Del(ts.SlaveId, Inst.Name)
 			switch proc.Type {
 			case "M":
 				//If the task lost is a master then we must select a most updated slave as the next master

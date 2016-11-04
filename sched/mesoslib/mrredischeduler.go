@@ -27,9 +27,7 @@ func NewMrRedisScheduler(exec *mesos.ExecutorInfo) *MrRedisScheduler {
 //Registered Scheduler register call back initializes the timestamp and framework id
 func (S *MrRedisScheduler) Registered(driver sched.SchedulerDriver, frameworkID *mesos.FrameworkID, masterInfo *mesos.MasterInfo) {
 	log.Printf("MrRedis Registered %v", frameworkID)
-
 	typ.IsRegistered = true
-	log.Printf("MrRedis Registered Flag set")
 	FwIDKey := typ.ETC_CONF_DIR + "/FrameworkID"
 	typ.Gdb.Set(FwIDKey, frameworkID.GetValue())
 	FwTstamp := typ.ETC_CONF_DIR + "/RegisteredAt"
@@ -63,7 +61,7 @@ func (S *MrRedisScheduler) ResourceOffers(driver sched.SchedulerDriver, offers [
 		driver.LaunchTasks(ids, []*mesos.TaskInfo{}, &mesos.Filters{})
 		//log.Printf("No task to peform reject all the offer")
 		if typ.IsRegistered == false {
-			log.Printf("Framework Not registered yet")
+			log.Printf("Rejecting Offers Framework Not registered yet")
 		}
 		return
 	}
@@ -108,7 +106,7 @@ func (S *MrRedisScheduler) ResourceOffers(driver sched.SchedulerDriver, offers [
 				tmpData = []byte(fmt.Sprintf("%d SlaveOf %s", tsk.Mem, tsk.MasterIpPort))
 			}
 
-			if cpus >= tskCPUFloat && mems >= tskMemFloat {
+			if cpus >= tskCPUFloat && mems >= tskMemFloat && typ.Agents.Canfit(offer.SlaveId.GetValue(), tsk.Name, tsk.DValue) {
 				tskID := &mesos.TaskID{Value: proto.String(tsk.Taskname)}
 				mesosTsk := &mesos.TaskInfo{
 					Name:     proto.String(tsk.Taskname),
@@ -128,6 +126,7 @@ func (S *MrRedisScheduler) ResourceOffers(driver sched.SchedulerDriver, offers [
 				tskEle = tskEle.Next()
 				typ.OfferList.Remove(currentTask)
 				tasks = append(tasks, mesosTsk)
+				typ.Agents.Add(offer.SlaveId.GetValue(), tsk.Name, 1)
 
 			} else {
 				tskEle = tskEle.Next()
@@ -146,6 +145,7 @@ func (S *MrRedisScheduler) StatusUpdate(driver sched.SchedulerDriver, status *me
 	var ts typ.TaskUpdate
 	ts.Name = status.GetTaskId().GetValue()
 	ts.State = status.GetState().String()
+	ts.SlaveId = status.SlaveId.GetValue()
 	ts.Data = status.GetData()
 	log.Printf("MrRedis Task Update received")
 	log.Printf("Status=%v", ts)

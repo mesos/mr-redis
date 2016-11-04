@@ -31,7 +31,7 @@ func Creator() {
 
 				for i := 0; i < tc.C; i++ {
 
-					typ.OfferList.PushBack(typ.NewOffer(inst.Name+"::"+id.NewUIIDstr(), cpu, mem, true, ""))
+					typ.OfferList.PushBack(typ.NewOffer(inst.Name, inst.Name+"::"+id.NewUIIDstr(), cpu, mem, true, "", inst.DistributionValue))
 				}
 				log.Printf("Created %d master offers for Instance %v", tc.C, inst.Name)
 
@@ -44,7 +44,7 @@ func Creator() {
 
 					for i := 0; i < tc.C; i++ {
 
-						typ.OfferList.PushBack(typ.NewOffer(inst.Name+"::"+id.NewUIIDstr(), cpu, mem, false, p.IP+":"+p.Port))
+						typ.OfferList.PushBack(typ.NewOffer(inst.Name, inst.Name+"::"+id.NewUIIDstr(), cpu, mem, false, p.IP+":"+p.Port, inst.DistributionValue))
 					}
 
 				}

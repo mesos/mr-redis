@@ -12,17 +12,18 @@ import (
 
 //A Instance structure that will be able to store a tree of data, Everything related to a redis intance
 type Instance struct {
-	Name       string           //Name of the instance
-	Type       string           //Type of the instance "Single Instance = S; Master-Slave  = MS; Cluster = C"
-	Capacity   int              //Capacity of the Instance in MB
-	Masters    int              //Number of masters in this Instance
-	Slaves     int              //Number of slaves in this Instance
-	ExpMasters int              //Expected number of Masters
-	ExpSlaves  int              //Expected number of Slaves
-	Status     string           //Status of this instance "CREATING/RUNNING/DISABLED"
-	Mname      string           //Name / task id of the master redis proc
-	Snames     []string         //Name of the slave
-	Procs      map[string]*Proc //An array of redis procs to be filled later
+	Name              string           //Name of the instance
+	Type              string           //Type of the instance "Single Instance = S; Master-Slave  = MS; Cluster = C"
+	Capacity          int              //Capacity of the Instance in MB
+	Masters           int              //Number of masters in this Instance
+	Slaves            int              //Number of slaves in this Instance
+	ExpMasters        int              //Expected number of Masters
+	ExpSlaves         int              //Expected number of Slaves
+	Status            string           //Status of this instance "CREATING/RUNNING/DISABLED"
+	Mname             string           //Name / task id of the master redis proc
+	Snames            []string         //Name of the slave
+	Procs             map[string]*Proc //An array of redis procs to be filled later
+	DistributionValue int              //HOw many redis-server that belong to this proc can be started in a single slave, Default to 1
 }
 
 // NewInstance Creates a new instance variable
@@ -31,7 +32,7 @@ type Instance struct {
 // Returns nil if the instance already exists
 func NewInstance(Name string, Type string, Masters int, Slaves int, Cap int) *Instance {
 
-	p := &Instance{Name: Name, Type: Type, ExpMasters: Masters, ExpSlaves: Slaves, Capacity: Cap}
+	p := &Instance{Name: Name, Type: Type, ExpMasters: Masters, ExpSlaves: Slaves, Capacity: Cap, DistributionValue: 1}
 	return p
 }
 
@@ -83,6 +84,8 @@ func (I *Instance) Load() bool {
 	I.ExpSlaves, err = strconv.Atoi(tmpStr)
 	I.Status, err = Gdb.Get(nodeName + "Status")
 	I.Mname, err = Gdb.Get(nodeName + "Mname")
+	tmpStr, err = Gdb.Get(nodeName + "DValue")
+	I.DistributionValue, err = strconv.Atoi(tmpStr)
 
 	nodeNameSlaves := nodeName + "Snames/"
 	SnamesKey, err = Gdb.ListSection(nodeNameSlaves, false)
@@ -117,6 +120,7 @@ func (I *Instance) Sync() bool {
 	Gdb.Set(nodeName+"ExpSlaves", fmt.Sprintf("%d", I.ExpSlaves))
 	Gdb.Set(nodeName+"Status", I.Status)
 	Gdb.Set(nodeName+"Mname", I.Mname)
+	Gdb.Set(nodeName+"DValue", fmt.Sprintf("%d", I.DistributionValue))
 
 	//Create Section for Slaves and Procs
 	nodeNameSlaves := nodeName + "Snames/"

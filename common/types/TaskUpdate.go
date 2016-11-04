@@ -1,8 +1,9 @@
 package types
 
-//TaskUpdate type used to community with Maintainer goroutine
+//TaskUpdate type used to communicate with Maintainer goroutine
 type TaskUpdate struct {
-	Name  string
-	State string
-	Data  []byte
+	Name    string
+	State   string
+	SlaveId string
+	Data    []byte
 }

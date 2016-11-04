@@ -4,6 +4,7 @@ import (
 	"container/list"
 	"log"
 
+	"github.com/mesos/mr-redis/common/agentstate"
 	"github.com/mesos/mr-redis/common/store/etcd"
 )
 
@@ -16,6 +17,8 @@ func Initialize(dbtype string, config string) (bool, error) {
 	Cchan = make(chan TaskCreate)
 	Mchan = make(chan *TaskUpdate) //Channel for Maintainer
 	Dchan = make(chan TaskMsg)     //Channel for Destroyer
+
+	Agents = agentstate.NewState()
 
 	//Initalize the Internal in-memory storage
 	MemDb = NewInMem()

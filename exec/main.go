@@ -71,7 +71,7 @@ func NewMrRedisExecutor() *MrRedisExecutor {
 
 //Registered Call back for registered driver
 func (exec *MrRedisExecutor) Registered(driver exec.ExecutorDriver, execInfo *mesos.ExecutorInfo, fwinfo *mesos.FrameworkInfo, slaveInfo *mesos.SlaveInfo) {
-	exec.ExecutorID = execInfo.ExecutorID.GetValue()
+	exec.ExecutorID = execInfo.ExecutorId.GetValue()
 	fmt.Println("Registered Executor on slave ") //, slaveInfo.GetHostname())
 }
 
