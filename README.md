@@ -156,8 +156,18 @@ $cat config.json
    "Master": "127.0.0.1:5050",
    "ExecutorPath": "./MrRedisExecutor",
    "RedisImage": "redis:3.0-alpine",
-   "DBType": "etcd",
-   "DBEndPoint": "127.0.0.1:2379",
+```
+you can configure Zookeeper as the KV store 
+```
+   "DBType": "zookeeper",, 
+   "DBEndPoint": "127.0.0.1:2181"", 
+```
+OR use ETCD
+```
+   "DBType": "etcd", 
+   "DBEndPoint": "127.0.0.1:2379", 
+```
+```   
    "LogFile": "stderr",
    "ArtifactIP": "127.0.0.1",
    "ArtifactPort": "5454",
@@ -182,6 +192,39 @@ $./sched -DumpEmptyConfig
    "ArtifactPort": "5454",
    "HTTPPort": "5656"
 }
+```
+
+### Distribution of redis processes among Mesos Agents.
+'Distribution' : An integer representing number of 'redis-servers' can be start in One agent belonging to this Instance
+This attribute needs to be supplied while you create an Instances, by default the distribution Value is set to 1.
+#### Scenario 
+Mesos cluster with three Agents A1, A2 and A3 then
+#### Case 1:
+If you create an instance with M and 2 Slaves namely S1 & S2 (default Distribution Value)
+
+| A1 | A2 | A3 |
+| --- | --- | --- |
+| M | S1 | S1 |
+
+roughly should be the distribution,
+#### Case 2:
+If you create an Redis Instance with M and 5 Slaves namely S1,S2,S3,S4,S5 (distribution Value is 2)
+
+| A1 | A2 | A3 |
+| --- | --- | --- |
+| M | S1 | S1 |
+| S3 | S4 | S5 |
+
+The json file to be supplied along with 'CREATE' call should be like below
+```
+cat d.json
+{
+        "Distribution": 2
+}
+```
+The cli(mrr) create sub-command has a new `-f` option to supply addition json file. If you are using curl to create instances then supply it like this
+```
+curl http://<ENDPOINT>/v1/CREATE/testInstance/100/1/2 -X "POST" --header "Content-Type: application/json" -d @d.json
 ```
 ### Creating Instances
 This can be done in 3 ways.
@@ -240,8 +283,9 @@ OPTIONS:
    --memory, -m "0"     Memory in MB
    --slaves, -s "0"     Number of Slaves
    --wait, -w           Wait for the Instance to be created (by default the command is async)
-   
+   --file, -f           Location of the config file for this instance, to specify Distribution Value
 ```
+
 ## More Examples of Using the CLI
 ### Example 1:
 The cli itself will be async by default as it does not wait for the operation to complete
