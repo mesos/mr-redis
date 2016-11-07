@@ -79,6 +79,10 @@ func main() {
 					Name:  "wait, w",
 					Usage: "Wait for the Instance to be created (by default the command is async)",
 				},
+				cli.StringFlag{
+					Name:  "file, f",
+					Usage: "Location of the config file for this instance, to specify Distribution Value",
+				},
 			},
 		},
 		{

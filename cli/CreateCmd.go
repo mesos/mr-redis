@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/codegangsta/cli"
@@ -16,9 +17,11 @@ func CreateCmd(c *cli.Context) {
 	mem := c.Int("memory")
 	slaves := c.Int("slaves")
 	isWait := c.Bool("wait")
+	file := c.String("file")
 
 	if name == "" {
-		fmt.Printf("Error: Should have a valid name")
+		fmt.Printf("Error: Should have a valid name\n")
+		return
 	}
 
 	if mem < 100 {
@@ -28,10 +31,21 @@ func CreateCmd(c *cli.Context) {
 	if slaves < 0 || slaves > 100 {
 		slaves = 0
 	}
-	fmt.Printf("Attempting to Creating a Redis Instance (%s) with mem=%d slaves=%d\n", name, mem, slaves)
+
+	var fileReader *os.File
+	var ferr error
+	if file != "" {
+		fileReader, ferr = os.Open(file)
+		if ferr != nil {
+			fmt.Printf("Error: Unable to open file %s\n", file)
+			return
+		}
+	}
+
+	fmt.Printf("Attempting to Create a Redis Instance (%s) with mem=%d slaves=%d\n", name, mem, slaves)
 
 	url := fmt.Sprintf("%s/v1/CREATE/%s/%d/1/%d", MrRedisFW, name, mem, slaves)
-	res, err := http.Post(url, "application/json", nil)
+	res, err := http.Post(url, "application/json", fileReader)
 	if err != nil {
 		fmt.Printf("Error: Creating the Instance error=%v\n", err)
 		return

@@ -11,6 +11,10 @@ import (
 	typ "github.com/mesos/mr-redis/common/types"
 )
 
+type InputData struct {
+	Distribution int //Distribution Value
+}
+
 //MainController of the HTTP server
 type MainController struct {
 	beego.Controller
@@ -26,14 +30,25 @@ func (this *MainController) CreateInstance() {
 
 	var name string
 	var capacity, masters, slaves int
+	//Create an Default INPUT data
+	IData := InputData{Distribution: 1}
 
 	//Parse the input URL
 	name = this.Ctx.Input.Param(":INSTANCENAME")                  //Get the name of the instance
 	capacity, _ = strconv.Atoi(this.Ctx.Input.Param(":CAPACITY")) // Get the capacity of the instance in MB
 	masters, _ = strconv.Atoi(this.Ctx.Input.Param(":MASTERS"))   // Get the capacity of the instance in MB
 	slaves, _ = strconv.Atoi(this.Ctx.Input.Param(":SLAVES"))     // Get the capacity of the instance in MB
+	inData := this.Ctx.Input.CopyBody()
 
-	log.Printf("Instance Name=%s, Capacity=%d, masters=%d, slaves=%d\n", name, capacity, masters, slaves)
+	if len(inData) > 0 {
+		//Some Payload is being supplied for create
+		err := json.Unmarshal(inData, &IData)
+		if err != nil {
+			log.Printf("Invalid JSON format along wtih CREATE call IGNORING")
+		}
+	}
+
+	log.Printf("Instance Name=%s, Capacity=%d, masters=%d, slaves=%d ConfigJson=%v\n", name, capacity, masters, slaves, IData)
 
 	//Check the in-memory map if the instance already exist then return
 	tmpInstance := typ.MemDb.Get(name)
@@ -62,8 +77,9 @@ func (this *MainController) CreateInstance() {
 	}
 	tmpInstance = typ.NewInstance(name, instType, masters, slaves, capacity)
 	tmpInstance.Status = typ.INST_STATUS_CREATING
-
+	tmpInstance.DistributionValue = IData.Distribution
 	tmpInstance.Sync()
+
 	ok, _ := typ.MemDb.Add(name, tmpInstance)
 	if !ok {
 		//It appears that the element is already there but in deleted state so update it
