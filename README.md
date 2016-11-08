@@ -13,7 +13,7 @@ This framework supports the following features
 
  * Creates/Maintains Single Redis-instance
  * Creates/Maintains Redis-Instances with Master-Slave setup 
- * A centralized persistance layer currently enabled by etcd
+ * A centralized persistence layer currently enabled by etcd
 
 ## Why mr-redis?
 
@@ -26,15 +26,15 @@ At [Huawei] (http://www.huawei.com/en/) we foresee creating, running and maintai
 * If your organization has a requirement for creating and maintaining huge number of redis service instances
 * If you are planning to host 'redis' as a Service 
 * If redis instances need to be created in seconds and not in minutes
-* If you are already using Apache Mesos as a Resource Manager for your Datacenter and want to add Redis (as a service) workload to it
+* If you are already using Apache Mesos as a Resource Manager for your datacenter and want to add Redis (as a service) workload to it
 
 ## Installation Instructions
 
 ###Prerequisite
-For Mr-Redis to work you will need below softwares already available in your DataCenter (Cloud)
+For Mr-Redis to work you will need below software packages already available in your datacenter (Cloud)
 * [Apache Mesos](http://mesos.apache.org/gettingstarted/) :- The Resource Manager of your DC to which mr-redis scheduler will connect to.
 * [Golang Dev Environment] (https://golang.org/doc/install) :- If you are planning to build mr-redis from source you will need to setup standard golang development environment. 
-* [etcd](https://github.com/coreos/etcd#getting-started) :- mr-redis uses etcd to store its state information so a running instance of etcd is required in your datacenter
+* [etcd](https://github.com/coreos/etcd#getting-started) or [ZooKeeper](http://zookeeper.apache.org/doc/trunk/zookeeperStarted.html) :- mr-redis uses etcd/ZK to store its state information so a running instance of either etcd or ZK is required in your datacenter
 * [redis-server](https://hub.docker.com/r/library/redis) :- mr-redis scheduler is capable of pulling the redis docker image and executing it. (new) You no longer need to supply a Redis binary
 
 Installing the scheduler/framework can be done in three ways
@@ -73,13 +73,13 @@ Mark them as binaries
 ```
 $chmod u+x *
 ```
-Create a link or alias for ease of use, for example in linux perform below to create a link 
+Create a link or alias for ease of use, for example in Linux perform below to create a link
 ```
 $ln -s mrr_linux_amd64 mrr
 ```
 
 ### DC/OS
-MrRedis is integrated with DC/OS's universe, it should be pretty straight forward to install it like anyother package.
+MrRedis is integrated with DC/OS's universe, it should be pretty straight forward to install it like any other package.
 ```
 $dcos package install mr-redis
 ```
@@ -134,7 +134,7 @@ OK
 ```
 
 ## Starting the Scheduler (not applicable to DC/OS users)
-MrRedis scheduler binary is usually refered as `sched`, the scheduler hosts a file-server which can distribute redis binary and custom Executor.  
+MrRedis scheduler binary is usually referred as `sched`, the scheduler hosts a file-server which can distribute redis binary and custom Executor.
 
 The scheduler takes only one argument which is the config file,
 
@@ -174,7 +174,7 @@ OR use ETCD
    "HTTPPort": "5656"
 }
 ```
-Please substitute appropriate values with respect to your enviroment  for MasterIP/Port, ExecutorPath, DBEndPoint and IP adddres of this scheduler's VM that is accessible from the slaves for artifactIP
+Please substitute appropriate values with respect to your environment  for MasterIP/Port, ExecutorPath, DBEndPoint and IP address of this scheduler's VM that is accessible from the slaves for artifactIP
 
 if you want to get an empty config for you to start working on you could do this and the scheduler will print you a dummy structure for you to start working on.
 ```
@@ -246,7 +246,7 @@ CLI should first be initialized with the scheduler with this simple command
 ```
 $mrr init http://<schedulerIP>:<schedulerPORT>
 ```
-If you want to explore other comamnds below is the help screen
+If you want to explore other commands below is the help screen
 ```
 $mrr help
 NAME:
@@ -307,7 +307,7 @@ Master = 10.11.12.33:6389
 ```
 
 ### Example 2:
-If you have a complicated Redis requirement then a simple comamnd like the one below will result in creating one redis instance with 1 master and 50 Slaves in less than 15 secs, Simples :-)
+If you have a complicated Redis requirement then a simple command like the one below will result in creating one redis instance with 1 master and 50 Slaves in less than 15 secs, Simple :-)
 ```
 $time mrr create -n hello50 -m 100 -s 50 -w true
 Attempting to Creating a Redis Instance (hello50) with mem=100 slaves=50
@@ -378,7 +378,7 @@ Master = 10.11.12.21:6380
 ```
 
 ### Proxy in Progress 
-We are writing a proxy that will be installed with every redis instances especially with Master-Slave setup.  The proxy should be a simple pass-through.  Should be capable of accepting new configuration changes without needing to restart it.  Below is some preformance stats comparing different available proxies and ours.
+We are writing a proxy that will be installed with every redis instances especially with Master-Slave setup.  The proxy should be a simple pass-through.  Should be capable of accepting new configuration changes without needing to restart it.  Below is some performance stats comparing different available proxies and ours.
 
 ```
 $redis-benchmark -h <IP> -p <PORT>  -q -r 100000
@@ -388,7 +388,7 @@ $redis-benchmark -h <IP> -p <PORT>  -q -r 100000
 <img src="./ProxyCompare.PNG" width="100%" height="100%"> 
 
 
-### Contribution Guidlines
+### Contribution Guidelines
 Go already provides a nice documentation on coding conventions and guidelines; just try to adhere to that [Effective Go](https://golang.org/doc/effective_go.html) :-) 
 
 ##Specifically 
@@ -402,8 +402,8 @@ Go already provides a nice documentation on coding conventions and guidelines; j
 
 - [ ] Support REDIS 3.0 Cluster 
 - [ ] Support a Proxy mechanism to expose Redis Instance Endpoint
-- [ ] Build a UI for Create/Maintain/Monitor the entier redis framework
-- [ ] Benchmakr Utility for testing the RedisFramework 
+- [ ] Build a UI for Create/Maintain/Monitor the entire redis framework
+- [ ] Benchmark Utility for testing the RedisFramework 
 
 ##License
 Copyright 2015 Huawei Technologies Co. Ltd.
