@@ -141,6 +141,7 @@ func (db *zkDB) DeleteSection(Key string) error {
 
 //ListSection will list a directory
 func (db *zkDB) ListSection(Key string, Recursive bool) ([]string, error) {
-	result, _, err := db.Con.Children(Key.TrimRight("/"))
+	Key = strings.TrimSuffix(Key, "/")
+	result, _, err := db.Con.Children(Key)
 	return result, err
 }
