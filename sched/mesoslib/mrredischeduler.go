@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"time"
+	"syscall"
 
 	"github.com/gogo/protobuf/proto"
 	mesos "github.com/mesos/mesos-go/mesosproto"
@@ -178,4 +179,9 @@ func (S *MrRedisScheduler) ExecutorLost(_ sched.SchedulerDriver, eid *mesos.Exec
 //Error Not implemeted
 func (S *MrRedisScheduler) Error(_ sched.SchedulerDriver, err string) {
 	log.Printf("Scheduler received error:%v", err)
+        if err == "Framework has been removed"{
+		FwIDKey := typ.ETC_CONF_DIR + "/FrameworkID"
+        	typ.Gdb.Set(FwIDKey, "") // This means that when we start up *next time* we will have no framework ID and will register for a new one.
+                syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+        }
 }
