@@ -128,8 +128,8 @@ func parseIP(address string) net.IP {
 	return addr[0]
 }
 
-//FailoverTime Frameowkr and its task will be terminated if the framework is not started in 60 secons
-const FailoverTime = 60
+//FailoverTime Frameowkr and its task will be terminated if the framework is not available for 1 week 
+const FailoverTime = 60 * 60 * 24 * 7
 
 //TimeFormat we need to parse the Timestamp
 const TimeFormat = "2006-01-02 15:04:05.999999999 -0700 MST"
@@ -150,12 +150,7 @@ func GetFrameWorkID() (string, float64) {
 	deltaT := time.Now().Sub(t)
 	log.Printf("Delta of the previously registered framework is = %v", deltaT)
 
-	if (deltaT / time.Second) < FailoverTime {
-		return fwID, fTimout
-	}
-
-	return "", fTimout
-
+	return fwID, fTimout
 }
 
 //Run primary function that starts the Mesos Scheduler
