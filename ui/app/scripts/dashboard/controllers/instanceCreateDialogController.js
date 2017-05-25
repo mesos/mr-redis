@@ -44,6 +44,10 @@
 
       $scope.processCreateInstanceForm = function () {
         $scope.creatingInstance = true;
+        if (!$scope.newInstance.name){
+          $scope.creatingInstance = false;
+          angular.element('input.ng-invalid').first().focus();
+        } else {
         $scope.checkDBName($scope.newInstance.name, function(){
           dashboardServices.createInstance($scope.newInstance).then(function(response){
             console.log('This is response from dashboardServices createInstance: ');
@@ -76,4 +80,5 @@
           //TODO Handle checkdb name API error failure
         });
       }
+   }
 }]);
