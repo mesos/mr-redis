@@ -37,13 +37,13 @@ const (
 
 	ProxyPort = 7979
 
-	CleanUpInterval = 20
+	CleanUpInterval = 3
 
 	CleanUpZKMaxReties = 3
 
 	CleanUpZKCheckIntervalSecs = 15
 
-	SyncZKIntervalSecs = 2
+	SyncZKIntervalSecs = 3
 
 	RedisPath = "/MrRedis/Instances"
 
