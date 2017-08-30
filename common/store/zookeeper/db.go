@@ -30,7 +30,10 @@ func New() *zkDB {
 
 func (db *zkDB) Login() error {
 	var err error
-	db.Con, _, err = zk.Connect([]string{db.Cfg}, time.Second*60)
+  // to support zk cluster
+  servers := strings.Split(db.Cfg, ",")
+  db.Con, _, err = zk.Connect(servers, time.Second*60)
+	//db.Con, _, err = zk.Connect([]string{db.Cfg}, time.Second*60)
 	if err != nil {
 		panic(err)
 	}
