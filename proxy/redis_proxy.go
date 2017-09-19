@@ -57,7 +57,7 @@ type Config struct {
 	Entries  []Entry //Entries List of proxy entries
 }
 
-//Entry Representation of each entry in the proxy config
+//Entry Representation of each entry in the proxy configå
 type Entry struct {
 	Name string
 	Pair PorxyPair
@@ -207,9 +207,25 @@ func InitializeProxy(conn *zk.Conn, path string) {
 
 			must(err)
 
+			var redis_tcp_local_port string
+
 			if CurrentE, ok := ConfigMap[name]; ok {
 
 				log.Printf("InitializeProxy: Redis name %s is already in the configMap, only change its backend redis addr. \n", name)
+
+				if found, _, _ := conn.Exists(RedisLocalPortsPath + "/" + name); found {
+
+					redis_port_byte, _, _ := conn.Get(RedisLocalPortsPath + "/" + name)
+
+					redis_tcp_local_port = string(redis_port_byte[:])
+
+					log.Printf("InitializeProxy: Redis local port %s is already in the MrRedisLocalPort, sync with zk to keep it consistent . \n", redis_tcp_local_port)
+
+					CurrentE.Pair.From = "127.0.0.1" + ":" + redis_tcp_local_port
+
+					log.Printf("InitializeProxy: set redis instance %s Pair.From properties to %s" , name, CurrentE.Pair.From)
+					
+				}
 
 				CurrentE.Pair.To = string(redis_ip) + ":" + string(redis_port)
 
@@ -218,8 +234,6 @@ func InitializeProxy(conn *zk.Conn, path string) {
 			} else {
 
 				log.Printf("InitializeProxy: Redis name %s not found in the configMap \n", name)
-
-				var redis_tcp_local_port string
 
 				if found, _, _ := conn.Exists(RedisLocalPortsPath + "/" + name); found {
 
@@ -479,14 +493,14 @@ func main() {
 	//Initialize the global LocalPorts map
 	LocalPortsMap = make(map[string]string)
 
-        //set log rotating policy
+	//set log rotating policy
 
-       	log.SetOutput(&lumberjack.Logger{
-           Filename:   "/data/apps/log/MrRedis-local-proxy.log",
-   	   MaxSize:    50, // megabytes
-           MaxBackups: 10,
-           MaxAge:     3, //days
-})
+	log.SetOutput(&lumberjack.Logger{
+		Filename:   "/data/apps/log/MrRedis-local-proxy.log",
+		MaxSize:    50, // megabytes
+		MaxBackups: 10,
+		MaxAge:     3, //days
+	})
 
 	//Read a config file that has json update the config files
 	cfgFileName := flag.String("config", "./config.json", "Supply the location of MrRedis configuration file")
@@ -550,3 +564,4 @@ func main() {
 	<-waitCh
 
 }
+
