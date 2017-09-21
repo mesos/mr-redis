@@ -202,15 +202,24 @@ func InitializeProxy(conn *zk.Conn, path string) {
 
 			redis_id, _, err := conn.Get(RedisPath + "/" + name + "/Mname")
 
-			must(err)
+			if err != nil {
+				logger.Errorf("zk path /name/instance/Mname error: %v\n", RedisPath + "/" + name + "/Mname")
+				must(err)
+			}
 
 			redis_ip, _, err := conn.Get(RedisPath + "/" + name + "/Procs/" + string(redis_id) + "/IP")
 
-			must(err)
+			if err != nil {
+				logger.Errorf("zk path name/Pros/instance/IP error: %v\n", RedisPath + "/" + name + "/Procs/" + string(redis_id) + "/IP")
+				must(err)
+			}
 
 			redis_port, _, err := conn.Get(RedisPath + "/" + name + "/Procs/" + string(redis_id) + "/Port")
 
-			must(err)
+			if err != nil {
+				logger.Errorf("zk path name/Pros/instance/Port error: %v\n", RedisPath + "/" + name + "/Procs/" + string(redis_id) + "/Port")
+				must(err)
+			}
 
 			var redis_tcp_local_port string
 
@@ -360,21 +369,65 @@ func HandleConnection(E Entry) error {
 		//F := From Connection
 		//T := To Connection
 		//This proxy will simply transfer everything from F to T net.Conn
-		go func(E Entry, F net.Conn) {
+		go func(E Entry, srcConn net.Conn) {
 
-			T, err := net.Dial("tcp", E.Pair.To)
+			destConn, err := net.Dial("tcp", E.Pair.To)
 			if err != nil {
 				logger.Errorf("Unable to connect to the Destination %s %v", E.Pair.To, err)
 				return
 			}
-			defer T.Close()
-			defer F.Close()
+			//defer destConn.Close()
+			//defer srcConn.Close()
 
-			go io.Copy(F, T)
-			io.Copy(T, F)
+			stop := make(chan bool)
+
+			go relay(srcConn, destConn, stop)
+			go relay(destConn, srcConn, stop)
+
+			select {
+			case <-stop:
+				logger.Errorf("Whether connection is stopped or not: %v", stop)
+				time.Sleep(time.Second * 1)
+				//return
+			}
+
+			//go io.Copy(F, T)
+			//io.Copy(T, F)
+			/*ExitChan := make(chan bool, 1)
+
+			go func(sconn net.Conn, dconn net.Conn, Exit chan bool) {
+				_, err := io.Copy(srcConn, destConn)
+				logger.Errorf("Failed to send data to %v, error is:%v\n", E.Pair.To, err)
+				ExitChan <- true
+			}(srcConn, destConn, ExitChan)
+
+			go func(sconn net.Conn, dconn net.Conn, Exit chan bool) {
+				_, err := io.Copy(destConn, srcConn)
+				logger.Errorf("Failed to receive data from %v, error is:%v\n", E.Pair.To, err)
+				ExitChan <- true
+			}(srcConn, destConn, ExitChan)
+
+			<-ExitChan
+
+			destConn.Close()
+			srcConn.Close()
+			*/
 
 		}(CurrentE, conn)
 	}
+}
+
+
+func relay(src net.Conn, dst net.Conn, stop chan bool) {
+	_,err := io.Copy(dst, src)
+	if err != nil {
+		logger.Errorf("src addr is %v, dst addr is %v, error is:%v\n", src.LocalAddr(), dst.LocalAddr(),err)
+		dst.Close()
+		src.Close()
+		stop <- true
+		return
+	}
+
 }
 
 func cleanProxy(conn *zk.Conn) {
