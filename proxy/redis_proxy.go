@@ -16,6 +16,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"sync"
 )
 
 
@@ -115,7 +116,13 @@ func newTCPListener(addr string) (net.Listener, error) {
 
 var logger = logging.GetLogger("redis_proxy")
 
-
+var bufferPool = sync.Pool{
+	New: func() interface{} {
+		// TODO maybe different buffer size?
+		// benchmark pls
+		return make([]byte, 1<<15)
+	},
+}
 
 func RandInt64(min, max int) int {
 	if min >= max || min == 0 || max == 0 {
@@ -376,9 +383,36 @@ func HandleConnection(E Entry) error {
 				logger.Errorf("Unable to connect to the Destination %s %v", E.Pair.To, err)
 				return
 			}
+
+			first := make(chan<- struct{}, 1)
+			var wg sync.WaitGroup
+			cp := func(dst net.Conn, src net.Conn) {
+				buf := bufferPool.Get().([]byte)
+				// TODO use splice on linux
+				// TODO needs some timeout to prevent torshammer ddos
+				_, err := io.CopyBuffer(dst, src, buf)
+				select {
+				case first <- struct{}{}:
+					if err != nil {
+						logger.Errorf("Copy error is %v:",err)
+					}
+					_ = dst.Close()
+					_ = src.Close()
+				default:
+				}
+				bufferPool.Put(buf)
+				wg.Done()
+			}
+			wg.Add(2)
+			go cp(destConn, srcConn)
+			go cp(srcConn, destConn)
+			wg.Wait()
+
 			//defer destConn.Close()
 			//defer srcConn.Close()
 
+			/*
+			This part has connection reset error.
 			stop := make(chan bool)
 
 			go relay(srcConn, destConn, stop)
@@ -391,6 +425,7 @@ func HandleConnection(E Entry) error {
 				//return
 			}
 
+			*/
 			//go io.Copy(F, T)
 			//io.Copy(T, F)
 			/*ExitChan := make(chan bool, 1)
@@ -415,6 +450,22 @@ func HandleConnection(E Entry) error {
 
 		}(CurrentE, conn)
 	}
+}
+
+func broker(dst, src net.Conn, srcClosed chan struct{}) {
+	// We can handle errors in a finer-grained manner by inlining io.Copy (it's
+	// simple, and we drop the ReaderFrom or WriterTo checks for
+	// net.Conn->net.Conn transfers, which aren't needed). This would also let
+	// us adjust buffersize.
+	_, err := io.Copy(dst, src)
+
+	if err != nil {
+		logger.Errorf("Copy error: %s", err)
+	}
+	if err := src.Close(); err != nil {
+		logger.Errorf("Close error: %s", err)
+	}
+	srcClosed <- struct{}{}
 }
 
 
