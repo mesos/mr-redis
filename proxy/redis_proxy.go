@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/curator-go/curator"
 	"github.com/curator-go/curator/recipes/cache"
-	"github.com/samuel/go-zookeeper/zk"
 	"github.com/hhkbp2/go-logging"
+	"github.com/samuel/go-zookeeper/zk"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -15,8 +15,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 	"sync"
+	"time"
 )
 
 var (
@@ -30,7 +30,6 @@ var (
 	//logger = logging.GetLogger("redis_proxy")
 
 	logger logging.Logger
-
 )
 
 var startTime = time.Now()
@@ -63,11 +62,11 @@ const (
 
 	LogFilePath = "/data/apps/log/MrRedis-local-proxy.log"
 
-	LogFileMaxSize = 100 * 1024 * 1024   // megabytes
+	LogFileMaxSize = 100 * 1024 * 1024 // megabytes
 
 	LogFileMaxBackups = 10
 
-    ProgrameStartTimeAtLeast = 60
+	ProgrameStartTimeAtLeast = 60
 )
 
 //Config json config structure for the proxy
@@ -166,7 +165,7 @@ func PrepareLocalPorts(conn *zk.Conn, path string) {
 
 }
 
-func getRedisMnameInfo(name string, conn *zk.Conn) (string, string){
+func getRedisMnameInfo(name string, conn *zk.Conn) (string, string) {
 
 	logger.Infof("Get redis %v Mname info redis_ip and redis_port.", name)
 
@@ -175,7 +174,7 @@ func getRedisMnameInfo(name string, conn *zk.Conn) (string, string){
 	redis_id, _, err := conn.Get(redis_id_path)
 
 	if err != nil {
-		logger.Errorf("zk path /name/instance/Mname error: %v\n", RedisPath + "/" + name + "/Mname")
+		logger.Errorf("zk path /name/instance/Mname error: %v\n", RedisPath+"/"+name+"/Mname")
 		must(err)
 	}
 
@@ -198,7 +197,7 @@ func getRedisMnameInfo(name string, conn *zk.Conn) (string, string){
 			return "", ""
 
 		} else {
-			logger.Infof("Second time to fetch new redis %v ip successfully, the ip is %v.",name, redis_ip)
+			logger.Infof("Second time to fetch new redis %v ip successfully, the ip is %v.", name, redis_ip)
 		}
 		//must(err)
 	}
@@ -207,13 +206,12 @@ func getRedisMnameInfo(name string, conn *zk.Conn) (string, string){
 	redis_port, _, err := conn.Get(redis_port_path)
 
 	if err != nil {
-		logger.Errorf("zk path name/Pros/instance/Port error: %v\n", RedisPath + "/" + name + "/Procs/" + string(redis_id) + "/Port")
+		logger.Errorf("zk path name/Pros/instance/Port error: %v\n", RedisPath+"/"+name+"/Procs/"+string(redis_id)+"/Port")
 		must(err)
 	}
 
 	return string(redis_ip), string(redis_port)
 }
-
 
 func InitializeProxy(conn *zk.Conn, path string) {
 
@@ -229,7 +227,6 @@ func InitializeProxy(conn *zk.Conn, path string) {
 	for _, name := range redis_instance {
 
 		redis_status, _, _ := conn.Get(RedisPath + "/" + name + "/Status")
-
 
 		if redis_status != nil && strings.EqualFold(string(redis_status), "RUNNING") {
 
@@ -253,7 +250,7 @@ func InitializeProxy(conn *zk.Conn, path string) {
 
 					CurrentE.Pair.From = "127.0.0.1" + ":" + redis_tcp_local_port
 
-					logger.Infof("Set redis instance %s Pair.From properties to %s" , name, CurrentE.Pair.From)
+					logger.Infof("Set redis instance %s Pair.From properties to %s", name, CurrentE.Pair.From)
 
 				}
 
@@ -309,7 +306,6 @@ func InitializeProxy(conn *zk.Conn, path string) {
 			}
 		}
 	}
-
 
 }
 
@@ -413,7 +409,7 @@ func HandleConnection(E Entry) error {
 				select {
 				case first <- struct{}{}:
 					if err != nil {
-						logger.Errorf("Copy error is %v:",err)
+						logger.Errorf("Copy error is %v:", err)
 					}
 					_ = dst.Close()
 					_ = src.Close()
@@ -475,13 +471,11 @@ func HandleHTTPGet(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
-	fmt.Fprintf(w, string(retBytes) )
+	fmt.Fprintf(w, string(retBytes))
 	return
 }
 
 func addRedisProxy(name string, conn *zk.Conn) {
-
-
 
 	if CurrentE, ok := ConfigMap[name]; ok {
 		logger.Infof("Redis instance %v proxy already exist in configMap.", name)
@@ -499,7 +493,6 @@ func addRedisProxy(name string, conn *zk.Conn) {
 		CurrentE.Pair.To = redis_ip + ":" + redis_port
 
 		ConfigMap[name] = CurrentE
-
 
 		redis_tcp_local_port := getLocalRedisPort()
 
@@ -569,9 +562,9 @@ func watchRedisStatus(conn *zk.Conn) {
 
 	zksStr := os.Getenv("ZOOKEEPER_SERVERS")
 
-	retryPolicy := curator.NewExponentialBackoffRetry(time.Second, 3, 15 * time.Second)
+	retryPolicy := curator.NewExponentialBackoffRetry(time.Second, 3, 15*time.Second)
 
-	client := curator.NewClient(zksStr,retryPolicy)
+	client := curator.NewClient(zksStr, retryPolicy)
 
 	client.Start()
 
@@ -606,9 +599,9 @@ func watchRedisStatus(conn *zk.Conn) {
 
 					time.Sleep(2 * SyncZKIntervalSecs * time.Second)
 
-					redisName := strings.Split(event_path,"/")[3]
+					redisName := strings.Split(event_path, "/")[3]
 
-					if  _, ok := ConfigMap[redisName]; ok {
+					if _, ok := ConfigMap[redisName]; ok {
 
 						logger.Infof("Redis %s has already been created!", redisName)
 
@@ -642,13 +635,13 @@ func watchRedisStatus(conn *zk.Conn) {
 
 					logger.Infof("New redis has been created, Will Sync the status")
 
-					time.Sleep( SyncZKIntervalSecs * time.Second)
+					time.Sleep(SyncZKIntervalSecs * time.Second)
 
-					redisName := strings.Split(event_path,"/")[3]
+					redisName := strings.Split(event_path, "/")[3]
 
 					if redisName != "" {
 
-						if  _, ok := ConfigMap[redisName]; ok {
+						if _, ok := ConfigMap[redisName]; ok {
 
 							logger.Infof("Redis %s in ConfigMap might have failover occurred, will try to update the master ip by running updateRedisProxy.!", redisName)
 							updateRedisProxy(redisName, conn)
@@ -775,7 +768,6 @@ func main() {
 		filePath, fileMode, bufferSize, bufferFlushTime, inputChanSize,
 		fileMaxBytes, backupCount)
 
-
 	// the format for the whole log message
 	format := "%(asctime)s %(levelname)s (%(filename)s:%(lineno)d) " +
 		"%(name)s %(message)s"
@@ -799,7 +791,6 @@ func main() {
 	// ensure all log messages are flushed to disk before program exits.
 	defer logging.Shutdown()
 
-
 	conn := connect()
 
 	defer conn.Close()
@@ -819,7 +810,7 @@ func main() {
 
 	http.HandleFunc("/Get/", HandleHTTPGet)
 
-	logger.Fatal(http.ListenAndServe(":" + string(ProxyPort) , nil))
+	logger.Fatal(http.ListenAndServe(":"+string(ProxyPort), nil))
 
 	//Wait indefinitely
 	waitCh := make(chan bool)
