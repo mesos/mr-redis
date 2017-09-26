@@ -52,7 +52,7 @@ const (
 
 	RedisPortMaxNum = 6400
 
-	ProxyPort = 7979
+	ProxyAddr = "127.0.0.1:7979"
 
 	SyncZKIntervalSecs = 3
 
@@ -66,7 +66,9 @@ const (
 
 	LogFileMaxBackups = 10
 
-	ProgrameStartTimeAtLeast = 60
+	ProgrameStartTimeAtLeast = 30
+
+	FetchRedisIpTimeOutSecs = 60
 )
 
 //Config json config structure for the proxy
@@ -146,8 +148,10 @@ func PrepareLocalPorts(conn *zk.Conn, path string) {
 	}
 
 	redis_local_ports, _, err := conn.Children(path)
-
-	must(err)
+	if err != nil {
+		logger.Errorf("Error to get redis_local_ports, error is %s.", err)
+		return
+	}
 
 	for _, name := range redis_local_ports {
 
@@ -165,49 +169,107 @@ func PrepareLocalPorts(conn *zk.Conn, path string) {
 
 }
 
+
 func getRedisMnameInfo(name string, conn *zk.Conn) (string, string) {
 
 	logger.Infof("Get redis %v Mname info redis_ip and redis_port.", name)
 
 	redis_id_path := RedisPath + "/" + name + "/Mname"
 
-	redis_id, _, err := conn.Get(redis_id_path)
+	var redis_id string
 
-	if err != nil {
-		logger.Errorf("zk path /name/instance/Mname error: %v\n", RedisPath+"/"+name+"/Mname")
-		must(err)
-	}
+	idTimeCount := time.Now()
 
-	redis_ip_path := RedisPath + "/" + name + "/Procs/" + string(redis_id) + "/IP"
+	for {
+		redisId, _, idErr := conn.Get(redis_id_path)
 
-	var redis_ip []byte
+		if idErr != nil {
+			logger.Errorf("zk path /name/instance/Mname error: %v\n", RedisPath+"/"+name+"/Mname")
+			return "",""
+		}
 
-	redis_ip, _, err = conn.Get(redis_ip_path)
+		if redisId != nil && string(redisId) != "" {
 
-	if err != nil {
-
-		logger.Errorf("Redis %v failed to get new redis ip, the ip is %v. Will wait 5 seconds and try to fetch it again.", name, redis_ip)
-		time.Sleep(5 * time.Second)
-
-		redis_ip, _, err = conn.Get(redis_ip_path)
-
-		if err != nil {
-
-			logger.Errorf("Failed to fetch new redis ip second time, wrill pass this")
-			return "", ""
+			logger.Infof("Redis %s get the id from zk, the redis id is %s", name, string(redis_id))
+			redis_id = string(redisId)
+			break
 
 		} else {
-			logger.Infof("Second time to fetch new redis %v ip successfully, the ip is %v.", name, redis_ip)
+			elapsed := time.Since(idTimeCount).Seconds()
+
+			logger.Infof("Fetch redis %s spends %d seconds already.", name, elapsed)
+
+			if elapsed > FetchRedisIpTimeOutSecs {
+				logger.Errorf("Failed to fetch redis %s id, and it's over %d secoonds. will ignore this request!", name, FetchRedisIpTimeOutSecs)
+				break
+			}
+
+			time.Sleep(1 * time.Second)
+
+			logger.Errorf("Redis %s failed to get new redis id, the id is %s. Will get fetch it again.", name, string(redisId))
 		}
-		//must(err)
+
+
 	}
 
-	redis_port_path := RedisPath + "/" + name + "/Procs/" + string(redis_id) + "/Port"
+    if redis_id == "" {
+    	logger.Errorf("Get redis %s Mname id null, will return empty string!")
+    	return "",""
+	}
+
+	redis_ip_path := RedisPath + "/" + name + "/Procs/" + redis_id + "/IP"
+
+	logger.Infof("redis %s redis_ip_path is %s", name, redis_id_path)
+
+	var redis_ip string
+
+	timeCount := time.Now()
+
+	for {
+		redisIp, _, err := conn.Get(redis_ip_path)
+
+		if err == nil {
+
+			if redisIp != nil && string(redisIp) != "" {
+
+				logger.Infof("Redis %s get the ip from zk, the redis ip is %v", name, redis_ip)
+				redis_ip = string(redisIp)
+				break
+
+			} else {
+
+				logger.Errorf("Redis %v failed to get new redis ip, the ip is %v. Will get fetch it again.", name, redis_ip)
+			}
+
+			elapsed := time.Since(timeCount).Seconds()
+
+			logger.Infof("Fetch redis %s spends %d seconds already.", name, elapsed)
+
+			if elapsed > FetchRedisIpTimeOutSecs {
+				logger.Errorf("Failed to fetch redis %s ip, and it's over %d secoonds. will ignore this request!", name, FetchRedisIpTimeOutSecs)
+				break
+			}
+
+			time.Sleep(1 * time.Second)
+
+		} else {
+			logger.Errorf("failed to get redis ip, error is %s", err)
+			logger.Error("Failed to get redis %s ip, redis ip is %v, zk conection might have problem, eth error is %v", name, redis_ip, err)
+			break
+		}
+	}
+
+	if redis_ip == "" {
+		logger.Errorf("Get redis %s IP as null, will return empty string!")
+		return "",""
+	}
+
+	redis_port_path := RedisPath + "/" + name + "/Procs/" + redis_id + "/Port"
 	redis_port, _, err := conn.Get(redis_port_path)
 
 	if err != nil {
 		logger.Errorf("zk path name/Pros/instance/Port error: %v\n", RedisPath+"/"+name+"/Procs/"+string(redis_id)+"/Port")
-		must(err)
+		return "", ""
 	}
 
 	return string(redis_ip), string(redis_port)
@@ -232,7 +294,19 @@ func InitializeProxy(conn *zk.Conn, path string) {
 
 			logger.Infof("redis instance %s status is running.", name)
 
+			redis_mname, _, _ :=  conn.Get(RedisPath + "/" + name + "/Mname")
+
+			if redis_mname == nil || string(redis_mname) == "" {
+				logger.Errorf("redis %s Mname is empty. Will skip this redis instance.", name)
+				continue
+			}
+
 			redis_ip, redis_port := getRedisMnameInfo(name, conn)
+
+			if redis_ip == "" || redis_port == "" {
+				logger.Errorf("redis %s Pairto ip %s or port %s is empty. Will skip this redis instance.", name, redis_ip, redis_port)
+				continue
+			}
 
 			var redis_tcp_local_port string
 
@@ -477,22 +551,36 @@ func HandleHTTPGet(w http.ResponseWriter, r *http.Request) {
 
 func addRedisProxy(name string, conn *zk.Conn) {
 
-	if CurrentE, ok := ConfigMap[name]; ok {
+	var CurrentE Entry
+	var OK bool
+
+	if name == "" {
+		logger.Errorf("Redis name is empty, will ingore this request.")
+		return
+	}
+	if CurrentE, OK = ConfigMap[name]; OK {
+
 		logger.Infof("Redis instance %v proxy already exist in configMap.", name)
 		return
+
 	} else {
 
 		logger.Infof("Redis instance not exsit in configMap.", name)
 
 		redis_ip, redis_port := getRedisMnameInfo(name, conn)
+
 		//Add lock to ConfigMap in case of concurrent read and write on configMap. eg: create redis and existant redis failover happens at the same time, this might occur
+
+		if redis_ip == "" || redis_port == "" {
+			logger.Errorf("Failed to add redis instance %s, eigher redis_ip or redis_port values is empty. redis_ip is %v, redis_port is %v", name, redis_ip, redis_port)
+			return
+		}
+
 		lock.Lock()
 
 		defer lock.Unlock()
 
 		CurrentE.Pair.To = redis_ip + ":" + redis_port
-
-		ConfigMap[name] = CurrentE
 
 		redis_tcp_local_port := getLocalRedisPort()
 
@@ -503,25 +591,11 @@ func addRedisProxy(name string, conn *zk.Conn) {
 
 		conn.Create(RedisLocalPortsPath+"/"+name, []byte(redis_tcp_local_port), flags, acl)
 
-		local_addr := "127.0.0.1" + ":" + redis_tcp_local_port
+		CurrentE.Pair.From = "127.0.0.1" + ":" + redis_tcp_local_port
 
-		logger.Infof("Redis %s local addr is %s", name, local_addr)
+		ConfigMap[name] = CurrentE
 
-		local_tcp_addr, _ := net.ResolveTCPAddr("tcp4", local_addr)
-
-		to_addr := string(redis_ip) + ":" + string(redis_port)
-
-		to_tcp_addr, _ := net.ResolveTCPAddr("tcp4", to_addr)
-
-		logger.Infof("Redis %s local_tcp_addr is %s, to_tcp_addr is %s \n", name, local_tcp_addr.String(), to_tcp_addr.String())
-
-		currentProxyPair := PorxyPair{From: local_tcp_addr.String(), To: to_tcp_addr.String()}
-
-		CurrentEntry := Entry{Name: name, Pair: currentProxyPair}
-
-		ConfigMap[name] = CurrentEntry
-
-		go HandleConnection(CurrentEntry)
+		go HandleConnection(CurrentE)
 
 	}
 }
@@ -532,6 +606,7 @@ func updateRedisProxy(name string, conn *zk.Conn) {
 	var OK bool
 
 	if CurrentE, OK = ConfigMap[name]; OK {
+
 		logger.Infof("Redis %s exist in ConfigMap, and it might have failoevr occurred, will master ip.", name)
 
 		redis_ip, redis_port := getRedisMnameInfo(name, conn)
@@ -601,19 +676,25 @@ func watchRedisStatus(conn *zk.Conn) {
 
 					redisName := strings.Split(event_path, "/")[3]
 
-					if _, ok := ConfigMap[redisName]; ok {
+					if redisName != "" {
 
-						logger.Infof("Redis %s has already been created!", redisName)
+						if _, ok := ConfigMap[redisName]; ok {
 
+							logger.Infof("Redis %s has already been created!", redisName)
+
+						} else {
+
+							logger.Infof("Redis %s has not been created, will create it later.", redisName)
+							//addRedisProxy(redisName, conn)
+
+						}
 					} else {
-
-						logger.Infof("Redis %s has not been created, will create it by running addRedisProxy function", redisName)
-						addRedisProxy(redisName, conn)
-
+						logger.Errorf("Failed to get redis name ")
 					}
 
 				}
 			}
+
 		case "NodeUpdated":
 			//	fmt.Printf( event_path)
 			event_path := event.Data.Path()
@@ -622,18 +703,17 @@ func watchRedisStatus(conn *zk.Conn) {
 
 			if strings.Contains(event_path, "Mname") {
 
-				logger.Infof("Redis node instance has changed, possibly master and slave switched. Will Sync the status")
+				logger.Infof("Redis node instance has changed, will sync the updates to ConfigMap.")
 				//time.Sleep(SyncZKIntervalSecs * time.Second)
 
 				elapsed := time.Since(startTime).Seconds()
 
 				if elapsed < ProgrameStartTimeAtLeast {
 
-					logger.Infof("Program is just started in, will skip the InitializePorxy function ")
+					logger.Infof("Program might be just started in very short time, will skip the InitializePorxy function ")
 
 				} else {
 
-					logger.Infof("New redis has been created, Will Sync the status")
 
 					time.Sleep(SyncZKIntervalSecs * time.Second)
 
@@ -643,12 +723,31 @@ func watchRedisStatus(conn *zk.Conn) {
 
 						if _, ok := ConfigMap[redisName]; ok {
 
-							logger.Infof("Redis %s in ConfigMap might have failover occurred, will try to update the master ip by running updateRedisProxy.!", redisName)
-							updateRedisProxy(redisName, conn)
+							redis_status_path := RedisPath + "/" + redisName + "/Status"
+
+							redis_status, _, err := conn.Get(redis_status_path)
+
+							if err != nil {
+								logger.Errorf("Failed to get redis %v status %v, error is %v", redisName, redis_status, err.Error())
+							} else {
+
+								logger.Infof("redis %s status is %v.", redisName, redis_status)
+							}
+
+							switch  string(redis_status) {
+
+							case "RUNNING":
+								logger.Infof("Redis %s status is %v, failover might have occurred, will try to update the master ip by running updateRedisProxy.!", redisName, redis_status)
+								updateRedisProxy(redisName, conn)
+							default:
+								logger.Infof("Redis %s status is %s, failover might have occurred, or redis is deleted!", redisName, redis_status)
+
+							}
 
 						} else {
 
-							logger.Infof("Redis %s has not been created, will create it by running addRedisProxy function", redisName)
+							logger.Infof("Redis %s is not in ConfigMap, will create it by running addRedisProxy function", redisName)
+							addRedisProxy(redisName, conn)
 
 						}
 
@@ -659,6 +758,52 @@ func watchRedisStatus(conn *zk.Conn) {
 				}
 
 			}
+
+			if strings.Contains(event_path, "/Status") {
+
+				logger.Infof("Redis node instance status has changed, will sync the updates to ConfigMap.")
+
+				redisName := strings.Split(event_path, "/")[3]
+
+				if redisName != "" {
+
+					if _, ok := ConfigMap[redisName]; ok {
+
+						redis_status_path := RedisPath + "/" + redisName + "/Status"
+
+						redis_status, _, err := conn.Get(redis_status_path)
+
+						if err != nil {
+							logger.Errorf("Failed to get redis %v status %v, error is %v", redisName, redis_status, err.Error())
+						} else {
+
+							logger.Infof("redis %s status is %v.", redisName, redis_status)
+						}
+
+						switch  string(redis_status) {
+
+						case "DELETED":
+							logger.Infof("Redis %v status is deleted, should remove it from configMap.")
+							lock.Lock()
+							defer lock.Unlock()
+							delete(ConfigMap, redisName)
+						default:
+							logger.Infof("redis %s status is %s, will do nothing about it.", redisName, redis_status )
+						}
+					}
+				}
+			}
+
+			logging.Infof("Last setp on UpdateNode, CLEAN empty key.")
+			for key,_ := range ConfigMap {
+				if key == "" {
+					lock.Lock()
+					defer lock.Unlock()
+					delete(ConfigMap,"")
+				}
+			}
+
+
 
 		case "NodeRemoved":
 			//fmt.Printf( event_path)
@@ -801,7 +946,7 @@ func main() {
 
 	//Initialize existent proxy instance inside zk and added them into ConfigMap
 
-	InitializeProxy(conn, RedisPath)
+	go InitializeProxy(conn, RedisPath)
 
 	//Watch each redis status and take action if failover occurs or new redis created
 	go watchRedisStatus(conn)
@@ -810,7 +955,17 @@ func main() {
 
 	http.HandleFunc("/Get/", HandleHTTPGet)
 
-	logger.Fatal(http.ListenAndServe(":"+string(ProxyPort), nil))
+	err := http.ListenAndServe(ProxyAddr, nil)
+
+	if err != nil {
+
+		logger.Errorf("Failed to start http server on port %v!, error is %v", ProxyAddr, err.Error())
+
+	} else {
+
+		logger.Infof("Start http server on port %v successfuly!", ProxyAddr)
+
+	}
 
 	//Wait indefinitely
 	waitCh := make(chan bool)
