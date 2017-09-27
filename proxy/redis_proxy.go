@@ -229,7 +229,7 @@ func getRedisMnameInfo(name string, conn *zk.Conn) (string, string) {
 
 			if redisIp != "" {
 
-				logger.Infof("Redis %s get the ip from zk, the redis ip is %v", name, redis_ip)
+				logger.Infof("Redis %s get the ip from zk, the redis ip is %v", name, redisIp)
 				redis_ip = redisIp
 				break
 
@@ -268,7 +268,7 @@ func getRedisMnameInfo(name string, conn *zk.Conn) (string, string) {
 		logger.Errorf("zk path name/Pros/instance/Port error: %v\n", RedisPath+"/"+name+"/Procs/"+redis_id+"/Port")
 		return "", ""
 	}
-
+	logger.Infof("getRedisMnameInfo: successfully return redis ip and port %s:%s", name, redis_ip, redis_port)
 	return redis_ip, redis_port
 }
 
@@ -401,13 +401,14 @@ func InitializeProxy(conn *zk.Conn, path string) {
 
 func getLocalRedisPort() string {
 
-	var redis_port_found bool = false
-
 	var redis_tcp_local_port string
 
 	logger.Infof("getLocalRedisPort function Run")
 
 	for {
+
+		redis_port_found := false
+
 		random_port := RandInt64(RedisPortMinNum, RedisPortMaxNum)
 
 		redis_tcp_local_port = strconv.Itoa(random_port)
@@ -502,8 +503,6 @@ func HandleConnection(E Entry) error {
 			var wg sync.WaitGroup
 			cp := func(dst net.Conn, src net.Conn) {
 				buf := bufferPool.Get().([]byte)
-				// TODO use splice on linux
-				// TODO needs some timeout to prevent torshammer ddos
 				_, err := io.CopyBuffer(dst, src, buf)
 				select {
 				case first <- struct{}{}:
@@ -644,7 +643,8 @@ func updateRedisProxy(name string, conn *zk.Conn) {
 			return
 		}
 
-		time.Sleep(RedisFailOverTimeSecs * time.Second)
+		//time.Sleep(RedisFailOverTimeSecs * time.Second)
+		logging.Infof("updateRedisProxy: Ready to change redis %s ip and port to %s:%s", name, redis_ip, redis_port)
 
 		//Add lock to ConfigMap in case of concurrent read and write on configMap. eg: create redis and existant redis failover happens at the same time, this might occur
 		lock.Lock()
@@ -689,7 +689,6 @@ func checkRedisUpdate(event_path string, redisName string, conn *zk.Conn) {
 
 			logger.Infof("Redis %s status is %s, failover might have occurred, will try to update the master ip by running updateRedisProxy.!", redisName, redis_status)
 			updateRedisProxy(redisName, conn)
-			cleanEmptyEntry()
 
 		case "DELETED":
 
@@ -700,17 +699,6 @@ func checkRedisUpdate(event_path string, redisName string, conn *zk.Conn) {
 
 		default:
 			logger.Infof("Redis %s status is %s, failover might have occurred, or redis is deleted!", redisName, redis_status)
-		}
-	}
-}
-
-func cleanEmptyEntry() {
-	logging.Infof("Clean empty entry in ConfigMap.")
-	for key, _ := range ConfigMap {
-		if key == "" {
-			lock.Lock()
-			defer lock.Unlock()
-			delete(ConfigMap, "")
 		}
 	}
 }
