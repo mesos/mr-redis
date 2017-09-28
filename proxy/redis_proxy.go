@@ -53,7 +53,7 @@ const (
 
 	RedisPortMaxNum = 6400
 
-	ProxyAddr = "127.0.0.1:7979"
+	ProxyAddr = ":7979"
 
 	RedisPath = "/MrRedis/Instances"
 
@@ -121,6 +121,9 @@ func newTCPListener(addr string) (net.Listener, error) {
 }
 
 func RandInt64(min, max int) int {
+
+	rand.Seed(time.Now().UTC().UnixNano())
+
 	if min >= max || min == 0 || max == 0 {
 		return max
 	}
