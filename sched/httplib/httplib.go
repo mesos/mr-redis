@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+  "strings"
 
 	"github.com/astaxie/beego"
 
@@ -39,6 +40,19 @@ func (this *MainController) CreateInstance() {
 	masters, _ = strconv.Atoi(this.Ctx.Input.Param(":MASTERS"))   // Get the capacity of the instance in MB
 	slaves, _ = strconv.Atoi(this.Ctx.Input.Param(":SLAVES"))     // Get the capacity of the instance in MB
 	inData := this.Ctx.Input.CopyBody()
+
+  //Check if instance name is valid, e.g.: space and null is not allowed from both front end and rest api
+	name = strings.TrimSpace(name)
+
+	if name == "null" {
+		this.Ctx.WriteString(fmt.Sprintf("Instance name is null, please provide a valid name"))
+		return
+	}
+
+	if len(name) == 0 {
+		this.Ctx.WriteString(fmt.Sprintf("Instance name consists of spaces, please provide a valid name"))
+		return
+	}
 
 	if len(inData) > 0 {
 		//Some Payload is being supplied for create
